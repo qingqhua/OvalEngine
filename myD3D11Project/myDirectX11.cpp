@@ -36,12 +36,11 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 
 	XMMATRIX I = XMMatrixIdentity();
 	XMStoreFloat4x4(&mWorld, I);
+	XMStoreFloat4x4(&m2ndWorld, I);
 	XMStoreFloat4x4(&mView, I);
 	XMStoreFloat4x4(&mProj, I);
-
 	XMMATRIX boxOffest = XMMatrixTranslation(0.0f, 2.0f, -1.0f);
 	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(I, boxOffest));
-	
 }
 
 myDirectX11::~myDirectX11()
@@ -85,7 +84,7 @@ void myDirectX11::UpdateScene(float dt)
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
 	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f);
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, V);
 
@@ -135,6 +134,9 @@ void myDirectX11::DrawScene()
 	} 
 
 // 	//draw the second box
+	XMMATRIX mRotateY = XMMatrixRotationY(mTimer.TotalTime());
+	XMMATRIX mTranslate = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(mTranslate,mRotateY ));
  	world = XMLoadFloat4x4(&m2ndWorld);
  	mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*view*proj)));
  	mTech->GetPassByIndex(0)->Apply(0, md3dImmediateContext);
