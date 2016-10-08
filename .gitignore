@@ -27,3 +27,14 @@
 *.exe
 *.out
 *.app
+
+#VS+CPP 20161008
+*.log
+*.tlog
+*.ilk
+*.suo
+*.pdb
+*.idb
+*.db
+*.lastbuildstate
+*.user
