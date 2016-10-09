@@ -1,4 +1,4 @@
-# Compiled Object files
+c# Compiled Object files
 *.slo
 *.lo
 *.o
@@ -21,20 +21,20 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
 *.out
 *.app
 
-#VS+CPP 20161008
+# VS+CPP 20161008
+myD3D11Project/Debug/*
+myD3D11Project/.vs/*
+*.lastbuildstate
+*.db
 *.log
 *.tlog
-*.ilk
-*.suo
 *.pdb
 *.idb
-*.db
-*.lastbuildstate
-*.user
+*.VC.db
+*.ilk

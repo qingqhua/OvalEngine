@@ -18,16 +18,31 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
+	//matrix init
+	void InitMatrix();
+
+	void InitLight();
+
+	//create&set vertex&index buffer
 	void BuildGeometryBuffer();
+
+	//compile FX
 	void BuildFX();
+
+	void TryGeometryBuffers();
+
+	//create input layout 
 	void BuildVertexLayout();
 
 	ID3D11Buffer* mBoxVB;
 	ID3D11Buffer* mBoxIB;
 	ID3DX11Effect* mFX;
 	ID3DX11EffectTechnique* mTech;
-	ID3DX11EffectMatrixVariable* mfxWorldViewProj;
-	ID3DX11EffectScalarVariable* mfxTime;
+	ID3DX11EffectMatrixVariable* mfxWorld;
+	ID3DX11EffectMatrixVariable* mfxProj;
+	ID3DX11EffectMatrixVariable* mfxView;
+
+	ID3DX11EffectVariable* mfxLight;
 
 	ID3D11InputLayout* mInputLayout;
 
