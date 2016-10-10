@@ -5,13 +5,7 @@ using namespace DirectX;
 struct  Vertex
 {
 	XMFLOAT3 Pos;
-	XMFLOAT3 Normal;
-};
-
-struct  VertexTry
-{
-	XMFLOAT3 Pos;
-	XMFLOAT4 Normal;
+	XMFLOAT3 Norm;
 };
 
 struct Light
@@ -40,13 +34,19 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	: D3DApp(hInstance), 
 	mBoxVB(0), mBoxIB(0), 
 	mFX(0), mTech(0), mInputLayout(0),
-	mfxWorld(0),mfxProj(0),mfxView(0),mfxLight(0),	
+	mfxWorld(0),mfxProj(0),mfxView(0),/*mfxLight(0),*/	
 	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f)
 {
 	mMainWndCaption = L"box demo";
 
 	mLastMousePos.x = 0;
 	mLastMousePos.y = 0;
+
+	XMMATRIX I = XMMatrixIdentity();
+	XMStoreFloat4x4(&mWorld, I);
+	XMStoreFloat4x4(&m2ndWorld, I);
+	XMStoreFloat4x4(&mView, I);
+	XMStoreFloat4x4(&mProj, I);
 }
 
 myDirectX11::~myDirectX11()
@@ -62,9 +62,7 @@ bool myDirectX11::Init()
 	if(!D3DApp::Init())
 		return false;
 	
-	InitMatrix();
-	TryGeometryBuffers();
-	//BuildGeometryBuffer();
+	BuildGeometryBuffer();
 	BuildFX();
 	BuildVertexLayout();
 
@@ -94,9 +92,7 @@ void myDirectX11::UpdateScene(float dt)
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, V);
-
-	
+	XMStoreFloat4x4(&mView, V);	
 }
 
 void myDirectX11::DrawScene()
@@ -111,21 +107,16 @@ void myDirectX11::DrawScene()
 	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//set vertex buffer
-	UINT stride = sizeof(VertexTry);
+	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
 
-
 	//set index buffer
-	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
+	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_FLOAT, 0);
 
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX view = XMLoadFloat4x4(&mView);
 	XMMATRIX proj = XMLoadFloat4x4(&mProj);
-
-	world=XMMatrixTranspose(world);
-	view = XMMatrixTranspose(view);
-	proj = XMMatrixTranspose(proj);
 
 	mfxWorld->SetMatrix(reinterpret_cast<float*>(&world));
 	mfxView->SetMatrix(reinterpret_cast<float*>(&view));
@@ -133,9 +124,9 @@ void myDirectX11::DrawScene()
 
 	//Update Light
 	Light vLight;
-	vLight.Dir = XMFLOAT4(0.0f, -1.0f, 0.0f, 1.0f);
+	vLight.Dir = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	vLight.Color = Colors::Green;
-	//mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
+	mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
 	
 	D3DX11_TECHNIQUE_DESC techDesc;
 	mTech->GetDesc(&techDesc);
@@ -147,29 +138,16 @@ void myDirectX11::DrawScene()
 		md3dImmediateContext->DrawIndexed(36,0, 0);
 	} 
 
-// 	//draw the second box
-// 	XMMATRIX mRotateY = XMMatrixRotationY(mTimer.TotalTime());
-// 	XMMATRIX mTranslate = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
-// 	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(mTranslate,mRotateY ));
-//  	world = XMLoadFloat4x4(&m2ndWorld);
-//  	mfxWorld->SetMatrix(reinterpret_cast<float*>(&(world)));
-//  	mTech->GetPassByIndex(0)->Apply(0, md3dImmediateContext);
-//  	md3dImmediateContext->DrawIndexed(36, 0, 0);
+	//draw the second box
+	XMMATRIX mRotateY = XMMatrixRotationY(mTimer.TotalTime());
+	XMMATRIX mTranslate = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(mTranslate,mRotateY ));
+ 	world = XMLoadFloat4x4(&m2ndWorld);
+ 	mfxWorld->SetMatrix(reinterpret_cast<float*>(&(world)));
+ 	mTech->GetPassByIndex(0)->Apply(0, md3dImmediateContext);
+ 	md3dImmediateContext->DrawIndexed(36, 0, 0);
 
 	HR(mSwapChain->Present(0, 0));
-}
-
-void myDirectX11::InitMatrix()
-{
-	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, I);
-	XMStoreFloat4x4(&m2ndWorld, I);
-	XMStoreFloat4x4(&mView, I);
-	XMStoreFloat4x4(&mProj, I);
-}
-
-void myDirectX11::InitLight()
-{
 }
 
 void myDirectX11::BuildGeometryBuffer()
@@ -205,7 +183,7 @@ void myDirectX11::BuildGeometryBuffer()
 		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
 		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
 		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-	};
+ 	};
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
@@ -219,12 +197,6 @@ void myDirectX11::BuildGeometryBuffer()
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = vertices;
 	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
-
-// 	//set vertex buffer
-// 	UINT stride = sizeof(Vertex);
-// 	UINT offset = 0;
-// 	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
-
 
 	// Create the index buffer
 	unsigned int indices[] = {
@@ -259,18 +231,10 @@ void myDirectX11::BuildGeometryBuffer()
 	iinitData.pSysMem = indices;
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
 
-// 	//set index buffer
-// 	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
-// 
-// 	//set primitive topology
-// 	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-// 
-	
 }
 
 void myDirectX11::BuildFX()
 {
-	d3dHelper::CreateRandomTexture1DSRV(md3dDevice);
 	DWORD shaderFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
 	shaderFlags |= D3D10_SHADER_DEBUG;
@@ -306,74 +270,7 @@ void myDirectX11::BuildFX()
 		mfxWorld = mFX->GetVariableByName("worldMatrix")->AsMatrix();
 		mfxView = mFX->GetVariableByName("viewMatrix")->AsMatrix();
 		mfxProj = mFX->GetVariableByName("projMatrix")->AsMatrix();
-		//mfxLight = mFX->GetVariableByName("light");
-}
-
-void myDirectX11::TryGeometryBuffers()
-{
-	// Create vertex buffer
-	VertexTry vertices[] =
-	{
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), Colors::White },
-		{ XMFLOAT3(-1.0f, +1.0f, -1.0f), Colors::Black },
-		{ XMFLOAT3(+1.0f, +1.0f, -1.0f), Colors::Red },
-		{ XMFLOAT3(+1.0f, -1.0f, -1.0f), Colors::Green },
-		{ XMFLOAT3(-1.0f, -1.0f, +1.0f), Colors::Blue },
-		{ XMFLOAT3(-1.0f, +1.0f, +1.0f), Colors::Yellow },
-		{ XMFLOAT3(+1.0f, +1.0f, +1.0f), Colors::Cyan },
-		{ XMFLOAT3(+1.0f, -1.0f, +1.0f), Colors::Magenta }
-	};
-
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(VertexTry) * 8;
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = vertices;
-	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
-
-
-	// Create the index buffer
-
-	UINT indices[] = {
-		// front face
-		0, 1, 2,
-		0, 2, 3,
-
-		// back face
-		4, 6, 5,
-		4, 7, 6,
-
-		// left face
-		4, 5, 1,
-		4, 1, 0,
-
-		// right face
-		3, 2, 6,
-		3, 6, 7,
-
-		// top face
-		1, 5, 6,
-		1, 6, 2,
-
-		// bottom face
-		4, 0, 3,
-		4, 3, 7
-	};
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * 36;
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = indices;
-	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
+		mfxLight = mFX->GetVariableByName("light");
 }
 
 void myDirectX11::BuildVertexLayout()
@@ -389,11 +286,7 @@ void myDirectX11::BuildVertexLayout()
 	D3DX11_PASS_DESC passDesc;
 	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
 	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
-	passDesc.IAInputSignatureSize, &mInputLayout));
-
-// 	//set input layout
-// 	md3dImmediateContext->IASetInputLayout(mInputLayout);
-
+		passDesc.IAInputSignatureSize, &mInputLayout));
 }
 
 void myDirectX11::OnMouseUp(WPARAM btnState, int x, int y)

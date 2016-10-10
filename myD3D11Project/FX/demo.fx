@@ -1,14 +1,14 @@
 struct DirLight
 {
-	float4 lightDir;
-	float4 lightColor;
+	float4 Dir;
+	float4 Color;
 };
 
 cbuffer cbPerObject
 {
 	float4x4 worldMatrix;
 	float4x4 viewMatrix;
-	float4x4 projectionMatrix;
+	float4x4 projMatrix;
 	DirLight light;
 };
 
@@ -21,7 +21,7 @@ struct VertexIn
 struct VertexOut
 {
 	float4 pos  : SV_POSITION;
-	//float3 norm : NORMAL;
+	float3 norm : NORMAL;
 };
 
 VertexOut VS(VertexIn vin)
@@ -30,20 +30,21 @@ VertexOut VS(VertexIn vin)
 
 	vout.pos = mul(float4(vin.pos, 1.0f), worldMatrix);
 	vout.pos = mul(vout.pos, viewMatrix);
-	vout.pos = mul(vout.pos, projectionMatrix);
+	vout.pos = mul(vout.pos, projMatrix);
 
-	//vout.norm = mul(float4(vin.norm,1), worldMatrix).xyz;
-	//vout.norm = normalize(vout.norm);
+	vout.norm = mul(float4(vin.norm,1), worldMatrix).xyz;
+	vout.norm = normalize(vout.norm);
 
 	return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
-	//float4 color = 0;
-	//color= saturate(dot((float3)light.lightDir, pin.norm)*light.lightColor);
-	//color.a = 1;
-	return float4(1.0f, 1.0f, 0.0f, 1.0f);
+	float4 color = 0;
+	float4 lightDir = -light.Dir;
+	color= saturate(dot((float3)light.Dir, pin.norm)*light.Color);
+	color.a = 1;
+	return color;
 }
 
 technique11 LightTech

@@ -27,7 +27,7 @@ c# Compiled Object files
 *.out
 *.app
 
-# VS+CPP 20161008
+# VS+CPP
 myD3D11Project/Debug/*
 myD3D11Project/.vs/*
 *.lastbuildstate
@@ -36,5 +36,4 @@ myD3D11Project/.vs/*
 *.tlog
 *.pdb
 *.idb
-*.VC.db
 *.ilk

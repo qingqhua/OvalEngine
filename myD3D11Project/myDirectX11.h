@@ -18,18 +18,11 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
-	//matrix init
-	void InitMatrix();
-
-	void InitLight();
-
 	//create&set vertex&index buffer
 	void BuildGeometryBuffer();
 
 	//compile FX
 	void BuildFX();
-
-	void TryGeometryBuffers();
 
 	//create input layout 
 	void BuildVertexLayout();
