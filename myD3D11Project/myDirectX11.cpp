@@ -8,10 +8,19 @@ struct  Vertex
 	XMFLOAT3 Norm;
 };
 
+struct  Mat
+{
+	XMFLOAT4 Diffuse;
+	XMFLOAT4 Ambient;
+	XMFLOAT4 Specular;
+};
+
 struct Light
 {
-	XMFLOAT4 Dir;
-	XMFLOAT4 Color;
+	XMFLOAT4 Diffuse;
+	XMFLOAT4 Ambient;
+	XMFLOAT4 Specular;
+	XMFLOAT3 Dir;
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
@@ -34,8 +43,8 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	: D3DApp(hInstance), 
 	mBoxVB(0), mBoxIB(0), 
 	mFX(0), mTech(0), mInputLayout(0),
-	mfxWorld(0),mfxProj(0),mfxView(0),/*mfxLight(0),*/	
-	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f)
+	mfxWorld(0),mfxProj(0),mfxView(0),mfxLight(0), mfxMat(0),/*mfxEyePos(0),*/
+	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f)/*mEyePos(0.0f,0.0f,0.0f)*/
 {
 	mMainWndCaption = L"box demo";
 
@@ -93,11 +102,14 @@ void myDirectX11::UpdateScene(float dt)
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, V);	
+
+	mEyePos = XMFLOAT3(x,y,z);
+	//mlightDir = XMFLOAT3(x, y, z);
 }
 
 void myDirectX11::DrawScene()
 {
-	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::White));
 	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//set input layout
@@ -124,10 +136,21 @@ void myDirectX11::DrawScene()
 
 	//Update Light
 	Light vLight;
-	vLight.Dir = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	vLight.Color = Colors::Green;
+	vLight.Dir = /*mlightDir;*/XMFLOAT3(0.0f, -1.0f, 0.0f);
+	vLight.Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	vLight.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	vLight.Specular = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
-	
+
+	//Update Material
+	Mat mat;
+	mat.Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	mat.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	mat.Specular = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	mfxMat->SetRawValue(&mat, 0, sizeof(mat));
+	//Update eyePos
+	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
+
 	D3DX11_TECHNIQUE_DESC techDesc;
 	mTech->GetDesc(&techDesc);
 	
@@ -270,7 +293,9 @@ void myDirectX11::BuildFX()
 		mfxWorld = mFX->GetVariableByName("worldMatrix")->AsMatrix();
 		mfxView = mFX->GetVariableByName("viewMatrix")->AsMatrix();
 		mfxProj = mFX->GetVariableByName("projMatrix")->AsMatrix();
-		mfxLight = mFX->GetVariableByName("light");
+		mfxEyePos = mFX->GetVariableByName("eyePos")->AsVector();
+		mfxLight = mFX->GetVariableByName("dirLight");
+		mfxMat = mFX->GetVariableByName("mat");
 }
 
 void myDirectX11::BuildVertexLayout()

@@ -36,6 +36,9 @@ private:
 	ID3DX11EffectMatrixVariable* mfxView;
 
 	ID3DX11EffectVariable* mfxLight;
+	ID3DX11EffectVariable* mfxMat;
+
+	ID3DX11EffectVariable* mfxEyePos;
 
 	ID3D11InputLayout* mInputLayout;
 
@@ -43,7 +46,8 @@ private:
 	DirectX::XMFLOAT4X4 m2ndWorld;
 	DirectX::XMFLOAT4X4 mView;
 	DirectX::XMFLOAT4X4 mProj;
-
+	DirectX::XMFLOAT3 mEyePos;
+	//DirectX::XMFLOAT3 mlightDir;
 	float mTheta;
 	float mPhi;
 	float mRadius;

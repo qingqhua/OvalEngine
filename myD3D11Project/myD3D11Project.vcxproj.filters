@@ -62,9 +62,6 @@
     <ClInclude Include="..\Common\myMathLibrary.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\myLightLibrary.h">
-      <Filter>Common</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\LightHelper.fx">
