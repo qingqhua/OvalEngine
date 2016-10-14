@@ -116,14 +116,14 @@ void myDirectX11::DrawScene()
 	DirectionalLight vLight;
 	vLight.Direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
 	vLight.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	vLight.Ambient = XMFLOAT4(1.0f, 0.5f, 0.0f, 1.0f);
-	vLight.Specular = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	vLight.Ambient = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	vLight.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
 
 	//Update Material
 	Material mat;
 	mat.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	mat.Ambient = XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f);
+	mat.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	mat.Specular = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	mfxMat->SetRawValue(&mat, 0, sizeof(mat));
 

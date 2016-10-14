@@ -1,10 +1,4 @@
 ﻿  myShapeLibrary.cpp
-f:\real-time-rendering-engine\common\myshapelibrary.cpp(70): warning C4018: '<': signed/unsigned mismatch
-  d3dUtil.cpp
-  d3dApp.cpp
-  Generating Code...
-  Compiling...
-  myDirectX11.cpp
-  Generating Code...
+f:\real-time-rendering-engine\common\myshapelibrary.cpp(98): warning C4018: '<': signed/unsigned mismatch
   myD3D11Project.vcxproj -> F:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.exe
   myD3D11Project.vcxproj -> F:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.pdb (Full PDB)
