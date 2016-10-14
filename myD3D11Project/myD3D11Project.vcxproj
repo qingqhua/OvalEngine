@@ -159,6 +159,7 @@
     <ClCompile Include="..\Common\dxerr.cpp" />
     <ClCompile Include="..\Common\GameTimer.cpp" />
     <ClCompile Include="..\Common\myMathLibrary.cpp" />
+    <ClCompile Include="..\Common\myShapeLibrary.cpp" />
     <ClCompile Include="myDirectX11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -167,13 +168,10 @@
     <ClInclude Include="..\Common\d3dx11effect.h" />
     <ClInclude Include="..\Common\dxerr.h" />
     <ClInclude Include="..\Common\GameTimer.h" />
+    <ClInclude Include="..\Common\myLightLibrary.h" />
     <ClInclude Include="..\Common\myMathLibrary.h" />
+    <ClInclude Include="..\Common\myShapeLibrary.h" />
     <ClInclude Include="myDirectX11.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="FX\LightHelper.fx">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\demo.fx">

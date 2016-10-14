@@ -2,6 +2,8 @@
 
 #include "d3dApp.h"
 
+
+
 class myDirectX11 : public D3DApp
 {
 public:
@@ -47,7 +49,6 @@ private:
 	DirectX::XMFLOAT4X4 mView;
 	DirectX::XMFLOAT4X4 mProj;
 	DirectX::XMFLOAT3 mEyePos;
-	//DirectX::XMFLOAT3 mlightDir;
 	float mTheta;
 	float mPhi;
 	float mRadius;

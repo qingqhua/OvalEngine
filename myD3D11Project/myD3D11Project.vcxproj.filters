@@ -39,6 +39,9 @@
     <ClCompile Include="..\Common\myMathLibrary.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\myShapeLibrary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myDirectX11.h">
@@ -62,11 +65,14 @@
     <ClInclude Include="..\Common\myMathLibrary.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\myLightLibrary.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\myShapeLibrary.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\LightHelper.fx">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="FX\demo.fx">
       <Filter>Shader</Filter>
     </None>

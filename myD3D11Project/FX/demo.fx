@@ -7,6 +7,8 @@ struct DirLight
 	float3 dir;
 };
 
+
+
 struct material
 {
 	float4 diffuse;

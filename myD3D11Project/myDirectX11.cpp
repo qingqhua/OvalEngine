@@ -2,27 +2,6 @@
 
 using namespace DirectX;
 
-struct  Vertex
-{
-	XMFLOAT3 Pos;
-	XMFLOAT3 Norm;
-};
-
-struct  Mat
-{
-	XMFLOAT4 Diffuse;
-	XMFLOAT4 Ambient;
-	XMFLOAT4 Specular;
-};
-
-struct Light
-{
-	XMFLOAT4 Diffuse;
-	XMFLOAT4 Ambient;
-	XMFLOAT4 Specular;
-	XMFLOAT3 Dir;
-};
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 				   PSTR cmdLine, int showCmd)
 {
@@ -43,8 +22,8 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	: D3DApp(hInstance), 
 	mBoxVB(0), mBoxIB(0), 
 	mFX(0), mTech(0), mInputLayout(0),
-	mfxWorld(0),mfxProj(0),mfxView(0),mfxLight(0), mfxMat(0),/*mfxEyePos(0),*/
-	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f)/*mEyePos(0.0f,0.0f,0.0f)*/
+	mfxWorld(0),mfxProj(0),mfxView(0),mfxLight(0), mfxMat(0),mfxEyePos(0),
+	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f), mEyePos(0.0f,0.0f,0.0f)
 {
 	mMainWndCaption = L"box demo";
 
@@ -104,7 +83,6 @@ void myDirectX11::UpdateScene(float dt)
 	XMStoreFloat4x4(&mView, V);	
 
 	mEyePos = XMFLOAT3(x,y,z);
-	//mlightDir = XMFLOAT3(x, y, z);
 }
 
 void myDirectX11::DrawScene()
@@ -119,7 +97,7 @@ void myDirectX11::DrawScene()
 	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//set vertex buffer
-	UINT stride = sizeof(Vertex);
+	UINT stride = sizeof(myShapeLibrary::Vertex);
 	UINT offset = 0;
 	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
 
@@ -135,19 +113,20 @@ void myDirectX11::DrawScene()
 	mfxProj->SetMatrix(reinterpret_cast<float*>(&proj));
 
 	//Update Light
-	Light vLight;
-	vLight.Dir = /*mlightDir;*/XMFLOAT3(0.0f, -1.0f, 0.0f);
-	vLight.Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	vLight.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	vLight.Specular = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	DirectionalLight vLight;
+	vLight.Direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
+	vLight.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	vLight.Ambient = XMFLOAT4(1.0f, 0.5f, 0.0f, 1.0f);
+	vLight.Specular = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
 
 	//Update Material
-	Mat mat;
-	mat.Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	mat.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	mat.Specular = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	Material mat;
+	mat.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	mat.Ambient = XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f);
+	mat.Specular = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	mfxMat->SetRawValue(&mat, 0, sizeof(mat));
+
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
 
@@ -175,72 +154,22 @@ void myDirectX11::DrawScene()
 
 void myDirectX11::BuildGeometryBuffer()
 {
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
- 	};
+	myShapeLibrary::MeshData box;
+	myShapeLibrary shapes;
+	shapes.CreateBox(1.0f, 1.0f, 1.0f, box);
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex)*24;
+	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*box.vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = vertices;
+	vinitData.pSysMem = &box.vertices[0];
 	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
-
-	// Create the index buffer
-	unsigned int indices[] = {
-		3,1,0,
-		2,1,3,
-
-		6,4,5,
-		7,4,6,
-
-		11,9,8,
-		10,9,11,
-
-		14,12,13,
-		15,12,14,
-
-		19,17,16,
-		18,17,19,
-
-		22,20,21,
-		23,20,22
-	};
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -251,7 +180,7 @@ void myDirectX11::BuildGeometryBuffer()
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = indices;
+	iinitData.pSysMem = &box.indices[0];
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
 
 }

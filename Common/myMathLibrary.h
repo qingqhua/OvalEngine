@@ -27,7 +27,27 @@ public:
 		return DirectX::XMMatrixTranspose(XMMatrixInverse(&det, A));
 	}
 
+	static DirectX::XMFLOAT3 myMathLibrary::add(DirectX::XMFLOAT3 v1, DirectX::XMFLOAT3 v2)
+	{
+		return DirectX::XMFLOAT3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+	}
+
+	static DirectX::XMFLOAT3 myMathLibrary::sub(DirectX::XMFLOAT3 v1, DirectX::XMFLOAT3 v2)
+	{
+		return DirectX::XMFLOAT3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+	}
+
+	static DirectX::XMFLOAT3 myMathLibrary::cross(DirectX::XMFLOAT3 v1, DirectX::XMFLOAT3 v2)
+	{
+		return DirectX::XMFLOAT3(v1.y*v2.z - v1.z*v2.y, v1.z*v2.x - v1.x*v2.z, v1.x*v2.y - v1.y*v2.x);
+	}
+
+	static DirectX::XMFLOAT3 myMathLibrary::normlize(DirectX::XMFLOAT3 v)
+	{
+		float tmp = sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
+		return DirectX::XMFLOAT3(v.x / tmp, v.y / tmp, v.z / tmp);
+	}
+
 	static const float Infinity;
 	static const float Pi;
-
 };

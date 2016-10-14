@@ -24,7 +24,7 @@
 #include <vector>
 #include "myMathLibrary.h"
 #include "myLightLibrary.h"
-
+#include "myShapeLibrary.h"
 //---------------------------------------------------------------------------------------
 // Simple d3d error checker for book demos.
 //---------------------------------------------------------------------------------------
