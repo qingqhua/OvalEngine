@@ -251,7 +251,7 @@ void myDirectX11::BuildVertexLayout()
 
 void myDirectX11::BuildTexture()
 {
-	HR(CreateDDSTextureFromFile(md3dDevice, L"WoodCrate.dds", nullptr, &mDiffuseMapSRV));
+	HR(CreateDDSTextureFromFile(md3dDevice, L"Textures/WireFence.dds", nullptr, &mDiffuseMapSRV));
 
 	mfxTextureSRV=mFX->GetVariableByName("diffusemap")->AsShaderResource();
 }

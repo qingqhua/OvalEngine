@@ -7,17 +7,6 @@ struct DirLight
 	float3 dir;
 };
 
-Texture2D diffusemap;
-
-SamplerState samAnisotropic
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 4;
-
-	AddressU = WRAP;
-	AddressV = WRAP;
-};
-
 struct material
 {
 	float4 diffuse;
@@ -33,6 +22,24 @@ cbuffer cbPerObject
 	DirLight dirLight;
 	float3 eyePos;
 	material mat;
+};
+
+Texture2D diffusemap;
+
+SamplerState samAnisotropic
+{
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 1;
+
+	AddressU = WRAP;
+	AddressV = WRAP;
+};
+
+RasterizerState WireframeRS
+{
+	FillMode = Solid;
+	CullMode = None;
+	FrontCounterClockwise = false;
 };
 
 struct VertexIn
@@ -68,6 +75,9 @@ float4 PS(VertexOut pin) : SV_Target
 {
 	float4 color = 0;
 	float4 texcolor = diffusemap.Sample(samAnisotropic, pin.tex);
+	if (texcolor.a < 0.1f)
+		clip(texcolor.a - 0.1f);
+
 	float3 I = dirLight.dir;
 	float3 L = -I;
 
@@ -95,6 +105,7 @@ technique11 LightTech
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
+		SetRasterizerState(WireframeRS);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }
