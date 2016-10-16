@@ -22,6 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include "DDSTextureLoader.h"
 #include "myMathLibrary.h"
 #include "myLightLibrary.h"
 #include "myShapeLibrary.h"

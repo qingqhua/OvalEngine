@@ -7,7 +7,16 @@ struct DirLight
 	float3 dir;
 };
 
+Texture2D diffusemap;
 
+SamplerState samAnisotropic
+{
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 4;
+
+	AddressU = WRAP;
+	AddressV = WRAP;
+};
 
 struct material
 {
@@ -30,12 +39,14 @@ struct VertexIn
 {
 	float3 pos  : POSITION;
 	float3 norm : NORMAL;
+	float2 tex : TEXCOORD0;
 };
 
 struct VertexOut
 {
 	float4 pos  : SV_POSITION;
 	float3 norm : NORMAL;
+	float2 tex : TEXCOORD0;
 };
 
 VertexOut VS(VertexIn vin)
@@ -48,12 +59,15 @@ VertexOut VS(VertexIn vin)
 	vout.norm = mul(float4(vin.norm,1), worldMatrix).xyz;
 	vout.norm = normalize(vout.norm);
 
+	vout.tex = vin.tex;
+
 	return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
 	float4 color = 0;
+	float4 texcolor = diffusemap.Sample(samAnisotropic, pin.tex);
 	float3 I = dirLight.dir;
 	float3 L = -I;
 
@@ -70,8 +84,8 @@ float4 PS(VertexOut pin) : SV_Target
 	float specFactor = pow(saturate(dot(toEye, r)), mat.specular.w);
 	float4 specular = specFactor*dirLight.specular*mat.specular;
 
-	color = diffuse + ambient + specular;
-	color.a = mat.diffuse.a;
+	color = texcolor*(diffuse + ambient) + specular;
+	color.a = mat.diffuse.a*texcolor.a;
 	return color;
 }
 

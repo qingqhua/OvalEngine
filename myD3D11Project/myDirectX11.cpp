@@ -23,7 +23,8 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	mBoxVB(0), mBoxIB(0), 
 	mFX(0), mTech(0), mInputLayout(0),
 	mfxWorld(0),mfxProj(0),mfxView(0),mfxLight(0), mfxMat(0),mfxEyePos(0),
-	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f), mEyePos(0.0f,0.0f,0.0f)
+	mTheta(1.5f*3.14f),mPhi(0.25f*3.14f), mRadius(10.0f), mEyePos(0.0f,0.0f,0.0f),
+	mfxTextureSRV(0),mDiffuseMapSRV(0)
 {
 	mMainWndCaption = L"box demo";
 
@@ -52,6 +53,7 @@ bool myDirectX11::Init()
 	
 	BuildGeometryBuffer();
 	BuildFX();
+	BuildTexture();
 	BuildVertexLayout();
 
 	return true;
@@ -114,21 +116,24 @@ void myDirectX11::DrawScene()
 
 	//Update Light
 	DirectionalLight vLight;
-	vLight.Direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
-	vLight.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	vLight.Direction = XMFLOAT3(0.5f, -0.5f, 0.0f);
+	vLight.Diffuse = XMFLOAT4(0.2f, 0.2f, 0.3f, 1.0f);
 	vLight.Ambient = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	vLight.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	vLight.Specular = XMFLOAT4(0.0f, 0.3f, 1.0f, 1.0f);
 	mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
 
 	//Update Material
 	Material mat;
-	mat.Diffuse = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	mat.Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	mat.Specular = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	mat.Diffuse = XMFLOAT4(0.3f, 0.3f, 1.0f, 1.0f);
+	mat.Ambient = XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f);
+	mat.Specular = XMFLOAT4(0.0f, 0.5f, 1.0f, 1.0f);
 	mfxMat->SetRawValue(&mat, 0, sizeof(mat));
 
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
+
+	//Update Tex
+	mfxTextureSRV->SetResource(mDiffuseMapSRV);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	mTech->GetDesc(&techDesc);
@@ -154,33 +159,33 @@ void myDirectX11::DrawScene()
 
 void myDirectX11::BuildGeometryBuffer()
 {
-	myShapeLibrary::MeshData box;
+	myShapeLibrary::MeshData quad;
 	myShapeLibrary shapes;
-	shapes.CreateBox(1.0f, 1.0f, 1.0f, box);
+	shapes.CreateBox( 1.0f,1.0f,1.0f,quad);
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*box.vertices.size();
+	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*quad.vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &box.vertices[0];
+	vinitData.pSysMem = &quad.vertices[0];
 	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int)*36 ;
+	ibd.ByteWidth = sizeof(int)*quad.indices.size() ;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &box.indices[0];
+	iinitData.pSysMem = &quad.indices[0];
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
 
 }
@@ -234,13 +239,21 @@ void myDirectX11::BuildVertexLayout()
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
 		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	//create the input layout
 	D3DX11_PASS_DESC passDesc;
 	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
+}
+
+void myDirectX11::BuildTexture()
+{
+	HR(CreateDDSTextureFromFile(md3dDevice, L"WoodCrate.dds", nullptr, &mDiffuseMapSRV));
+
+	mfxTextureSRV=mFX->GetVariableByName("diffusemap")->AsShaderResource();
 }
 
 void myDirectX11::OnMouseUp(WPARAM btnState, int x, int y)

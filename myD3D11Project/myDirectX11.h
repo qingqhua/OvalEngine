@@ -29,20 +29,30 @@ private:
 	//create input layout 
 	void BuildVertexLayout();
 
-	ID3D11Buffer* mBoxVB;
-	ID3D11Buffer* mBoxIB;
+	void BuildTexture();
+
+	//effect
 	ID3DX11Effect* mFX;
 	ID3DX11EffectTechnique* mTech;
+
+	//buffer
+	ID3D11Buffer* mBoxVB;
+	ID3D11Buffer* mBoxIB;
+	ID3D11InputLayout* mInputLayout;
+
+	//matrix
 	ID3DX11EffectMatrixVariable* mfxWorld;
 	ID3DX11EffectMatrixVariable* mfxProj;
 	ID3DX11EffectMatrixVariable* mfxView;
 
+	//light
 	ID3DX11EffectVariable* mfxLight;
 	ID3DX11EffectVariable* mfxMat;
-
 	ID3DX11EffectVariable* mfxEyePos;
 
-	ID3D11InputLayout* mInputLayout;
+	//texture
+	ID3DX11EffectShaderResourceVariable* mfxTextureSRV;
+	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectX::XMFLOAT4X4 mWorld;
 	DirectX::XMFLOAT4X4 m2ndWorld;
