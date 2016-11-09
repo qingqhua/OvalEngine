@@ -5,36 +5,39 @@ using namespace DirectX;
 void myShapeLibrary::CreateBox(float width, float height, float depth,MeshData &meshData)
 {
 	Vertex v[24];
+	float w2 = width / 2;
+	float h2 = height / 2;
+	float d2 = depth / 2;
 	
-	v[0] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[1] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[2] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[3] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[0] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[1] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[2] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[3] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
 
-	v[4] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[5] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[6] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[7] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[4] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[5] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[6] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[7] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 1.0f));
 
-	v[8] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[9] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[10] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[11] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[8] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[9] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[10] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[11] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
 
-	v[12] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[13] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[14] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[15] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[12] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[13] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[14] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[15] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
 
-	v[16] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[17] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[18] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[19] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[16] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[17] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[18] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[19] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(0.0f, 1.0f));
 
-	v[20] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[21] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[22] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[23] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[20] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[21] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(1.0f, 0.0f));
+	v[22] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[23] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
 
 	meshData.vertices.assign(&v[0], &v[24]);
 
@@ -63,6 +66,72 @@ void myShapeLibrary::CreateBox(float width, float height, float depth,MeshData &
 	ComputeNorm(meshData);
 };
 
+
+void myShapeLibrary::Voxel(MeshData &meshData)
+{
+	Vertex v[24];
+	float w2 = 1.0f / 2;
+	float h2 = 1.0f / 2;
+	float d2 = 1.0f / 2;
+
+	v[0] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[1] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[2] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[3] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
+
+	v[4] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[5] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[6] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[7] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 1.0f));
+
+	v[8] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[9] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[10] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[11] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
+
+	v[12] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[13] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[14] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[15] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
+
+	v[16] = Vertex(XMFLOAT3(-w2, -h2, -d2), XMFLOAT2(0.0f, 0.0f));
+	v[17] = Vertex(XMFLOAT3(w2, -h2, -d2), XMFLOAT2(1.0f, 0.0f));
+	v[18] = Vertex(XMFLOAT3(w2, h2, -d2), XMFLOAT2(1.0f, 1.0f));
+	v[19] = Vertex(XMFLOAT3(-w2, h2, -d2), XMFLOAT2(0.0f, 1.0f));
+
+	v[20] = Vertex(XMFLOAT3(-w2, -h2, d2), XMFLOAT2(0.0f, 0.0f));
+	v[21] = Vertex(XMFLOAT3(w2, -h2, d2), XMFLOAT2(1.0f, 0.0f));
+	v[22] = Vertex(XMFLOAT3(w2, h2, d2), XMFLOAT2(1.0f, 1.0f));
+	v[23] = Vertex(XMFLOAT3(-w2, h2, d2), XMFLOAT2(0.0f, 1.0f));
+
+	meshData.vertices.assign(&v[0], &v[24]);
+
+	unsigned int i[] = {
+		3,1,0,
+		2,1,3,
+
+		6,4,5,
+		7,4,6,
+
+		11,9,8,
+		10,9,11,
+
+		14,12,13,
+		15,12,14,
+
+		19,17,16,
+		18,17,19,
+
+		22,20,21,
+		23,20,22
+	};
+
+	meshData.indices.assign(i, i + 36);
+
+	ComputeNorm(meshData);
+};
+
+
 void myShapeLibrary::CreateSphere(float radius)
 {
 
@@ -73,12 +142,16 @@ void myShapeLibrary::CreateCylinder(float radius)
 
 }
 
-void myShapeLibrary::CreateQuad(MeshData &meshdata) {
+void myShapeLibrary::CreateQuad(float width,float height,MeshData &meshdata) {
+	
+	float w2 = width / 2;
+	float h2 = height / 2;
+
 	Vertex v[4];
-	v[0] = Vertex(-1.0f, -1.0f, 0.0f);
-	v[1] = Vertex(-1.0f, 1.0f, 0.0f);
-	v[2] = Vertex(1.0f, 1.0f, 0.0f);
-	v[3] = Vertex(1.0f, -1.0f, 0.0f);
+	v[0] = Vertex(-w2, -h2, 0.0f);
+	v[1] = Vertex(-w2, h2, 0.0f);
+	v[2] = Vertex(w2, h2, 0.0f);
+	v[3] = Vertex(w2, -h2, 0.0f);
 
 	meshdata.vertices.assign(&v[0], &v[4]);
 
@@ -89,7 +162,6 @@ void myShapeLibrary::CreateQuad(MeshData &meshdata) {
 
 	meshdata.indices.assign(&i[0], &i[6]);
 
-	ComputeNorm(meshdata);
 }
 
 

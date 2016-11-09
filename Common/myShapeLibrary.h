@@ -31,10 +31,14 @@ public:
 		std::vector <UINT> indices;
 	};
 
-	void CreateQuad(MeshData &meshdata);
+	void Voxel(MeshData &meshdata);
+	void CreateQuad(float width, float height, MeshData &meshdata);
 	void CreateBox(float width, float height, float depth,MeshData &meshData);
 	void CreateSphere(float radius);
 	void CreateCylinder(float radius);
+
+	//bool isActive();
 private:
+	bool m_active;
 	void ComputeNorm(MeshData &meshData);
 };
