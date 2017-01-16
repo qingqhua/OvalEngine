@@ -1,7 +1,7 @@
 #pragma once
 
 #include "d3dApp.h"
-#include "Camera.h"
+
 
 
 class myDirectX11 : public D3DApp
@@ -20,14 +20,16 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
-	//Init
+	//create&set vertex&index buffer
 	void BuildGeometryBuffer();
-	void BuildFX();
-	void BuildVertexLayout();
-	void BuildTexture();
 
-	void SetMat();
-	void SetLight();
+	//compile FX
+	void BuildFX();
+
+	//create input layout 
+	void BuildVertexLayout();
+
+	void BuildTexture();
 
 	//effect
 	ID3DX11Effect* mFX;
@@ -45,18 +47,21 @@ private:
 
 	//light
 	ID3DX11EffectVariable* mfxLight;
+	ID3DX11EffectVariable* mfxMat;
 	ID3DX11EffectVariable* mfxEyePos;
 
-	//material
-	ID3DX11EffectVariable* mfxMatBox;
-	ID3DX11EffectVariable* mfxMatBackWall;
-	ID3DX11EffectVariable* mfxMatFloor;
+	//texture
+	ID3DX11EffectShaderResourceVariable* mfxTextureSRV;
+	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectX::XMFLOAT4X4 mWorld;
 	DirectX::XMFLOAT4X4 m2ndWorld;
+	DirectX::XMFLOAT4X4 mView;
+	DirectX::XMFLOAT4X4 mProj;
 	DirectX::XMFLOAT3 mEyePos;
-
-	Camera camera;
+	float mTheta;
+	float mPhi;
+	float mRadius;
 
 	POINT mLastMousePos;
 };
