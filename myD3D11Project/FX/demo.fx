@@ -75,8 +75,8 @@ float4 PS(VertexOut pin) : SV_Target
 {
 	float4 color = 0;
 	float4 texcolor = diffusemap.Sample(samAnisotropic, pin.tex);
-	if (texcolor.a < 0.1f)
-		clip(texcolor.a - 0.1f);
+	//if (texcolor.a < 0.1f)
+		//clip(texcolor.a - 0.1f);
 
 	float3 I = dirLight.dir;
 	float3 L = -I;
@@ -96,6 +96,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 	color = texcolor*(diffuse + ambient) + specular;
 	color.a = mat.diffuse.a*texcolor.a;
+	color = (diffuse + ambient) + specular;
+	color.a = mat.diffuse.a;
 	return color;
 }
 

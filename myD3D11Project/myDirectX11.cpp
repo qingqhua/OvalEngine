@@ -32,8 +32,9 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	mLastMousePos.y = 0;
 
 	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, I);
-	XMStoreFloat4x4(&m2ndWorld, I);
+	XMMATRIX Scale=XMMatrixScaling(0.01, 0.01, 0.01);
+	XMStoreFloat4x4(&mWorld, XMMatrixMultiply(I, Scale));
+	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(I, Scale));
 	XMStoreFloat4x4(&mView, I);
 	XMStoreFloat4x4(&mProj, I);
 }
@@ -104,7 +105,7 @@ void myDirectX11::DrawScene()
 	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
 
 	//set index buffer
-	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_FLOAT, 0);
+	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	XMMATRIX view = XMLoadFloat4x4(&mView);
@@ -142,52 +143,55 @@ void myDirectX11::DrawScene()
 	{
 		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
 
-		md3dImmediateContext->DrawIndexed(36,0, 0);
+		md3dImmediateContext->DrawIndexed(indexCount,0, 0);
 	} 
 
 	//draw the second box
-	XMMATRIX mRotateY = XMMatrixRotationY(mTimer.TotalTime());
-	XMMATRIX mTranslate = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
-	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(mTranslate,mRotateY ));
- 	world = XMLoadFloat4x4(&m2ndWorld);
- 	mfxWorld->SetMatrix(reinterpret_cast<float*>(&(world)));
- 	mTech->GetPassByIndex(0)->Apply(0, md3dImmediateContext);
- 	md3dImmediateContext->DrawIndexed(36, 0, 0);
+// 	XMMATRIX mRotateY = XMMatrixRotationY(mTimer.TotalTime());
+// 	XMMATRIX mTranslate = XMMatrixTranslation(4.0f, 0.0f, 0.0f);
+// 	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(mTranslate,mRotateY ));
+//  	world = XMLoadFloat4x4(&m2ndWorld);
+//  	mfxWorld->SetMatrix(reinterpret_cast<float*>(&(world)));
+//  	mTech->GetPassByIndex(0)->Apply(0, md3dImmediateContext);
+//  	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
 	HR(mSwapChain->Present(0, 0));
 }
 
 void myDirectX11::BuildGeometryBuffer()
 {
-	myShapeLibrary::MeshData quad;
+	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.CreateBox( 1.0f,1.0f,1.0f,quad);
+	shapes.LoadModel( "Model/spider.obj",model);
+
+	int m_vertexcount, m_indexcount;
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*quad.vertices.size();
+	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*model.vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &quad.vertices[0];
+	vinitData.pSysMem = &model.vertices[0];
 	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int)*quad.indices.size() ;
+	ibd.ByteWidth = sizeof(int)*model.indices.size() ;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &quad.indices[0];
+	iinitData.pSysMem = &model.indices[0];
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
 
+	indexCount = model.indices.size();
 }
 
 void myDirectX11::BuildFX()

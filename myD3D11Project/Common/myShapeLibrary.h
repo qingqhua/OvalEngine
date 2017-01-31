@@ -5,6 +5,9 @@
 #include <iostream>
 #include <vector>
 #include "myMathLibrary.h"
+#include <Importer.hpp>
+#include <scene.h>
+#include <postprocess.h>
 
 class myShapeLibrary {
 public:
@@ -28,13 +31,14 @@ public:
 	struct MeshData
 	{
 		std::vector <Vertex> vertices;
-		std::vector <UINT> indices;
+		std::vector <unsigned int> indices;
 	};
 
 	void CreateQuad(MeshData &meshdata);
 	void CreateBox(float width, float height, float depth,MeshData &meshData);
 	void CreateSphere(float radius);
 	void CreateCylinder(float radius);
+	void LoadModel(const char *file, MeshData &meshData);
 private:
 	void ComputeNorm(MeshData &meshData);
 };

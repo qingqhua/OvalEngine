@@ -63,5 +63,7 @@ private:
 	float mPhi;
 	float mRadius;
 
+	int indexCount;
+
 	POINT mLastMousePos;
 };

@@ -21,28 +21,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Common\d3dApp.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Common\d3dUtil.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Common\dxerr.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Common\GameTimer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="myDirectX11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\myMathLibrary.cpp">
+    <ClCompile Include="Common\d3dApp.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\myShapeLibrary.cpp">
+    <ClCompile Include="Common\d3dUtil.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\DDSTextureLoader.cpp">
+    <ClCompile Include="Common\dxerr.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\GameTimer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\myMathLibrary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\myShapeLibrary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\DDSTextureLoader.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\octree.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\OctreeData.cpp">
       <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,31 +56,34 @@
     <ClInclude Include="myDirectX11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\d3dApp.h">
+    <ClInclude Include="Common\d3dApp.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\d3dUtil.h">
+    <ClInclude Include="Common\d3dUtil.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\d3dx11effect.h">
+    <ClInclude Include="Common\d3dx11effect.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\dxerr.h">
+    <ClInclude Include="Common\dxerr.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\GameTimer.h">
+    <ClInclude Include="Common\GameTimer.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\myMathLibrary.h">
+    <ClInclude Include="Common\myLightLibrary.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\myLightLibrary.h">
+    <ClInclude Include="Common\myMathLibrary.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\myShapeLibrary.h">
+    <ClInclude Include="Common\myShapeLibrary.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\DDSTextureLoader.h">
+    <ClInclude Include="Common\DDSTextureLoader.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\octree.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

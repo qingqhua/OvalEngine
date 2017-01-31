@@ -36,6 +36,7 @@ void myShapeLibrary::CreateBox(float width, float height, float depth,MeshData &
 	v[22] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
 	v[23] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
 
+
 	meshData.vertices.assign(&v[0], &v[24]);
 
 	unsigned int i[] = {
@@ -70,6 +71,59 @@ void myShapeLibrary::CreateSphere(float radius)
 
 void myShapeLibrary::CreateCylinder(float radius)
 {
+
+}
+
+void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
+{
+
+	Assimp::Importer importer;
+	const aiScene *scene = importer.ReadFile(file, aiProcess_ConvertToLeftHanded | aiProcess_Triangulate);
+
+	int m_indexcount = 0;
+	int m_vertexcount = 0;
+
+	//get indexcount and vertexcount
+	for (int i = 0; i < scene->mNumMeshes; i++)
+	{
+		m_vertexcount += scene->mMeshes[i]->mNumVertices;
+
+		for (int j = 0; j < scene->mMeshes[i]->mNumFaces;j++)
+		{
+			m_indexcount += scene->mMeshes[i]->mFaces[j].mNumIndices;
+		}
+	}
+
+	Vertex *m_vertices = new Vertex[m_vertexcount];
+	unsigned int *m_indices = new unsigned int[m_indexcount];
+
+	//TODO:if num_mesh and num_indices aren`t the same at every loop, it will cause incorrect result
+	//it wont work if there are two meshes
+	for (int cur_mesh = 0; cur_mesh < scene->mNumMeshes; cur_mesh++)
+	{
+		//get the position of each vertex
+		int num_vertices = scene->mMeshes[cur_mesh]->mNumVertices;
+		for (int v = 0; v < num_vertices; v++)
+		{
+			//m_vertices.push_back(XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z));
+			m_vertices[cur_mesh *num_vertices +v].Position = XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z);
+		}
+
+		//get each index
+		int num_face = scene->mMeshes[cur_mesh]->mNumFaces;
+		for (int cur_face = 0; cur_face < num_face; cur_face++)
+		{
+			int num_indices = scene->mMeshes[cur_mesh]->mFaces[cur_face].mNumIndices;
+
+			for (int i=0;i<num_indices;i++)
+			{
+				//m_indices.push_back(scene->mMeshes[cur_mesh]->mFaces[cur_face].mIndices[i]);
+				m_indices[cur_face*num_indices +i] = scene->mMeshes[cur_mesh]->mFaces[cur_face].mIndices[i];
+			}
+		}
+	}
+		meshData.vertices.assign(&m_vertices[0], &m_vertices[m_vertexcount]);
+		meshData.indices.assign(&m_indices[0], &m_indices[m_indexcount]);
 
 }
 
