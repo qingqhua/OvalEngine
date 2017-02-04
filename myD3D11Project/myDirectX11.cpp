@@ -32,7 +32,7 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	mLastMousePos.y = 0;
 
 	XMMATRIX I = XMMatrixIdentity();
-	XMMATRIX Scale=XMMatrixScaling(0.01, 0.01, 0.01);
+	XMMATRIX Scale=XMMatrixScaling(1.0, 1.0, 1.0);
 	XMStoreFloat4x4(&mWorld, XMMatrixMultiply(I, Scale));
 	XMStoreFloat4x4(&m2ndWorld, XMMatrixMultiply(I, Scale));
 	XMStoreFloat4x4(&mView, I);
@@ -162,9 +162,8 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.LoadModel( "Model/spider.obj",model);
-
-	int m_vertexcount, m_indexcount;
+	//shapes.LoadModel( "Model/spider.obj",model);
+	shapes.CreateBox(XMFLOAT3(0,0,0), 1.0f, model);
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;

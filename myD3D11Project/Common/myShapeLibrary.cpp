@@ -2,77 +2,59 @@
 
 using namespace DirectX;
 
-void myShapeLibrary::CreateBox(float width, float height, float depth,MeshData &meshData)
+void myShapeLibrary::CreateBox(XMFLOAT3 center,float extent,MeshData &meshData)
 {
-	Vertex v[24];
+	Vertex v[8];
 	
-	v[0] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[1] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[2] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[3] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[0] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
+	v[1] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
+	v[2] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
+	v[3] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
 
-	v[4] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[5] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[6] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[7] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
+	v[4] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
+	v[5] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
+	v[6] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
+	v[7] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
 
-	v[8] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[9] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[10] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[11] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
-
-	v[12] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[13] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[14] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[15] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
-
-	v[16] = Vertex(XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[17] = Vertex(XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[18] = Vertex(XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[19] = Vertex(XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f));
-
-	v[20] = Vertex(XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f));
-	v[21] = Vertex(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f));
-	v[22] = Vertex(XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f));
-	v[23] = Vertex(XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f));
-
-
-	meshData.vertices.assign(&v[0], &v[24]);
+	meshData.vertices.assign(&v[0], &v[8]);
 
 	unsigned int i[] = {
-		3,1,0,
-		2,1,3,
+		//bottom
+		4,5,7,
+		7,5,6,
 
-		6,4,5,
-		7,4,6,
+		//up
+		0,2,1,
+		0,3,2,
 
-		11,9,8,
-		10,9,11,
+		//left
+		3,0,7,
+		7,0,4,
+		
+		//right
+		1,2,5,
+		5,2,6,
 
-		14,12,13,
-		15,12,14,
+		//back
+		2,3,6,
+		6,3,7,
 
-		19,17,16,
-		18,17,19,
-
-		22,20,21,
-		23,20,22
+		//forward
+		0,1,4,
+		4,1,5
 	};
 
 	meshData.indices.assign(i,i+36);
 
 	ComputeNorm(meshData);
+
+	std::vector<XMFLOAT3> vpos;
+	for(size_t j=0;j<meshData.vertices.size();j++)
+		vpos.push_back(v[j].Position);
+	
+	Octree octree;
+	octree.Build(vpos, meshData.indices);
 };
-
-void myShapeLibrary::CreateSphere(float radius)
-{
-
-}
-
-void myShapeLibrary::CreateCylinder(float radius)
-{
-
-}
 
 void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 {
@@ -96,6 +78,7 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 
 	Vertex *m_vertices = new Vertex[m_vertexcount];
 	unsigned int *m_indices = new unsigned int[m_indexcount];
+	std::vector<XMFLOAT3> vpos;
 
 	//TODO:if num_mesh and num_indices aren`t the same at every loop, it will cause incorrect result
 	//it wont work if there are two meshes
@@ -107,6 +90,7 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 		{
 			//m_vertices.push_back(XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z));
 			m_vertices[cur_mesh *num_vertices +v].Position = XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z);
+			vpos.push_back(m_vertices[cur_mesh *num_vertices + v].Position);
 		}
 
 		//get each index
@@ -124,6 +108,13 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 	}
 		meshData.vertices.assign(&m_vertices[0], &m_vertices[m_vertexcount]);
 		meshData.indices.assign(&m_indices[0], &m_indices[m_indexcount]);
+
+		Octree octree;
+		octree.Build(vpos, meshData.indices);
+
+		
+		//meshData.vertices.assign(&octree.m_vertices[0], &octree.m_vertices[octree.m_vertices.size()]);
+		//meshData.indices.assign(&octree.indices[0], &octree.indices[octree.indices.size()]);
 
 }
 

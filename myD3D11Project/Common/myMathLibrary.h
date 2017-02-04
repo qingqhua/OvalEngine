@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <DirectXMath.h>
 
+
 class myMathLibrary
 {
 public:

@@ -162,7 +162,7 @@
     <ClCompile Include="Common\myMathLibrary.cpp" />
     <ClCompile Include="Common\myShapeLibrary.cpp" />
     <ClCompile Include="Common\octree.cpp" />
-    <ClCompile Include="Common\OctreeData.cpp" />
+    <ClCompile Include="Common\OctreeNode.cpp" />
     <ClCompile Include="myDirectX11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +176,7 @@
     <ClInclude Include="Common\myMathLibrary.h" />
     <ClInclude Include="Common\myShapeLibrary.h" />
     <ClInclude Include="Common\octree.h" />
+    <ClInclude Include="Common\OctreeNode.h" />
     <ClInclude Include="myDirectX11.h" />
   </ItemGroup>
   <ItemGroup>

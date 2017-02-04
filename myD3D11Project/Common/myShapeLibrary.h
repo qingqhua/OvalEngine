@@ -8,6 +8,7 @@
 #include <Importer.hpp>
 #include <scene.h>
 #include <postprocess.h>
+#include "octree.h"
 
 class myShapeLibrary {
 public:
@@ -35,9 +36,7 @@ public:
 	};
 
 	void CreateQuad(MeshData &meshdata);
-	void CreateBox(float width, float height, float depth,MeshData &meshData);
-	void CreateSphere(float radius);
-	void CreateCylinder(float radius);
+	void CreateBox(DirectX::XMFLOAT3 center, float extent, MeshData &meshData);
 	void LoadModel(const char *file, MeshData &meshData);
 private:
 	void ComputeNorm(MeshData &meshData);

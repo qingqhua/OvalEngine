@@ -35,9 +35,16 @@ SamplerState samAnisotropic
 	AddressV = WRAP;
 };
 
-RasterizerState WireframeRS
+RasterizerState SolidRS
 {
 	FillMode = Solid;
+	CullMode = None;
+	FrontCounterClockwise = false;
+};
+
+RasterizerState WireframeRS
+{
+	FillMode = WireFrame;
 	CullMode = None;
 	FrontCounterClockwise = false;
 };
@@ -107,7 +114,14 @@ technique11 LightTech
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
-		SetRasterizerState(WireframeRS);
+		SetRasterizerState(SolidRS);
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+	}
+	pass octree
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetRasterizerState(SolidRS);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 	}
 }
