@@ -51,6 +51,9 @@
     <ClCompile Include="Common\OctreeNode.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="Common\Voxel\Voxelizer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myDirectX11.h">
@@ -89,9 +92,15 @@
     <ClInclude Include="Common\OctreeNode.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Common\Voxel\Voxelizer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\demo.fx">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="FX\voxelizer.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

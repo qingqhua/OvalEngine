@@ -1,7 +1,12 @@
+//-----------------------------------
+//FILE:myDirectX11.h
+//main file
+//-----------------------------------
+
 #pragma once
 
 #include "d3dApp.h"
-
+#include "Voxel/Voxelizer.h"
 
 
 class myDirectX11 : public D3DApp
@@ -20,30 +25,14 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
-	//create&set vertex&index buffer
+
 	void BuildGeometryBuffer();
 
-	//compile FX
-	void BuildFX();
-
-	//create input layout 
-	void BuildVertexLayout();
-
-	void BuildTexture();
-
-	//effect
-	ID3DX11Effect* mFX;
-	ID3DX11EffectTechnique* mTech;
+private:
 
 	//buffer
 	ID3D11Buffer* mBoxVB;
 	ID3D11Buffer* mBoxIB;
-	ID3D11InputLayout* mInputLayout;
-
-	//matrix
-	ID3DX11EffectMatrixVariable* mfxWorld;
-	ID3DX11EffectMatrixVariable* mfxProj;
-	ID3DX11EffectMatrixVariable* mfxView;
 
 	//light
 	ID3DX11EffectVariable* mfxLight;
@@ -55,7 +44,6 @@ private:
 	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectX::XMFLOAT4X4 mWorld;
-	DirectX::XMFLOAT4X4 m2ndWorld;
 	DirectX::XMFLOAT4X4 mView;
 	DirectX::XMFLOAT4X4 mProj;
 	DirectX::XMFLOAT3 mEyePos;
@@ -66,4 +54,10 @@ private:
 	int indexCount;
 
 	POINT mLastMousePos;
+
+	//voxel attribute
+	Voxelizer mVoxelizer;
+	float mVoxelSize;
+	bool mVoxelFlag;
+	DirectX::BoundingBox mBoundingBox;
 };

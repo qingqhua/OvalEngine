@@ -163,6 +163,7 @@
     <ClCompile Include="Common\myShapeLibrary.cpp" />
     <ClCompile Include="Common\octree.cpp" />
     <ClCompile Include="Common\OctreeNode.cpp" />
+    <ClCompile Include="Common\Voxel\Voxelizer.cpp" />
     <ClCompile Include="myDirectX11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,10 +178,16 @@
     <ClInclude Include="Common\myShapeLibrary.h" />
     <ClInclude Include="Common\octree.h" />
     <ClInclude Include="Common\OctreeNode.h" />
+    <ClInclude Include="Common\Voxel\Voxelizer.h" />
     <ClInclude Include="myDirectX11.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\demo.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\voxelizer.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

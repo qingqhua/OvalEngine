@@ -6,15 +6,15 @@ void myShapeLibrary::CreateBox(XMFLOAT3 center,float extent,MeshData &meshData)
 {
 	Vertex v[8];
 	
-	v[0] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
-	v[1] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
-	v[2] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
-	v[3] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
+	v[0] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 1.0f));
+	v[1] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z - extent), XMFLOAT2(1.0f, 0.0f));
+	v[2] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z + extent), XMFLOAT2(-1.0f, 0.0f));
+	v[3] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, -1.0f));
 
-	v[4] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
-	v[5] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 0.0f));
+	v[4] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z - extent), XMFLOAT2(1.0f, 0.0f));
+	v[5] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 1.0f));
 	v[6] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
-	v[7] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
+	v[7] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, -1.0f));
 
 	meshData.vertices.assign(&v[0], &v[8]);
 
@@ -111,11 +111,32 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 
 		Octree octree;
 		octree.Build(vpos, meshData.indices);
-
 		
 		//meshData.vertices.assign(&octree.m_vertices[0], &octree.m_vertices[octree.m_vertices.size()]);
 		//meshData.indices.assign(&octree.indices[0], &octree.indices[octree.indices.size()]);
 
+}
+
+BoundingBox myShapeLibrary::GetAABB(MeshData meshdata)
+{
+	
+	XMVECTOR min = XMVectorReplicate(+myMathLibrary::Infinity);
+	XMVECTOR max = XMVectorReplicate(-myMathLibrary::Infinity);
+
+	for (size_t i = 0; i < meshdata.vertices.size(); ++i)
+	{
+		XMVECTOR pos = XMLoadFloat3(&meshdata.vertices[i].Position);
+		min = XMVectorMin(min, pos);
+		max = XMVectorMax(max, pos);
+	}
+
+	BoundingBox m_bound;
+	XMVECTOR center = 0.5*(min + max);
+	XMVECTOR extent = 0.5*(max - min);
+
+	XMStoreFloat3(&m_bound.Center, center);
+	XMStoreFloat3(&m_bound.Extents, extent);
+	return m_bound;
 }
 
 void myShapeLibrary::CreateQuad(MeshData &meshdata) {

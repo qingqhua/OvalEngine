@@ -38,6 +38,8 @@ public:
 	void CreateQuad(MeshData &meshdata);
 	void CreateBox(DirectX::XMFLOAT3 center, float extent, MeshData &meshData);
 	void LoadModel(const char *file, MeshData &meshData);
+
+	DirectX::BoundingBox GetAABB(MeshData meshdata);
 private:
 	void ComputeNorm(MeshData &meshData);
 };
