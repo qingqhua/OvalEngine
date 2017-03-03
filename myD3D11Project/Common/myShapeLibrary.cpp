@@ -158,7 +158,7 @@ void myShapeLibrary::CreateQuad(MeshData &meshdata) {
 	ComputeNorm(meshdata);
 }
 
-
+//todo method is wrong
 void myShapeLibrary::ComputeNorm(MeshData &meshData)
 {
 	int trianglenum = meshData.indices.size() / 3;

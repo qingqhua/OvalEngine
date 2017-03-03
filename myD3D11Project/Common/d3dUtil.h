@@ -10,7 +10,7 @@
 #include <crtdbg.h>
 #endif
  
-#include "d3dx11Effect.h"
+#include <d3dx11Effect.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
@@ -22,7 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include "DDSTextureLoader.h"
+#include <DDSTextureLoader.h>
 #include "myMathLibrary.h"
 #include "myLightLibrary.h"
 #include "myShapeLibrary.h"

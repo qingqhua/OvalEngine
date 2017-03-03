@@ -1,11 +1,5 @@
 //***************************************************************************************
-// Camera.h by Frank Luna (C) 2011 All Rights Reserved.
-//   
-// Simple first person style camera class that lets the viewer explore the 3D scene.
-//   -It keeps track of the camera coordinate system relative to the world space
-//    so that the view matrix can be constructed.  
-//   -It keeps track of the viewing frustum of the camera so that the projection
-//    matrix can be obtained.
+// modify from Frank Luna.
 //***************************************************************************************
 
 #ifndef CAMERA_H
@@ -20,18 +14,18 @@ public:
 	~Camera();
 
 	// Get/Set world camera position.
-	XMVECTOR GetPositionXM()const;
-	XMFLOAT3 GetPosition()const;
+	DirectX::XMVECTOR GetPositionXM()const;
+	DirectX::XMFLOAT3 GetPosition()const;
 	void SetPosition(float x, float y, float z);
-	void SetPosition(const XMFLOAT3& v);
+	void SetPosition(const DirectX::XMFLOAT3& v);
 	
 	// Get camera basis vectors.
-	XMVECTOR GetRightXM()const;
-	XMFLOAT3 GetRight()const;
-	XMVECTOR GetUpXM()const;
-	XMFLOAT3 GetUp()const;
-	XMVECTOR GetLookXM()const;
-	XMFLOAT3 GetLook()const;
+	DirectX::XMVECTOR GetRightXM()const;
+	DirectX::XMFLOAT3 GetRight()const;
+	DirectX::XMVECTOR GetUpXM()const;
+	DirectX::XMFLOAT3 GetUp()const;
+	DirectX::XMVECTOR GetLookXM()const;
+	DirectX::XMFLOAT3 GetLook()const;
 
 	// Get frustum properties.
 	float GetNearZ()const;
@@ -50,13 +44,13 @@ public:
 	void SetLens(float fovY, float aspect, float zn, float zf);
 
 	// Define camera space via LookAt parameters.
-	void LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp);
-	void LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up);
+	void LookAt(DirectX::FXMVECTOR pos, DirectX::FXMVECTOR target, DirectX::FXMVECTOR worldUp);
+	void LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
 
 	// Get View/Proj matrices.
-	XMMATRIX View()const;
-	XMMATRIX Proj()const;
-	XMMATRIX ViewProj()const;
+	DirectX::XMMATRIX View()const;
+	DirectX::XMMATRIX Proj()const;
+	DirectX::XMMATRIX ViewProj()const;
 
 	// Strafe/Walk the camera a distance d.
 	void Strafe(float d);
@@ -72,10 +66,10 @@ public:
 private:
 
 	// Camera coordinate system with coordinates relative to world space.
-	XMFLOAT3 mPosition;
-	XMFLOAT3 mRight;
-	XMFLOAT3 mUp;
-	XMFLOAT3 mLook;
+	DirectX::XMFLOAT3 mPosition;
+	DirectX::XMFLOAT3 mRight;
+	DirectX::XMFLOAT3 mUp;
+	DirectX::XMFLOAT3 mLook;
 
 	// Cache frustum properties.
 	float mNearZ;
@@ -86,8 +80,8 @@ private:
 	float mFarWindowHeight;
 
 	// Cache View/Proj matrices.
-	XMFLOAT4X4 mView;
-	XMFLOAT4X4 mProj;
+	DirectX::XMFLOAT4X4 mView;
+	DirectX::XMFLOAT4X4 mProj;
 };
 
 #endif // CAMERA_H

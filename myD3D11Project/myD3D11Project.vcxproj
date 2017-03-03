@@ -96,7 +96,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>D3DCompiler.lib;Effects11d.lib;assimp-vc140-mt.lib;d3d11.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc140-mt.lib;d3d11.lib;dxgi.lib;dxguid.lib;effects11d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -154,9 +154,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Common\Camera.cpp" />
     <ClCompile Include="Common\d3dApp.cpp" />
     <ClCompile Include="Common\d3dUtil.cpp" />
-    <ClCompile Include="Common\DDSTextureLoader.cpp" />
     <ClCompile Include="Common\dxerr.cpp" />
     <ClCompile Include="Common\GameTimer.cpp" />
     <ClCompile Include="Common\myMathLibrary.cpp" />
@@ -164,13 +164,13 @@
     <ClCompile Include="Common\octree.cpp" />
     <ClCompile Include="Common\OctreeNode.cpp" />
     <ClCompile Include="Common\Voxel\Voxelizer.cpp" />
+    <ClCompile Include="Common\Voxel\VoxelVisual.cpp" />
     <ClCompile Include="myDirectX11.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\Camera.h" />
     <ClInclude Include="Common\d3dApp.h" />
     <ClInclude Include="Common\d3dUtil.h" />
-    <ClInclude Include="Common\d3dx11effect.h" />
-    <ClInclude Include="Common\DDSTextureLoader.h" />
     <ClInclude Include="Common\dxerr.h" />
     <ClInclude Include="Common\GameTimer.h" />
     <ClInclude Include="Common\myLightLibrary.h" />
@@ -179,6 +179,7 @@
     <ClInclude Include="Common\octree.h" />
     <ClInclude Include="Common\OctreeNode.h" />
     <ClInclude Include="Common\Voxel\Voxelizer.h" />
+    <ClInclude Include="Common\Voxel\VoxelVisual.h" />
     <ClInclude Include="myDirectX11.h" />
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +189,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FX\voxelizer.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\visualizer.fx">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\vtest.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

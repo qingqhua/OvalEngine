@@ -13,7 +13,7 @@ Voxelizer::~Voxelizer()
 
 }
 
-void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, UINT iRes)
+void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float iRes,float imaxSize)
 {
 	md3dDevice = idevice;
 	mDeviceContext = ideviceContext;
@@ -21,9 +21,19 @@ void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext,
 	mWidth = iRes;
 	mHeight = iRes;
 	mDepth = iRes;
+	mRes = iRes;
 
-	mVoxelSize = XMFLOAT3(0.0157, 0.0157, 0.0157);
-	mID = 1.0f;
+	//reset viewport = voxel nums
+	//eg. 512x512 for 512^3 voxels
+	mViewport.TopLeftX = 0;
+	mViewport.TopLeftY = 0;
+	mViewport.MinDepth = 0.0f;
+	mViewport.MaxDepth = 1.0f;
+	mViewport.Width = iRes;
+	mViewport.Height = iRes;
+ 	mDeviceContext->RSSetViewports(1, &mViewport);
+
+	mVoxelSize = XMFLOAT3(imaxSize, imaxSize, imaxSize);
 
 	BuildFX();
 	BuildVertexLayout();
@@ -31,9 +41,6 @@ void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext,
 
 	mfxRes->SetInt(iRes);
 	mfxVoxelSize->SetFloatVector((float *)&mVoxelSize);
-
-	//todo if the scene have different models, id should change
-	mfxObjID->SetFloat(mID);
 }
 
 void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj)
@@ -45,15 +52,15 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATR
 
 void Voxelizer::Render()
 {
-	
-
+	//set primitive topology
+	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	const float zero[4] = { 0, 0, 0, 0 };
-	//mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
-	//mfxTargetUAV->SetUnorderedAccessView(mUAV);
+	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
+	mfxTargetUAV->SetUnorderedAccessView(mUAV);
 	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
-	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
+	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
 }
 
 void Voxelizer::BuildFX()
@@ -79,7 +86,7 @@ void Voxelizer::BuildFX()
 	if (FAILED(hr))
 	{
 		DXTrace(__FILEW__, (DWORD)__LINE__, hr,
-			L"D3DX11CompileFromFile", true);
+			L"D3DCompileFromFile", true);
 	} HR
 	(D3DX11CreateEffectFromMemory(
 		compiledShader->GetBufferPointer(),
@@ -90,13 +97,12 @@ void Voxelizer::BuildFX()
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("VoxelizerTech");
-
 	mfxView = mFX->GetVariableByName("gView")->AsMatrix();
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
  	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsVector();
- 	//mfxTargetUAV = mFX->GetVariableByName("gTargetUAV")->AsUnorderedAccessView();
+ 	mfxTargetUAV = mFX->GetVariableByName("gTargetUAV")->AsUnorderedAccessView();
  	mfxObjID = mFX->GetVariableByName("gObjectID")->AsScalar();
  	mfxRes = mFX->GetVariableByName("gRes")->AsScalar();
 	
@@ -108,13 +114,12 @@ void Voxelizer::BuildVertexLayout()
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 },
 	};
 
 	//create the input layout
 	D3DX11_PASS_DESC passDesc;
-	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
+	mTech->GetPassByName("VoxelizerPass")->GetDesc(&passDesc);
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
 }
 
@@ -125,7 +130,7 @@ void Voxelizer::BuildTexture()
 	txDesc.Width = mWidth;
 	txDesc.Height = mHeight;
 	txDesc.Depth = mDepth;
-	txDesc.MipLevels = 1;
+	txDesc.MipLevels = 0;
 	txDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	txDesc.Usage = D3D11_USAGE_DEFAULT;
 	txDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
@@ -148,8 +153,6 @@ void Voxelizer::BuildTexture()
 
 	// SET SRV
 	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
-	//todo
-	ZeroMemory(&SRVDesc, sizeof(SRVDesc));
 	SRVDesc.Format = txDesc.Format;
 	SRVDesc.Texture3D.MipLevels = 1;
 	SRVDesc.Texture3D.MostDetailedMip = 0;
@@ -159,5 +162,15 @@ void Voxelizer::BuildTexture()
 	HR(md3dDevice->CreateShaderResourceView(mTex3D,&SRVDesc, &mSRV));
 }
 
+
+ID3D11ShaderResourceView* Voxelizer::SRV()
+{
+	return mSRV;
+}
+
+float Voxelizer::Res()
+{
+	return mRes;
+}
 
 

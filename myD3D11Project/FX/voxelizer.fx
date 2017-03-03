@@ -6,7 +6,7 @@
 //---------------------
 
 //todo register
-cbuffer cbPerFrame 
+cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
@@ -14,7 +14,7 @@ cbuffer cbPerFrame
 	float3 gVoxelSize;
 };
 
-cbuffer cbPerObject 
+cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
 	float gObjectID;
@@ -23,7 +23,7 @@ cbuffer cbPerObject
 //--------------------------
 //read write 3d texture
 //---------------------------
-//RWTexture3D<float4> gTargetUAV;
+RWTexture3D<float4> gTargetUAV	: register(u1);
 
 //----------------------
 //shader structure
@@ -31,14 +31,12 @@ cbuffer cbPerObject
 struct VS_IN
 {
 	float3 posL  : POSITION;
-	float3 normL : NORMAL;
 };
 
 struct VS_OUT
 {
 	float4 posW  : TEXCOORD0;
 	float4 posV  : SV_POSITION;
-	float3 normW : TEXCOORD1;
 };
 
 struct PS_IN
@@ -84,9 +82,6 @@ VS_OUT VS(VS_IN vin)
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
 	vout.posV=mul(vout.posW,gView);
 
-	vout.normW=mul(float4(vin.normL,1), gWorld).xyz;
-	vout.normW = normalize(vout.normW);
-
 	return vout;
 }
 
@@ -96,41 +91,71 @@ VS_OUT VS(VS_IN vin)
 [maxvertexcount(3)]
 void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 {
+	// Initial data.
+	float3 newPos[3];
+	float3 centerPos = float3(0, 0, 0);
+	float3 normal = float3(0, 0, 0);
 
-	float x=abs(dot(gin[0].normW,float3(1,0,0)));
-	float y=abs(dot(gin[0].normW,float3(0,1,0)));
-	float z=abs(dot(gin[0].normW,float3(0,0,1)));
+	float4x4 gRot = { 1.f, 0.f, 0.f, 0.f,0.f, 1.f, 0.f, 0.f,0.f, 0.f, 1.f, 0.f,
+					0.f, 0.f, 0.f, 1.f };
 
-	float3 p0 = gin[1].posV - gin[0].posV;
-	float3 p1 = gin[2].posV - gin[0].posV;
-	float3 p = abs(cross(p0, p1));
+	// Find the center of triangle.
+	for (int j = 0; j < 3; j++)
+	{
+		centerPos += gin[j].posW.xyz;
+	}
+	centerPos /= 3;
+	//compute normal
+	float3 p0 = gin[1].posW.xyz - gin[0].posW.xyz;
+	float3 p1 = gin[2].posW.xyz - gin[0].posW.xyz;
+	normal = cross(p0,p1);
 
-	float testz=abs(dot(gin[0].normW,float3(0,0,1)));
+	normal=normalize(normal);
 
-	float normProjAxis=max(x,max(y,z));
+	float eye_angle = dot(normal, float3(0, 0, 1));
+	float3 v = cross(normal, float3(0, 0, 1));
+	v = normalize(v);
 
-		for (int i = 0; i < 3; i++)
+	// Make sure v is not float3(0,0,0),
+	if (dot(v, v) > 0) {
+
+		// Create a rotation matrix to rotate the triangle to the opposite with view direction.
+		float cost = eye_angle, sint = pow(1 - eye_angle*eye_angle, 0.5f), one_sub_cost = 1 - cost;
+		float4x4 RotToCam = { v.x * v.x * one_sub_cost + cost, v.x * v.y * one_sub_cost + v.z * sint, v.x * v.z * one_sub_cost - v.y * sint, 0, \
+			v.x * v.y * one_sub_cost - v.z * sint, v.y * v.y * one_sub_cost + cost, v.y * v.z * one_sub_cost + v.x * sint, 0, \
+			v.x * v.z * one_sub_cost + v.y * sint, v.y * v.z * one_sub_cost - v.x * sint, v.z * v.z * one_sub_cost + cost, 0, \
+			0, 0, 0, 1 };
+		gRot = RotToCam;
+	}
+
+	// Apply rotation.
+	for (int k = 0; k < 3; k++)
+	{
+		newPos[k] = gin[k].posW.xyz - centerPos;
+		newPos[k] = mul(float4(newPos[k], 1.0f), gRot).xyz;
+	}
+
+	// Build a bounding box of this triangle in order to control the density of pixels that a triangle can produce.
+	float minX = min(min(newPos[0].x, newPos[1].x), newPos[2].x);
+	float maxX = max(max(newPos[0].x, newPos[1].x), newPos[2].x);
+	float minY = min(min(newPos[0].y, newPos[1].y), newPos[2].y);
+	float maxY = max(max(newPos[0].y, newPos[1].y), newPos[2].y);
+
+	float2 RasterSize = (2 / float2(maxX - minX, maxY - minY));
+
+	// Apply orthogonal projection.
+	for (int i = 0; i < 3; i++)
 	{
 		PS_IN output;
-
-		if(p.z > p.x && p.z > p.y)
-		{
-			output.pos = float4(gin[i].posV.xy, 0, 1);
-		}
-		else if(p.x > p.y && p.x > p.z)
-		{
-			output.pos = float4(gin[i].posV.yz, 0, 1);
-		}
-		else 
-		{
-			output.pos = float4(gin[i].posV.xz, 0, 1);
-		}
-
-		output.posV = gin[i].posV;	
-		output.normW = gin[i].normW;
+		// Transform x,y to [-1,1].
+		newPos[i].xy = (newPos[i].xy - float2(minX, minY))  * RasterSize.xy - 1;
+		output.pos = float4(newPos[i].xy, 1, 1);
+		output.posV = gin[i].posV;	// Assign view-space voxel positions.
+		output.normW = normal;
 
 		triStream.Append(output);
 	}
+	triStream.RestartStrip();
 
 }
 
@@ -144,8 +169,8 @@ float4 PS(PS_IN pin) : SV_Target
 	float x = pin.posV.x / gVoxelSize.x;
 	float y = pin.posV.y / gVoxelSize.y;
 	float z = pin.posV.z / gVoxelSize.z;
-	x = x + gRes / 2;
-	y = y + gRes / 2;
+	x = x + gRes / 2.0f;
+	y = y + gRes / 2.0f;
 
 	// Store voxels which are inside voxel-space boundary.
 	if (x >= 0 && x < gRes && y >= 0 && y < gRes && z >= 0 && z < gRes)
@@ -159,23 +184,23 @@ float4 PS(PS_IN pin) : SV_Target
 		enc = enc*0.5 + 0.5;
 		normal.xyz = float3(enc.xy, 0);
 
-		//gTargetUAV[uint3(x, y, z)] = float4(normal, gObjectID);
+		gTargetUAV[uint3(x, y, z)] = float4(normal, gObjectID);
 
 	}
 	// A trivial return-value because I don't set any render targets.
-	return float4(0, 0, 0, 1);
+	return float4(0, 0, 0, 0);
 }
 
 technique11 VoxelizerTech
 {
-	pass P0
+	pass VoxelizerPass
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(CompileShader(gs_5_0, GS()));
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 
-		//SetDepthStencilState(DisableDepth, 0);
-		//SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-		//SetRasterizerState(RS_CullDisabled);
+		SetDepthStencilState(DisableDepth, 0);
+		SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+		SetRasterizerState(RS_CullDisabled);
 	}
 }

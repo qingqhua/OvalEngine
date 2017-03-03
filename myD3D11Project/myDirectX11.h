@@ -7,7 +7,8 @@
 
 #include "d3dApp.h"
 #include "Voxel/Voxelizer.h"
-
+#include "Voxel/VoxelVisual.h"
+#include "Camera.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -18,16 +19,19 @@ public:
 	bool Init();
 	void OnResize();
 	void UpdateScene(float dt);
+	void resetOMTargetsAndViewport();
 	void DrawScene();
 
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
+	
 private:
 
 	void BuildGeometryBuffer();
 
+	void ControlCamera(float dt);
 private:
 
 	//buffer
@@ -37,27 +41,27 @@ private:
 	//light
 	ID3DX11EffectVariable* mfxLight;
 	ID3DX11EffectVariable* mfxMat;
-	ID3DX11EffectVariable* mfxEyePos;
 
 	//texture
 	ID3DX11EffectShaderResourceVariable* mfxTextureSRV;
 	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectX::XMFLOAT4X4 mWorld;
-	DirectX::XMFLOAT4X4 mView;
-	DirectX::XMFLOAT4X4 mProj;
-	DirectX::XMFLOAT3 mEyePos;
-	float mTheta;
-	float mPhi;
-	float mRadius;
 
 	int indexCount;
 
 	POINT mLastMousePos;
 
 	//voxel attribute
-	Voxelizer mVoxelizer;
 	float mVoxelSize;
 	bool mVoxelFlag;
 	DirectX::BoundingBox mBoundingBox;
+
+	//flag
+	bool m_bVoxelize;
+
+	//util object
+	Voxelizer mVoxelizer;
+	Visualizer mVisualizer;
+	Camera mCam;
 };

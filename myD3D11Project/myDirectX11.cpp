@@ -25,20 +25,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 myDirectX11::myDirectX11(HINSTANCE hInstance)
 	: D3DApp(hInstance),
 	mBoxVB(0), mBoxIB(0),
-	mfxLight(0), mfxMat(0), mfxEyePos(0),
-	mTheta(1.5f*3.14f), mPhi(0.25f*3.14f), mRadius(10.0f), mEyePos(0.0f, 0.0f, 0.0f),
-	mfxTextureSRV(0), mDiffuseMapSRV(0)
+	mfxLight(0), mfxMat(0),
+	mfxTextureSRV(0), mDiffuseMapSRV(0), m_bVoxelize(1)
 {
 	mMainWndCaption = L"box demo";
 
 	mLastMousePos.x = 0;
 	mLastMousePos.y = 0;
 
+	//init matrix
 	XMMATRIX I = XMMatrixIdentity();
-	XMMATRIX Scale = XMMatrixScaling(1.0, 1.0, 1.0);
-	XMStoreFloat4x4(&mWorld, XMMatrixMultiply(I, Scale));
-	XMStoreFloat4x4(&mView, I);
-	XMStoreFloat4x4(&mProj, I);
+	XMStoreFloat4x4(&mWorld, I);
 }
 
 myDirectX11::~myDirectX11()
@@ -54,12 +51,16 @@ bool myDirectX11::Init()
 
 	BuildGeometryBuffer();
 
-	mVoxelizer.Init(md3dDevice, md3dImmediateContext, 128);
-
-	XMFLOAT3 voxelRealSize = XMFLOAT3(2.0 * mBoundingBox.Extents.x/ 127.0, 2.0 * mBoundingBox.Extents.y / 127.0, 2.0 * mBoundingBox.Extents.z / 127.0);
-
+	//build voxelizer
+	float iVoxelRes = 256.0f;
+	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0 * mBoundingBox.Extents.x / iVoxelRes, 2.0 * mBoundingBox.Extents.y / iVoxelRes, 2.0 * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
-	float m_fVoxelSize = max(voxelRealSize.z, max(voxelRealSize.x, voxelRealSize.y));
+	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
+
+	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, imaxVoxelSize);
+
+	//init visualizer
+	mVisualizer.Init(md3dDevice, md3dImmediateContext);
 
 	return true;
 }
@@ -68,53 +69,57 @@ void myDirectX11::OnResize()
 {
 	D3DApp::OnResize();
 
-	//TODO:
-	//...
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
-	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*myMathLibrary::Pi, AspectRatio(), 1.0f, 1000.0f);
-	XMStoreFloat4x4(&mProj, P);
+	mCam.SetLens(0.25f*myMathLibrary::Pi, AspectRatio(), 1.0f, 1000.0f);
+	
 }
 
 void myDirectX11::UpdateScene(float dt)
 {
-	// Convert Spherical to Cartesian coordinates.
-	float x = mRadius*sinf(mPhi)*cosf(mTheta);
-	float z = mRadius*sinf(mPhi)*sinf(mTheta);
-	float y = mRadius*cosf(mPhi);
-
-	// Build the view matrix.
-	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, V);
-
-	mEyePos = XMFLOAT3(x, y, z);
+	ControlCamera(dt);
+	mCam.UpdateViewMatrix();
 }
+
 
 void myDirectX11::DrawScene()
 {
  	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::White));
  	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	//set primitive topology
-	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//set vertex buffer
-	UINT stride = sizeof(myShapeLibrary::Vertex);
-	UINT offset = 0;
-	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
-
-	//set index buffer
-	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
-
+	//reset depth/blend state
+ 	md3dImmediateContext->OMSetDepthStencilState(0, 0);
+ 	float blendFactors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+ 	md3dImmediateContext->OMSetBlendState(0, blendFactors, 0xffffffff);
 	//world matrix update
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
-	XMMATRIX view = XMLoadFloat4x4(&mView);
-	XMMATRIX proj = XMLoadFloat4x4(&mProj);
 
-	mVoxelizer.SetMatrix(&world, &view, &proj);
-	mVoxelizer.Render();
+ 	if (m_bVoxelize)
+ 	{
+		//set vertex buffer
+ 		UINT stride = sizeof(myShapeLibrary::Vertex);
+ 		UINT offset = 0;
+ 		md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
+ 
+ 		//set index buffer
+ 		md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
+ 
+  		ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
+  		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
+  		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
+ 
+ 		mVoxelizer.SetMatrix(&world, &mCam.View(), &mCam.Proj());
+ 		mVoxelizer.Render();
+ 
+ 		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+ 
+ 		resetOMTargetsAndViewport();
+
+		m_bVoxelize = false;
+ 	}
+
+	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
+
+	HR(mSwapChain->Present(0, 0));
 
 	//Update Light
 // 	DirectionalLight vLight;
@@ -137,10 +142,6 @@ void myDirectX11::DrawScene()
 	//Update Tex
 	//mfxTextureSRV->SetResource(mDiffuseMapSRV);
 
-
-	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-
-	HR(mSwapChain->Present(0, 0));
 }
 
 void myDirectX11::BuildGeometryBuffer()
@@ -179,6 +180,26 @@ void myDirectX11::BuildGeometryBuffer()
 	indexCount = model.indices.size();
 }
 
+void myDirectX11::resetOMTargetsAndViewport()
+{
+	//reset rendertarget
+	md3dImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
+
+	//reset viewport
+	D3D11_VIEWPORT viewport;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.Width = mClientWidth;
+	viewport.Height = mClientHeight;
+	md3dImmediateContext->RSSetViewports(1, &viewport);
+}
+
+
+//-------------------
+//mouse control
+//-------------------
 void myDirectX11::OnMouseUp(WPARAM btnState, int x, int y)
 {
 	ReleaseCapture();
@@ -189,29 +210,13 @@ void myDirectX11::OnMouseMove(WPARAM btnState, int x, int y)
 	if ((btnState & MK_LBUTTON) != 0)
 	{
 		// Make each pixel correspond to a quarter of a degree.
-		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - mLastMousePos.x));
-		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - mLastMousePos.y));
-
-		// Update angles based on input to orbit camera around box.
-		mTheta += dx;
-		mPhi += dy;
-
-		// Restrict the angle mPhi.
-		mPhi = myMathLibrary::Clamp(mPhi, 0.1f, myMathLibrary::Pi*2.0f - 0.1f);
+		float dx = XMConvertToRadians(
+			0.25f*static_cast<float>(x - mLastMousePos.x));
+		float dy = XMConvertToRadians(
+			0.25f*static_cast<float>(y - mLastMousePos.y));
+		mCam.Pitch(dy);
+		mCam.RotateY(dx);
 	}
-	else if ((btnState & MK_RBUTTON) != 0)
-	{
-		// Make each pixel correspond to 0.005 unit in the scene.
-		float dx = 0.005f*static_cast<float>(x - mLastMousePos.x);
-		float dy = 0.005f*static_cast<float>(y - mLastMousePos.y);
-
-		// Update the camera radius based on input.
-		mRadius += dx - dy;
-
-		// Restrict the radius.
-		mRadius = myMathLibrary::Clamp(mRadius, 3.0f, 15.0f);
-	}
-
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
 }
@@ -221,6 +226,18 @@ void myDirectX11::OnMouseDown(WPARAM btnState, int x, int y)
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
 	SetCapture(mhMainWnd);
+}
+
+void myDirectX11::ControlCamera(float dt)
+{
+	if (GetAsyncKeyState('W') & 0x8000)
+		mCam.Walk(5.0f*dt);
+	if (GetAsyncKeyState('S') & 0x8000)
+		mCam.Walk(-5.0f*dt);
+	if (GetAsyncKeyState('A') & 0x8000)
+		mCam.Strafe(-5.0f*dt);
+	if (GetAsyncKeyState('D') & 0x8000)
+		mCam.Strafe(5.0f*dt);
 }
 
 

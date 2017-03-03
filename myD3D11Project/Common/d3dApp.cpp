@@ -187,7 +187,6 @@ void D3DApp::OnResize()
 	
 
 	// Set the viewport transform.
-
 	mScreenViewport.TopLeftX = 0;
 	mScreenViewport.TopLeftY = 0;
 	mScreenViewport.Width    = static_cast<float>(mClientWidth);

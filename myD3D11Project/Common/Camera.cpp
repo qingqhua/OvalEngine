@@ -1,16 +1,18 @@
 //***************************************************************************************
-// Camera.h by Frank Luna (C) 2011 All Rights Reserved.
+// modify from Frank Luna.
 //***************************************************************************************
 
 #include "Camera.h"
 
+using namespace DirectX;
+
 Camera::Camera()
-	: mPosition(0.0f, 0.0f, 0.0f), 
+	: mPosition(0.0f, 0.0f, -2.0f), 
 	  mRight(1.0f, 0.0f, 0.0f),
 	  mUp(0.0f, 1.0f, 0.0f),
 	  mLook(0.0f, 0.0f, 1.0f)
 {
-	SetLens(0.25f*MathHelper::Pi, 1.0f, 1.0f, 1000.0f);
+	SetLens(0.25f*myMathLibrary::Pi, 1.0f, 1.0f, 1000.0f);
 }
 
 Camera::~Camera()
