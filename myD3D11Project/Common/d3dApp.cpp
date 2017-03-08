@@ -1,5 +1,5 @@
 //***************************************************************************************
-// d3dApp.cpp by Frank Luna (C) 2011 All Rights Reserved.
+// modify from Frank Luna
 //***************************************************************************************
 
 #include "d3dApp.h"
@@ -187,14 +187,14 @@ void D3DApp::OnResize()
 	
 
 	// Set the viewport transform.
-	mScreenViewport.TopLeftX = 0;
-	mScreenViewport.TopLeftY = 0;
-	mScreenViewport.Width    = static_cast<float>(mClientWidth);
-	mScreenViewport.Height   = static_cast<float>(mClientHeight);
-	mScreenViewport.MinDepth = 0.0f;
-	mScreenViewport.MaxDepth = 1.0f;
-
-	md3dImmediateContext->RSSetViewports(1, &mScreenViewport);
+// 	mScreenViewport.TopLeftX = 0;
+// 	mScreenViewport.TopLeftY = 0;
+// 	mScreenViewport.Width    = static_cast<float>(mClientWidth);
+// 	mScreenViewport.Height   = static_cast<float>(mClientHeight);
+// 	mScreenViewport.MinDepth = 0.0f;
+// 	mScreenViewport.MaxDepth = 1.0f;
+// 
+// 	md3dImmediateContext->RSSetViewports(1, &mScreenViewport);
 }
  
 LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

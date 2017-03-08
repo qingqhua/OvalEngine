@@ -157,6 +157,7 @@
     <ClCompile Include="Common\Camera.cpp" />
     <ClCompile Include="Common\d3dApp.cpp" />
     <ClCompile Include="Common\d3dUtil.cpp" />
+    <ClCompile Include="Common\DDSTextureLoader.cpp" />
     <ClCompile Include="Common\dxerr.cpp" />
     <ClCompile Include="Common\GameTimer.cpp" />
     <ClCompile Include="Common\myMathLibrary.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="Common\Camera.h" />
     <ClInclude Include="Common\d3dApp.h" />
     <ClInclude Include="Common\d3dUtil.h" />
+    <ClInclude Include="Common\DDSTextureLoader.h" />
     <ClInclude Include="Common\dxerr.h" />
     <ClInclude Include="Common\GameTimer.h" />
     <ClInclude Include="Common\myLightLibrary.h" />

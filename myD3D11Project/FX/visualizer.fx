@@ -13,10 +13,38 @@ cbuffer cbPerFrame : register(b0)
 //textures
 //---------------------------
 Texture3D gVoxelList;
+Texture2D gEdge;
 
-//--------------------------
-//voxel shape
-//-----------------------
+//----------------------
+//shader structure
+//--------------------
+struct VS_IN
+{
+	uint index : SV_VertexID;
+};
+
+struct VS_OUT
+{
+	float3 normal    : NORMAL;
+	float3 posL		:POSITION;
+};
+
+struct PS_IN
+{
+	float4 pos			: SV_POSITION;
+	float3 voxelnormW	: NORMAL;	
+	float2 texcoord		: TEXCOORD;	
+};
+
+
+static const float2 boxTexArray[4] =
+{
+	0, 0,
+	0, 1,
+	1, 0,
+	1, 1
+};
+
 static const float3 boxOffset[24] =
 {
 	1, -1, 1,
@@ -50,14 +78,6 @@ static const float3 boxOffset[24] =
 	1, -1, 1
 };
 
-static const float2 boxTexArray[4] =
-{
-	0, 0,
-	0, 1,
-	1, 0,
-	1, 1
-};
-
 static const float3 boxNormalArray[6] =
 {
 	0, 0, 1,
@@ -67,29 +87,6 @@ static const float3 boxNormalArray[6] =
 	0, 1, 0,
 	0, -1, 0
 };
-
-//----------------------
-//shader structure
-//--------------------
-struct VS_IN
-{
-	uint index  : SV_VertexID;
-};
-
-struct VS_OUT
-{
-	float3 posL		 : POSITION;
-	float3 normal    : NORMAL;
-};
-
-struct PS_IN
-{
-	float4 pos			: SV_POSITION;
-	float3 cubenormW	: POSITION;
-	float3 voxelnormW	: NORMAL;	
-	float2 texcoord		: TEXCOORD;	
-};
-
 //--------------------------------------------------------------------------------------
 // Render States.
 //--------------------------------------------------------------------------------------
@@ -118,7 +115,6 @@ SamplerState gAnisotropicSam
 //-----------------------------
 VS_OUT VS(VS_IN vin)
 {
-	// Access a voxel of Texture3D by vertex index.
 	float w, h, d;
 	gVoxelList.GetDimensions(w, h, d);
 	uint VoxelDim = w;
@@ -129,20 +125,10 @@ VS_OUT VS(VS_IN vin)
 	uint x = temp % (uint)VoxelDim;
 	uint3 pos = uint3(x, y, z);
 
-	// Output voxel data to geometry shader.
 	VS_OUT output;
-	output.posL = pos;
-	output.normal = gVoxelList[pos].xyz;
 
-	// Decompress normal from 2 components to 3 components.
-	half scale = 1.7777;
-	half3 nn =
-	output.normal*half3(2 * scale, 2 * scale, 0) +
-	half3(-scale, -scale, 1);
-	half g = 2.0 / dot(nn.xyz, nn.xyz);
-	half3 n;
-	output.normal.xy = g*nn.xy;
-	output.normal.z = g - 1;
+	output.normal = gVoxelList[pos].xyz;
+	output.posL = pos;
 
 	return output;
 }
@@ -163,13 +149,14 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 				for (int j = 0; j < 4; j++)
 				{
 					PS_IN output;
-					// Create cube vertexes with boxOffset array.
-					float3 vertex = gin[0].posL.xyz + boxOffset[i * 4 + j] * 0.5f;
 
-					// Output both geometry data for rendering a cube and voxel data for visualization.
-					output.pos = mul(float4(vertex*gVoxelSize, 1), gView);
+					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f;
+
+					output.pos = mul(float4(vertex*gVoxelSize, 1), gWorld);
+					//output.pos = mul(float4(vertex*gVoxelSize, 1), gView);
+					output.pos=mul(output.pos, gView);
 					output.pos = mul(output.pos, gProj);
-					output.cubenormW = boxNormalArray[i];
+
 					output.texcoord = boxTexArray[j];
 					output.voxelnormW = gin[0].normal;
 
@@ -189,10 +176,9 @@ float4 PS(PS_IN pin) : SV_Target
 {
 	float4 normal = float4(pin.voxelnormW, 1);
 
-	//float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord);
-	//normal.rgb *= output;
-
-	return normal;
+	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
+	normal.rgb *= output;
+	return float4(normal);
 }
 
 technique11 VisualTech

@@ -36,7 +36,7 @@ void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const 
 	mfxProj->SetMatrix((float*)(iProj));
 	mfxWorld->SetMatrix((float*)(iWorld));
 
-	mDeviceContext->IASetInputLayout(NULL);
+	mDeviceContext->IASetInputLayout(mInputLayout);
   	//mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
@@ -84,32 +84,31 @@ void Visualizer::BuildFX()
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
 
-	//mfxEdgeTex = mFX->GetVariableByName("diffusemap")->AsShaderResource();
+	mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
 
 	// Set a texture for voxels.
-// 	ID3D11ShaderResourceView* edgeTexRV;
-// 	if (FAILED(hr))
-// 	{
-// 		DXTrace(__FILEW__, (DWORD)__LINE__, hr,L"ERROR: CreateDDSTextureFromFile", true);
-// 	} 
-// 	HR(CreateDDSTextureFromFile(md3dDevice, L"Textures/WoodCrate.dds", nullptr, &edgeTexRV));
-// 	mfxEdgeTex->SetResource(edgeTexRV);
+	ID3D11ShaderResourceView* edgeTexRV;
+	if (FAILED(hr))
+	{
+		DXTrace(__FILEW__, (DWORD)__LINE__, hr,L"ERROR: CreateDDSTextureFromFile", true);
+	} 
+	HR(CreateDDSTextureFromFile(md3dDevice, L"Textures/WoodCrate.dds", nullptr, &edgeTexRV));
+	mfxEdgeTex->SetResource(edgeTexRV);
 }
 
 void Visualizer::BuildVertexLayout()
 {
-// 	//Create the vertex input Layout
-// 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-// 	{
-// 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-// 		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 },
-// 	};
-// 
-// 	//create the input layout
-// 	D3DX11_PASS_DESC passDesc;
-// 	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
-// 	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
-// 		passDesc.IAInputSignatureSize, &mInputLayout));
+	//Create the vertex input Layout
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 }
+	};
+
+	//create the input layout
+	D3DX11_PASS_DESC passDesc;
+	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &mInputLayout));
 }

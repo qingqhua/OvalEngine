@@ -7,7 +7,7 @@
 using namespace DirectX;
 
 Camera::Camera()
-	: mPosition(0.0f, 0.0f, -2.0f), 
+	: mPosition(0.0f, 0.0f, 0.0f), 
 	  mRight(1.0f, 0.0f, 0.0f),
 	  mUp(0.0f, 1.0f, 0.0f),
 	  mLook(0.0f, 0.0f, 1.0f)
@@ -182,6 +182,15 @@ void Camera::Walk(float d)
 	XMVECTOR l = XMLoadFloat3(&mLook);
 	XMVECTOR p = XMLoadFloat3(&mPosition);
 	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, l, p));
+}
+
+void Camera::FlyVertical(float d)
+{
+	// mPosition += d*mUp
+	XMVECTOR s = XMVectorReplicate(d);
+	XMVECTOR u = XMLoadFloat3(&mUp);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, u, p));
 }
 
 void Camera::Pitch(float angle)

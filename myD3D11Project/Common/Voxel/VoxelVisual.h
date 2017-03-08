@@ -22,6 +22,7 @@ private:
 	//input var
 	ID3D11Device* md3dDevice;
 	ID3D11DeviceContext* mDeviceContext;
+	ID3D11InputLayout* mInputLayout;
 
 	//effect var
 	ID3DX11Effect* mFX;

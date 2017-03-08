@@ -58,6 +58,9 @@
     <ClCompile Include="Common\Camera.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Common\DDSTextureLoader.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\d3dApp.h">
@@ -98,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="Common\Camera.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DDSTextureLoader.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

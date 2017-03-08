@@ -52,11 +52,12 @@ bool myDirectX11::Init()
 	BuildGeometryBuffer();
 
 	//build voxelizer
-	float iVoxelRes = 256.0f;
-	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0 * mBoundingBox.Extents.x / iVoxelRes, 2.0 * mBoundingBox.Extents.y / iVoxelRes, 2.0 * mBoundingBox.Extents.z / iVoxelRes);
+	//float iVoxelRes = max(2.0 * mBoundingBox.Extents.x, max(2.0 * mBoundingBox.Extents.y, 2.0 * mBoundingBox.Extents.z));
+	float iVoxelRes = 16.0f;
+	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0 * mBoundingBox.Extents.x / iVoxelRes, 2.0 * mBoundingBox.Extents.y / iVoxelRes , 2.0 * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
-	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
-
+	//float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
+	float imaxVoxelSize = 1.0f;
 	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, imaxVoxelSize);
 
 	//init visualizer
@@ -148,8 +149,9 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.CreateBox(XMFLOAT3(0, 0, 0), 0.3f, model);
-
+	//shapes.LoadModel("test.x", model);
+	shapes.CreateBox(XMFLOAT3(0, 0, 0), 5.0f, model);
+	//shapes.CreateCylinder(5.0f,5.0f,6.0f,5,5,model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
@@ -238,6 +240,10 @@ void myDirectX11::ControlCamera(float dt)
 		mCam.Strafe(-5.0f*dt);
 	if (GetAsyncKeyState('D') & 0x8000)
 		mCam.Strafe(5.0f*dt);
+	if (GetAsyncKeyState('Q') & 0x8000)
+		mCam.FlyVertical(5.0f*dt);
+	if (GetAsyncKeyState('E') & 0x8000)
+		mCam.FlyVertical(-5.0f*dt);
 }
 
 
