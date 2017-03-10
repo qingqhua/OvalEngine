@@ -1,11 +1,15 @@
-﻿  myDirectX11.cpp
-i:\real-time-rendering-engine\myd3d11project\assimp\defs.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
-i:\real-time-rendering-engine\myd3d11project\assimp\matrix3x3.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
-i:\real-time-rendering-engine\myd3d11project\assimp\matrix3x3.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
-i:\real-time-rendering-engine\myd3d11project\assimp\matrix4x4.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
-i:\real-time-rendering-engine\myd3d11project\mydirectx11.cpp(55): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-i:\real-time-rendering-engine\myd3d11project\mydirectx11.cpp(56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-i:\real-time-rendering-engine\myd3d11project\mydirectx11.cpp(195): warning C4244: '=': conversion from 'int' to 'FLOAT', possible loss of data
-i:\real-time-rendering-engine\myd3d11project\mydirectx11.cpp(196): warning C4244: '=': conversion from 'int' to 'FLOAT', possible loss of data
+﻿  ConeTracer.cpp
+c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\crtdbg.h(302): warning C4005: '_malloca': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\malloc.h(120): note: see previous definition of '_malloca'
+i:\assimp-3.3.1\include\assimp\defs.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix3x3.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix3x3.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix4x4.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+  myDirectX11.cpp
+i:\assimp-3.3.1\include\assimp\defs.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix3x3.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix3x3.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\assimp-3.3.1\include\assimp\matrix4x4.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+  Generating Code...
   myD3D11Project.vcxproj -> I:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.exe
   myD3D11Project.vcxproj -> I:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.pdb (Full PDB)

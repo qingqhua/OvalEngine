@@ -91,13 +91,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Common;$(SolutionDir)assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\;I:\assimp-3.3.1\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>assimp-vc140-mt.lib;d3d11.lib;dxgi.lib;dxguid.lib;effects11d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -154,53 +154,52 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Common\Camera.cpp" />
-    <ClCompile Include="Common\d3dApp.cpp" />
-    <ClCompile Include="Common\d3dUtil.cpp" />
-    <ClCompile Include="Common\DDSTextureLoader.cpp" />
-    <ClCompile Include="Common\dxerr.cpp" />
-    <ClCompile Include="Common\GameTimer.cpp" />
-    <ClCompile Include="Common\myMathLibrary.cpp" />
-    <ClCompile Include="Common\myShapeLibrary.cpp" />
-    <ClCompile Include="Common\octree.cpp" />
-    <ClCompile Include="Common\OctreeNode.cpp" />
-    <ClCompile Include="Common\Voxel\Voxelizer.cpp" />
-    <ClCompile Include="Common\Voxel\VoxelVisual.cpp" />
     <ClCompile Include="myDirectX11.cpp" />
+    <ClCompile Include="src\Common\d3dApp.cpp" />
+    <ClCompile Include="src\Common\d3dUtil.cpp" />
+    <ClCompile Include="src\Common\DDSTextureLoader.cpp" />
+    <ClCompile Include="src\Common\dxerr.cpp" />
+    <ClCompile Include="src\Common\GameTimer.cpp" />
+    <ClCompile Include="src\ConeTracing\ConeTracer.cpp" />
+    <ClCompile Include="src\Octree\octree.cpp" />
+    <ClCompile Include="src\Octree\OctreeNode.cpp" />
+    <ClCompile Include="src\Util\Camera.cpp" />
+    <ClCompile Include="src\Util\myMathLibrary.cpp" />
+    <ClCompile Include="src\Util\myShapeLibrary.cpp" />
+    <ClCompile Include="src\Voxelization\Visualizer.cpp" />
+    <ClCompile Include="src\Voxelization\Voxelizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common\Camera.h" />
-    <ClInclude Include="Common\d3dApp.h" />
-    <ClInclude Include="Common\d3dUtil.h" />
-    <ClInclude Include="Common\DDSTextureLoader.h" />
-    <ClInclude Include="Common\dxerr.h" />
-    <ClInclude Include="Common\GameTimer.h" />
-    <ClInclude Include="Common\myLightLibrary.h" />
-    <ClInclude Include="Common\myMathLibrary.h" />
-    <ClInclude Include="Common\myShapeLibrary.h" />
-    <ClInclude Include="Common\octree.h" />
-    <ClInclude Include="Common\OctreeNode.h" />
-    <ClInclude Include="Common\Voxel\Voxelizer.h" />
-    <ClInclude Include="Common\Voxel\VoxelVisual.h" />
     <ClInclude Include="myDirectX11.h" />
+    <ClInclude Include="src\Common\d3dApp.h" />
+    <ClInclude Include="src\Common\d3dUtil.h" />
+    <ClInclude Include="src\Common\d3dx11effect.h" />
+    <ClInclude Include="src\Common\DDSTextureLoader.h" />
+    <ClInclude Include="src\Common\dxerr.h" />
+    <ClInclude Include="src\Common\GameTimer.h" />
+    <ClInclude Include="src\ConeTracing\ConeTracer.h" />
+    <ClInclude Include="src\Octree\octree.h" />
+    <ClInclude Include="src\Octree\OctreeNode.h" />
+    <ClInclude Include="src\Util\Camera.h" />
+    <ClInclude Include="src\Util\myLightLibrary.h" />
+    <ClInclude Include="src\Util\myMathLibrary.h" />
+    <ClInclude Include="src\Util\myShapeLibrary.h" />
+    <ClInclude Include="src\Voxelization\Visualizer.h" />
+    <ClInclude Include="src\Voxelization\voxelizer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\demo.fx">
+    <None Include="src\Shader\visualizer.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="src\Shader\voxelizer.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\voxelizer.fx">
-      <FileType>Document</FileType>
-    </None>
+    <Text Include="src\Util\some useful libraries.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\visualizer.fx">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="FX\vtest.fx">
+    <None Include="src\Shader\conetracer.fx">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

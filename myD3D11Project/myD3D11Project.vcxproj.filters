@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Common">
-      <UniqueIdentifier>{f437cee9-3c52-473c-b782-0f91b434be47}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{dda48a36-058c-4bf1-8d0f-3a727f6347e7}</UniqueIdentifier>
     </Filter>
@@ -20,103 +17,120 @@
     <Filter Include="Util">
       <UniqueIdentifier>{b78ba1b7-f0cb-4fba-8a37-4b07109daff2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ConeTracing">
+      <UniqueIdentifier>{941b2b9a-ce2d-4c70-8a8e-b960feb959b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{d32a462b-4e2a-44a1-8e6a-e4c01202120f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="myDirectX11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Common\d3dApp.cpp">
+    <ClCompile Include="src\Common\d3dApp.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\d3dUtil.cpp">
+    <ClCompile Include="src\Common\d3dUtil.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Voxel\Voxelizer.cpp">
-      <Filter>Voxlization</Filter>
+    <ClCompile Include="src\Common\DDSTextureLoader.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Voxel\VoxelVisual.cpp">
-      <Filter>Voxlization</Filter>
+    <ClCompile Include="src\Common\dxerr.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\octree.cpp">
+    <ClCompile Include="src\Common\GameTimer.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Octree\octree.cpp">
       <Filter>Octree</Filter>
     </ClCompile>
-    <ClCompile Include="Common\myMathLibrary.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\myShapeLibrary.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\OctreeNode.cpp">
+    <ClCompile Include="src\Octree\OctreeNode.cpp">
       <Filter>Octree</Filter>
     </ClCompile>
-    <ClCompile Include="Common\GameTimer.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\dxerr.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\Camera.cpp">
+    <ClCompile Include="src\Util\Camera.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Common\DDSTextureLoader.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\Util\myMathLibrary.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Util\myShapeLibrary.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Voxelization\Voxelizer.cpp">
+      <Filter>Voxlization</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Voxelization\Visualizer.cpp">
+      <Filter>Voxlization</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ConeTracing\ConeTracer.cpp">
+      <Filter>ConeTracing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common\d3dApp.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\d3dUtil.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\Voxel\Voxelizer.h">
-      <Filter>Voxlization</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\Voxel\VoxelVisual.h">
-      <Filter>Voxlization</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\myLightLibrary.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\myMathLibrary.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\myShapeLibrary.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\octree.h">
-      <Filter>Octree</Filter>
-    </ClInclude>
-    <ClInclude Include="Common\OctreeNode.h">
-      <Filter>Octree</Filter>
-    </ClInclude>
     <ClInclude Include="myDirectX11.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Common\GameTimer.h">
+    <ClInclude Include="src\Common\d3dApp.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\dxerr.h">
+    <ClInclude Include="src\Common\d3dUtil.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\Camera.h">
+    <ClInclude Include="src\Common\d3dx11effect.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Common\DDSTextureLoader.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Common\dxerr.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Common\GameTimer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Octree\octree.h">
+      <Filter>Octree</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Octree\OctreeNode.h">
+      <Filter>Octree</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\Camera.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Common\DDSTextureLoader.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\Util\myLightLibrary.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\myMathLibrary.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\myShapeLibrary.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Voxelization\voxelizer.h">
+      <Filter>Voxlization</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Voxelization\Visualizer.h">
+      <Filter>Voxlization</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ConeTracing\ConeTracer.h">
+      <Filter>ConeTracing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="FX\demo.fx">
+    <Text Include="src\Util\some useful libraries.txt">
+      <Filter>Util</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shader\visualizer.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="FX\voxelizer.fx">
+    <None Include="src\Shader\voxelizer.fx">
       <Filter>Shader</Filter>
     </None>
-    <None Include="FX\visualizer.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="FX\vtest.fx">
+    <None Include="src\Shader\conetracer.fx">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

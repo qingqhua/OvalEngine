@@ -5,10 +5,12 @@
 
 #pragma once
 
-#include "d3dApp.h"
-#include "Voxel/Voxelizer.h"
-#include "Voxel/VoxelVisual.h"
-#include "Camera.h"
+#include "Common/d3dApp.h"
+#include "Util/Camera.h"
+
+#include "Voxelization/Voxelizer.h"
+#include "Voxelization/Visualizer.h"
+#include "ConeTracing/ConeTracer.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -63,5 +65,6 @@ private:
 	//util object
 	Voxelizer mVoxelizer;
 	Visualizer mVisualizer;
+	ConeTracer mConeTracer;
 	Camera mCam;
 };

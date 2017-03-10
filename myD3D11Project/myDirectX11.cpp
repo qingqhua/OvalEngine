@@ -54,7 +54,7 @@ bool myDirectX11::Init()
 	//build voxelizer
 	//float iVoxelRes = max(2.0 * mBoundingBox.Extents.x, max(2.0 * mBoundingBox.Extents.y, 2.0 * mBoundingBox.Extents.z));
 	float iVoxelRes = 16.0f;
-	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0 * mBoundingBox.Extents.x / iVoxelRes, 2.0 * mBoundingBox.Extents.y / iVoxelRes , 2.0 * mBoundingBox.Extents.z / iVoxelRes);
+	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0f * mBoundingBox.Extents.x / iVoxelRes, 2.0f * mBoundingBox.Extents.y / iVoxelRes , 2.0f * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
 	//float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
 	float imaxVoxelSize = 1.0f;
@@ -62,6 +62,8 @@ bool myDirectX11::Init()
 
 	//init visualizer
 	mVisualizer.Init(md3dDevice, md3dImmediateContext);
+
+	mConeTracer.Init(md3dDevice, md3dImmediateContext);
 
 	return true;
 }
@@ -94,8 +96,11 @@ void myDirectX11::DrawScene()
 	//world matrix update
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 
- 	if (m_bVoxelize)
- 	{
+	//-----------------------
+	//voxelize
+	//---------------------
+  	if (m_bVoxelize)
+  	{
 		//set vertex buffer
  		UINT stride = sizeof(myShapeLibrary::Vertex);
  		UINT offset = 0;
@@ -113,36 +118,34 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
  
- 		resetOMTargetsAndViewport();
+  		resetOMTargetsAndViewport();
+  		m_bVoxelize = false;
+  	}
 
-		m_bVoxelize = false;
- 	}
+	//-----------------------
+	//render visualizer
+	//---------------------
+	//mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
 
-	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
 
-	HR(mSwapChain->Present(0, 0));
+	//-----------------------
+	//render cone tracing
+	//---------------------
 
-	//Update Light
-// 	DirectionalLight vLight;
-// 	vLight.Direction = XMFLOAT3(0.5f, -0.5f, 0.0f);
-// 	vLight.Diffuse = XMFLOAT4(0.2f, 0.2f, 0.3f, 1.0f);
-// 	vLight.Ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-// 	vLight.Specular = XMFLOAT4(0.0f, 0.3f, 1.0f, 1.0f);
-	//mfxLight->SetRawValue(&vLight, 0, sizeof(vLight));
+	//set vertex buffer
+	UINT stride = sizeof(myShapeLibrary::Vertex);
+	UINT offset = 0;
+	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
 
-	//Update Material
-// 	Material mat;
-// 	mat.Diffuse = XMFLOAT4(0.3f, 0.3f, 1.0f, 1.0f);
-// 	mat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f);
-// 	mat.Specular = XMFLOAT4(0.0f, 0.5f, 1.0f, 1.0f);
-	//mfxMat->SetRawValue(&mat, 0, sizeof(mat));
+	//set index buffer
+	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
-	//Update eyePos
-	//mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
+	mConeTracer.SetMatrix(&world, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+	mConeTracer.Render(mVoxelizer.SRV());
 
-	//Update Tex
-	//mfxTextureSRV->SetResource(mDiffuseMapSRV);
+	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
+ 	HR(mSwapChain->Present(0, 0));
 }
 
 void myDirectX11::BuildGeometryBuffer()
@@ -150,7 +153,7 @@ void myDirectX11::BuildGeometryBuffer()
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
 	//shapes.LoadModel("test.x", model);
-	shapes.CreateBox(XMFLOAT3(0, 0, 0), 5.0f, model);
+	shapes.CreateBox(XMFLOAT3(0, 0, 0), 1.0f, model);
 	//shapes.CreateCylinder(5.0f,5.0f,6.0f,5,5,model);
 	mBoundingBox = shapes.GetAABB(model);
 
@@ -193,8 +196,8 @@ void myDirectX11::resetOMTargetsAndViewport()
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
-	viewport.Width = mClientWidth;
-	viewport.Height = mClientHeight;
+	viewport.Width = (float)mClientWidth;
+	viewport.Height = (float)mClientHeight;
 	md3dImmediateContext->RSSetViewports(1, &viewport);
 }
 
