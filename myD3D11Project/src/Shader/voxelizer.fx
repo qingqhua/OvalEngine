@@ -10,7 +10,7 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
-	int gRes;
+	uint gRes;
 	float3 gVoxelSize;
 };
 
@@ -42,9 +42,9 @@ struct VS_OUT
 
 struct PS_IN
 {
-	float4 pos  : SV_POSITION;
-	float4 posV  : TEXCOORD0;
-	float3 normW : TEXCOORD2;
+	float4 pos    : SV_POSITION;
+	float3 normW  : TEXCOORD2;
+	float3 svoPos :SVO;
 };
 
 //--------------------------------------------------------------------------------------
@@ -116,14 +116,25 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 			output.pos.xyz = output.pos.xzy;
 		}
 		
-		// Then I just project the voxel space pos like this:
 		output.pos.xyz /= (float)gRes;
+
+		uint x=output.pos.x*(gRes-1)+gRes/2;
+		uint y=output.pos.y*(gRes-1)+gRes/2;
+		uint z=output.pos.z*(gRes-1)+gRes/2;
+		if (axis == facenormal.x)
+		{
+			output.svoPos=uint3(z,y,x);
+		}
+		else if (axis == facenormal.y)
+		{
+			output.svoPos=uint3(x,z,y);
+		}
+		else output.svoPos=uint3(x,y,z);
 
 		//pos for rasterization
 		output.pos.zw = 1;
 
 		output.normW = gin[i].normW;
-		output.posV =gin[i].posV;
 
 		triStream.Append(output);
 	}
@@ -136,12 +147,12 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 float4 PS(PS_IN pin) : SV_Target
 {
 	// Store voxels which are inside voxel-space boundary.
-	if (all(pin.pos.xy >= -1) && all(pin.pos.xy <= 1)) 
+	if (all(pin.svoPos>= 0) && all(pin.svoPos < gRes)) 
 	{
 		// Transform normal data from -1~1 to 0~1 .
 		float3 normal = (pin.normW + 1.f)*0.5f;	
 
-		gTargetUAV[uint3(pin.posV.xyz)] = float4(normal, 1.0f);
+		gTargetUAV[pin.svoPos] = float4(normal, 1.0f);
 
 		//to make it easier to check the result.
 		return float4(normal,0.0);

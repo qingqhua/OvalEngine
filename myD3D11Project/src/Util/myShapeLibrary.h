@@ -21,9 +21,8 @@ public:
 			: Position(p.x, p.y, p.z) {}
 		Vertex(const DirectX::XMFLOAT3 &p,const DirectX::XMFLOAT2 &uv)
 			: Position(p),Texture(uv) {}
-		Vertex(float px, float py, float pz,float u,float v)
-			: Position(px,py,pz),Texture(u,v){}
-		//todo modify order
+		Vertex(float px, float py, float pz, float n1, float n2, float n3)
+			: Position(px,py,pz), Normal(n1, n2, n3) {}
 		Vertex(float px, float py, float pz, float n1, float n2, float n3,float u, float v)
 			: Position(px, py, pz), Normal(n1, n2, n3),Texture(u, v) {}
 

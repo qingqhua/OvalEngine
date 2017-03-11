@@ -35,7 +35,7 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 
 	//init matrix
 	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, I);
+	XMStoreFloat4x4(&mWorld, XMMatrixMultiply(I, XMMatrixScaling(100.0f,100.0f,100.0f)));
 }
 
 myDirectX11::~myDirectX11()
@@ -53,11 +53,10 @@ bool myDirectX11::Init()
 
 	//build voxelizer
 	//float iVoxelRes = max(2.0 * mBoundingBox.Extents.x, max(2.0 * mBoundingBox.Extents.y, 2.0 * mBoundingBox.Extents.z));
-	float iVoxelRes = 16.0f;
+	float iVoxelRes = 256.0f;
 	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0f * mBoundingBox.Extents.x / iVoxelRes, 2.0f * mBoundingBox.Extents.y / iVoxelRes , 2.0f * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
-	//float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
-	float imaxVoxelSize = 1.0f;
+	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
 	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, imaxVoxelSize);
 
 	//init visualizer
@@ -79,7 +78,7 @@ void myDirectX11::OnResize()
 
 void myDirectX11::UpdateScene(float dt)
 {
-	ControlCamera(dt);
+	ControlCamera(dt,10.0f);
 	mCam.UpdateViewMatrix();
 }
 
@@ -96,19 +95,19 @@ void myDirectX11::DrawScene()
 	//world matrix update
 	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 
+	//set vertex buffer
+	UINT stride = sizeof(myShapeLibrary::Vertex);
+	UINT offset = 0;
+	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
+
+	//set index buffer
+	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
+
 	//-----------------------
 	//voxelize
 	//---------------------
   	if (m_bVoxelize)
   	{
-		//set vertex buffer
- 		UINT stride = sizeof(myShapeLibrary::Vertex);
- 		UINT offset = 0;
- 		md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
- 
- 		//set index buffer
- 		md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
- 
   		ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
   		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
   		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
@@ -118,27 +117,19 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
  
-  		resetOMTargetsAndViewport();
-  		m_bVoxelize = false;
+   		resetOMTargetsAndViewport();
+  		//m_bVoxelize = false;
   	}
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	//mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
+	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
 
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
-
-	//set vertex buffer
-	UINT stride = sizeof(myShapeLibrary::Vertex);
-	UINT offset = 0;
-	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
-
-	//set index buffer
-	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
 	mConeTracer.SetMatrix(&world, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
 	mConeTracer.Render(mVoxelizer.SRV());
@@ -152,9 +143,7 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	//shapes.LoadModel("test.x", model);
-	shapes.CreateBox(XMFLOAT3(0, 0, 0), 1.0f, model);
-	//shapes.CreateCylinder(5.0f,5.0f,6.0f,5,5,model);
+	shapes.LoadModel("data/Model/bunny.obj", model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
@@ -233,20 +222,20 @@ void myDirectX11::OnMouseDown(WPARAM btnState, int x, int y)
 	SetCapture(mhMainWnd);
 }
 
-void myDirectX11::ControlCamera(float dt)
+void myDirectX11::ControlCamera(float dt,float speed)
 {
 	if (GetAsyncKeyState('W') & 0x8000)
-		mCam.Walk(5.0f*dt);
+		mCam.Walk(speed*dt);
 	if (GetAsyncKeyState('S') & 0x8000)
-		mCam.Walk(-5.0f*dt);
+		mCam.Walk(-speed*dt);
 	if (GetAsyncKeyState('A') & 0x8000)
-		mCam.Strafe(-5.0f*dt);
+		mCam.Strafe(-speed*dt);
 	if (GetAsyncKeyState('D') & 0x8000)
-		mCam.Strafe(5.0f*dt);
+		mCam.Strafe(speed*dt);
 	if (GetAsyncKeyState('Q') & 0x8000)
-		mCam.FlyVertical(5.0f*dt);
+		mCam.FlyVertical(speed*dt);
 	if (GetAsyncKeyState('E') & 0x8000)
-		mCam.FlyVertical(-5.0f*dt);
+		mCam.FlyVertical(-speed*dt);
 }
 
 

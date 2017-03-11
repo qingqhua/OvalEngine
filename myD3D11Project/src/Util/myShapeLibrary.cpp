@@ -64,7 +64,6 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 
 	int m_indexcount = 0;
 	int m_vertexcount = 0;
-
 	//get indexcount and vertexcount
 	for (int i = 0; i < scene->mNumMeshes; i++)
 	{
@@ -76,23 +75,35 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 		}
 	}
 
-	Vertex *m_vertices = new Vertex[m_vertexcount];
-	unsigned int *m_indices = new unsigned int[m_indexcount];
 	std::vector<XMFLOAT3> vpos;
+	std::vector<unsigned int> m_indices;
+	std::vector<Vertex> m_vertices;
 
-	//TODO:if num_mesh and num_indices aren`t the same at every loop, it will cause incorrect result
-	//it wont work if there are two meshes
 	for (int cur_mesh = 0; cur_mesh < scene->mNumMeshes; cur_mesh++)
 	{
 		//get the position of each vertex
 		int num_vertices = scene->mMeshes[cur_mesh]->mNumVertices;
 		for (int v = 0; v < num_vertices; v++)
 		{
-			//m_vertices.push_back(XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z));
-			m_vertices[cur_mesh *num_vertices +v].Position = XMFLOAT3(scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z);
-			vpos.push_back(m_vertices[cur_mesh *num_vertices + v].Position);
+			//if mesh has normal and normal!=0
+			//if normal =0 will cause assert
+			if (scene->mMeshes[cur_mesh]->HasNormals())
+			{
+				m_vertices.push_back(Vertex(
+					//position
+					scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z,
+					//normal
+					scene->mMeshes[cur_mesh]->mNormals[v].x, scene->mMeshes[cur_mesh]->mNormals[v].y, scene->mMeshes[cur_mesh]->mNormals[v].z
+				));
+			}
+			else 				
+				m_vertices.push_back(Vertex(
+				//position
+				scene->mMeshes[cur_mesh]->mVertices[v].x, scene->mMeshes[cur_mesh]->mVertices[v].y, scene->mMeshes[cur_mesh]->mVertices[v].z
+			));
+			
+				vpos.push_back(m_vertices[m_vertices.size()-1].Position);
 		}
-
 		//get each index
 		int num_face = scene->mMeshes[cur_mesh]->mNumFaces;
 		for (int cur_face = 0; cur_face < num_face; cur_face++)
@@ -101,20 +112,21 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 
 			for (int i=0;i<num_indices;i++)
 			{
-				//m_indices.push_back(scene->mMeshes[cur_mesh]->mFaces[cur_face].mIndices[i]);
-				m_indices[cur_face*num_indices +i] = scene->mMeshes[cur_mesh]->mFaces[cur_face].mIndices[i];
+				m_indices.push_back(scene->mMeshes[cur_mesh]->mFaces[cur_face].mIndices[i]);
 			}
 		}
 	}
-		meshData.vertices.assign(&m_vertices[0], &m_vertices[m_vertexcount]);
-		meshData.indices.assign(&m_indices[0], &m_indices[m_indexcount]);
 
-		Octree octree;
-		octree.Build(vpos, meshData.indices);
-		
-		//meshData.vertices.assign(&octree.m_vertices[0], &octree.m_vertices[octree.m_vertices.size()]);
-		//meshData.indices.assign(&octree.indices[0], &octree.indices[octree.indices.size()]);
+	//push one more data to avoid vector outrange
+	m_vertices.push_back(Vertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+	m_indices.push_back(0);
 
+	//assign vertices and indices to meshdata
+	meshData.vertices.assign(&m_vertices[0], &m_vertices[m_vertexcount]);
+	meshData.indices.assign(&m_indices[0], &m_indices[m_indexcount]);
+
+	//Octree octree;
+	//octree.Build(vpos, meshData.indices);
 }
 
 BoundingBox myShapeLibrary::GetAABB(MeshData meshdata)

@@ -140,12 +140,21 @@ float3 traceDiffuseVoxelCone(const float3 from, float3 direction){
 
 	// Trace.
 	while(dist < SQRT2 && acc.a < 1){
-		float3 c = from + dist * direction;
-		c = scaleAndBias(from + dist * direction);
+		//float3 c = from + dist * direction;
+		//c = scaleAndBias(from + dist * direction);
 		float l = (1 + CONE_SPREAD * dist / VOXEL_SIZE);
 		float level = log2(l);
 		float ll = (level + 1) * (level + 1);
 		//todo voxel check
+			float w, h, d;
+	gVoxelList.GetDimensions(w, h, d);
+	uint VoxelDim = w;
+	uint sliceNum = VoxelDim*VoxelDim;
+	uint z = vin.index / (sliceNum);
+	uint temp = vin.index % (sliceNum);
+	uint y = temp / (uint)VoxelDim;
+	uint x = temp % (uint)VoxelDim;
+	uint3 c = uint3(x, y, z);
 		float4 voxel = gVoxelList.SampleLevel(SVOFilter, c, min(MIPMAP_HARDCAP, level));
 		acc += 0.075 * ll * voxel * pow(1 - voxel.a, 2);
 		dist += ll * VOXEL_SIZE * 2;
@@ -248,9 +257,14 @@ float4 PS(VS_OUT pin) : SV_Target
 
 	//float4 litColor=diffuse+specular;
 	//litColor.a=gMat.Diffuse.a;
-
-	
 }
+
+RasterizerState SolidRS
+{
+	FillMode = SOLID;
+	CullMode = BACK;
+	FrontCounterClockwise = false;
+};
 
 technique11 ConeTracingTech
 {
@@ -259,5 +273,6 @@ technique11 ConeTracingTech
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+		SetRasterizerState(SolidRS);
 	}
 }

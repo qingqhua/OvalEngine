@@ -25,14 +25,15 @@ struct VS_IN
 
 struct VS_OUT
 {
-	float3 normal    : NORMAL;
+	uint isvoxel	:texcoord;
 	float3 posL		:POSITION;
+	float3 normW	: NORMAL;
 };
 
 struct PS_IN
 {
 	float4 pos			: SV_POSITION;
-	float3 voxelnormW	: NORMAL;	
+	float3 normW		: NORMAL;	
 	float2 texcoord		: TEXCOORD;	
 };
 
@@ -126,9 +127,13 @@ VS_OUT VS(VS_IN vin)
 	uint3 pos = uint3(x, y, z);
 
 	VS_OUT output;
+	if(gVoxelList[pos].w)
+	output.isvoxel = 1;
+	else 
+	output.isvoxel = 0;
 
-	output.normal = gVoxelList[pos].xyz;
 	output.posL = pos;
+	output.normW=gVoxelList[pos].xyz;
 
 	return output;
 }
@@ -139,9 +144,7 @@ VS_OUT VS(VS_IN vin)
 [maxvertexcount(24)]
 void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 {
-		// Only process vertexes with voxel data.
-		if (dot(float3(1, 1, 1), gin[0].normal.xyz) > 0.01f)
-		{
+		if(gin[0].isvoxel){
 			// Generate vertexes for six faces.
 			for (int i = 0; i < 6; i++)
 			{
@@ -151,14 +154,17 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 					PS_IN output;
 
 					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f;
-
-					output.pos = mul(float4(vertex*gVoxelSize, 1), gWorld);
-					//output.pos = mul(float4(vertex*gVoxelSize, 1), gView);
+					float4x4 mat;
+					mat[0] = float4(5,0,0,0);
+					 mat[1] = float4(0,5,0,0); 
+					 mat[2] = float4(0,0,5,0);
+					 mat[3] = float4(0,0,0,1);
+					output.pos = mul(float4(vertex*gVoxelSize, 1), mat);
 					output.pos=mul(output.pos, gView);
 					output.pos = mul(output.pos, gProj);
+					output.normW=gin[0].normW;
 
 					output.texcoord = boxTexArray[j];
-					output.voxelnormW = gin[0].normal;
 
 					triStream.Append(output);
 
@@ -166,7 +172,6 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 				triStream.RestartStrip();
 			}
 		}
-
 }
 
 //----------------------------
@@ -174,7 +179,7 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 //-------------------------
 float4 PS(PS_IN pin) : SV_Target
 {
-	float4 normal = float4(pin.voxelnormW, 1);
+	float4 normal = float4(pin.normW, 1);
 
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;

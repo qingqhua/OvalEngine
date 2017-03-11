@@ -33,7 +33,7 @@ private:
 
 	void BuildGeometryBuffer();
 
-	void ControlCamera(float dt);
+	void ControlCamera(float dt, float speed);
 private:
 
 	//buffer
