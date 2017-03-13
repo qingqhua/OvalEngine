@@ -39,7 +39,7 @@ void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext,
 	BuildVertexLayout();
 	BuildTexture();
 
-	mfxRes->SetInt(iRes);
+	mfxDim->SetInt(iRes);
 	mfxVoxelSize->SetFloatVector((float *)&mVoxelSize);
 }
 
@@ -103,7 +103,7 @@ void Voxelizer::BuildFX()
 
  	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsVector();
  	mfxTargetUAV = mFX->GetVariableByName("gTargetUAV")->AsUnorderedAccessView();
- 	mfxRes = mFX->GetVariableByName("gRes")->AsScalar();
+ 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	
 }
 

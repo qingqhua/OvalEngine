@@ -48,7 +48,7 @@ private:
 	ID3DX11EffectShaderResourceVariable* mfxTextureSRV;
 	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
-	DirectX::XMFLOAT4X4 mWorld;
+	DirectX::XMMATRIX mWorld;
 
 	int indexCount;
 

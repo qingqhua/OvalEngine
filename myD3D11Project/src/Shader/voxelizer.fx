@@ -10,7 +10,7 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
-	uint gRes;
+	int gDim;
 	float3 gVoxelSize;
 };
 
@@ -29,22 +29,22 @@ RWTexture3D<float4> gTargetUAV;
 //--------------------
 struct VS_IN
 {
-	float3 posL  : POSITION;
-	float3 normL  :NORMAL;
+	float3 posL   : POSITION;
+	float3 normL  : NORMAL;
 };
 
 struct VS_OUT
 {
-	float4 posW  : TEXCOORD0;
-	float4 posV  : SV_POSITION;
-	float3 normW  : TEXCOORD2;
+	float4 posW  : POSW;
+	float4 posV  : POSV;
+	float3 normW : NORMW;
 };
 
 struct PS_IN
 {
-	float4 pos    : SV_POSITION;
-	float3 normW  : TEXCOORD2;
-	float3 svoPos :SVO;
+	float4 pos    : SV_POSITION;	//pos just for rasterization
+	float3 normW  : NORMW;
+	float3 svoPos : SVO;	//voxel-space boundary coordinates xyz>=0 && xyz<=gDim
 };
 
 //--------------------------------------------------------------------------------------
@@ -88,8 +88,17 @@ VS_OUT VS(VS_IN vin)
 	return vout;
 }
 
+//map from -1,1 to 0,1
+float map(float from)
+{
+	return float(0.5f*from+0.5f);
+}
+
 //-----------------------------
 //GEOMETRY SHADER
+//first project each triangle from posW to its main face.
+//then transfer its rasterpos to voxel-boundry space. (0-gDim,0-gDim,0-gDim)
+//since viewport is the same to gDim, rasterpos is -1,1 map it to voxel-boundry space.
 //-----------------------------
 [maxvertexcount(3)]
 void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
@@ -97,30 +106,30 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 	float3 facenormal=abs(normalize(cross(gin[1].posW.xyz-gin[0].posW.xyz,gin[2].posW.xyz-gin[0].posW.xyz)));
 	float axis=max(facenormal.x,max(facenormal.y,facenormal.z));
 
-	float3 VoxelSceneCenterPos=float3(0,0,0);
-	float3 offset=mul((float3)VoxelSceneCenterPos, 1.0f / gVoxelSize);
-
 	for( uint i = 0; i < 3; i++)
 	{
 		PS_IN output;
-		// The position is in World space, transform to voxel space:
-		output.pos = float4(gin[i].posW.xyz - offset , 1);
 
-		// Projection matrix is unnecessary, just a swizzle is enough:
+		// Projection the main face
 		if (axis == facenormal.x)
 		{
-			output.pos.xyz = output.pos.zyx;
+			output.pos.xyz = gin[i].posW.zyx;
 		}
 		else if (axis == facenormal.y)
 		{
-			output.pos.xyz = output.pos.xzy;
+			output.pos.xyz = gin[i].posW.xzy;
 		}
+		else output.pos.xyz = gin[i].posW.xyz;
 		
-		output.pos.xyz /= (float)gRes;
+		//pos for rasterization
+		output.pos.xyz /= (float)gDim;
 
-		uint x=output.pos.x*(gRes-1)+gRes/2;
-		uint y=output.pos.y*(gRes-1)+gRes/2;
-		uint z=output.pos.z*(gRes-1)+gRes/2;
+		//map rasterpos to voxel space
+		//todo voxel size
+		uint x=map(output.pos.x)*(gDim-1);
+		uint y=map(output.pos.y)*(gDim-1);
+		uint z=map(output.pos.z)*(gDim-1);
+
 		if (axis == facenormal.x)
 		{
 			output.svoPos=uint3(z,y,x);
@@ -147,16 +156,16 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 float4 PS(PS_IN pin) : SV_Target
 {
 	// Store voxels which are inside voxel-space boundary.
-	if (all(pin.svoPos>= 0) && all(pin.svoPos < gRes)) 
+	if (all(pin.svoPos>= 0) && all(pin.svoPos < gDim)) 
 	{
-		// Transform normal data from -1~1 to 0~1 .
+		// map normal from -1~1 to 0~1 .
 		float3 normal = (pin.normW + 1.f)*0.5f;	
 
 		gTargetUAV[pin.svoPos] = float4(normal, 1.0f);
-
 		//to make it easier to check the result.
 		return float4(normal,0.0);
 	}
+
 	else return float4(0,0,0, 0);
 }
 
@@ -167,6 +176,7 @@ technique11 VoxelizerTech
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(CompileShader(gs_5_0, GS()));
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+
 		SetDepthStencilState(DisableDepth, 0);
 		SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 		SetRasterizerState(RS_CullDisabled);

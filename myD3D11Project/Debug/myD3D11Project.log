@@ -1,5 +1,4 @@
-﻿cl : Command line warning D9028: minimal rebuild failure, reverting to normal build
-  myDirectX11.cpp
+﻿  myDirectX11.cpp
 i:\assimp-3.3.1\include\assimp\defs.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
 i:\assimp-3.3.1\include\assimp\matrix3x3.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
 i:\assimp-3.3.1\include\assimp\matrix3x3.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss

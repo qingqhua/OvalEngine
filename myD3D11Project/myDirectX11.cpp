@@ -32,10 +32,6 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 
 	mLastMousePos.x = 0;
 	mLastMousePos.y = 0;
-
-	//init matrix
-	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, XMMatrixMultiply(I, XMMatrixScaling(100.0f,100.0f,100.0f)));
 }
 
 myDirectX11::~myDirectX11()
@@ -49,6 +45,13 @@ bool myDirectX11::Init()
 	if (!D3DApp::Init())
 		return false;
 
+	//init world matrix
+	mWorld = XMMATRIX
+	(1000.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1000.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1000.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+
 	BuildGeometryBuffer();
 
 	//build voxelizer
@@ -57,12 +60,12 @@ bool myDirectX11::Init()
 	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0f * mBoundingBox.Extents.x / iVoxelRes, 2.0f * mBoundingBox.Extents.y / iVoxelRes , 2.0f * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
 	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
-	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, imaxVoxelSize);
+	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, 1.0f);
 
 	//init visualizer
 	mVisualizer.Init(md3dDevice, md3dImmediateContext);
 
-	mConeTracer.Init(md3dDevice, md3dImmediateContext);
+	//mConeTracer.Init(md3dDevice, md3dImmediateContext);
 
 	return true;
 }
@@ -73,12 +76,11 @@ void myDirectX11::OnResize()
 
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
 	mCam.SetLens(0.25f*myMathLibrary::Pi, AspectRatio(), 1.0f, 1000.0f);
-	
 }
 
 void myDirectX11::UpdateScene(float dt)
 {
-	ControlCamera(dt,10.0f);
+	ControlCamera(dt,5.0f);
 	mCam.UpdateViewMatrix();
 }
 
@@ -92,8 +94,6 @@ void myDirectX11::DrawScene()
  	md3dImmediateContext->OMSetDepthStencilState(0, 0);
  	float blendFactors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
  	md3dImmediateContext->OMSetBlendState(0, blendFactors, 0xffffffff);
-	//world matrix update
-	XMMATRIX world = XMLoadFloat4x4(&mWorld);
 
 	//set vertex buffer
 	UINT stride = sizeof(myShapeLibrary::Vertex);
@@ -112,29 +112,29 @@ void myDirectX11::DrawScene()
   		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
   		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
  
- 		mVoxelizer.SetMatrix(&world, &mCam.View(), &mCam.Proj());
+ 		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj());
  		mVoxelizer.Render();
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
- 
-   		resetOMTargetsAndViewport();
-  		//m_bVoxelize = false;
-  	}
+  
+    	resetOMTargetsAndViewport();
+   		//m_bVoxelize = false;
+   	}
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&world);
+	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
 
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
 
-	mConeTracer.SetMatrix(&world, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
-	mConeTracer.Render(mVoxelizer.SRV());
-
-	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+// 	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+// 	mConeTracer.Render(mVoxelizer.SRV());
+// 
+// 	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
  	HR(mSwapChain->Present(0, 0));
 }
@@ -236,6 +236,8 @@ void myDirectX11::ControlCamera(float dt,float speed)
 		mCam.FlyVertical(speed*dt);
 	if (GetAsyncKeyState('E') & 0x8000)
 		mCam.FlyVertical(-speed*dt);
+	if (GetAsyncKeyState('1') & 0x8000)
+		m_bVoxelize = !m_bVoxelize;
 }
 
 

@@ -69,7 +69,7 @@ void ConeTracer::BuildFX()
 #endif
 	ID3D10Blob* compiledShader = 0;
 	ID3D10Blob* compilationMsgs = 0;
-	HRESULT hr = D3DCompileFromFile(L"src/shader/coneTracer.fx", 0, 0, NULL,
+	HRESULT hr = D3DCompileFromFile(L"src/shader/conetest.fx", 0, 0, NULL,
 		"fx_5_0", shaderFlags,
 		0, &compiledShader, &compilationMsgs);
 	// compilationMsgs can store errors or warnings.

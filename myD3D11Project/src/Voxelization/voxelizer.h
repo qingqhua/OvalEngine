@@ -48,7 +48,7 @@ private:
 	ID3DX11EffectMatrixVariable* mfxWorld;
 	ID3DX11EffectMatrixVariable* mfxProj;
 
-	ID3DX11EffectScalarVariable* mfxRes;
+	ID3DX11EffectScalarVariable* mfxDim;
 	ID3DX11EffectVectorVariable* mfxVoxelSize;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxTargetUAV;
 

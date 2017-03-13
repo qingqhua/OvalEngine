@@ -140,22 +140,15 @@ float3 traceDiffuseVoxelCone(const float3 from, float3 direction){
 
 	// Trace.
 	while(dist < SQRT2 && acc.a < 1){
-		//float3 c = from + dist * direction;
-		//c = scaleAndBias(from + dist * direction);
+		float3 c = from + dist * direction;
+		c = scaleAndBias(from + dist * direction)+128.0f;
 		float l = (1 + CONE_SPREAD * dist / VOXEL_SIZE);
 		float level = log2(l);
 		float ll = (level + 1) * (level + 1);
 		//todo voxel check
-			float w, h, d;
-	gVoxelList.GetDimensions(w, h, d);
-	uint VoxelDim = w;
-	uint sliceNum = VoxelDim*VoxelDim;
-	uint z = vin.index / (sliceNum);
-	uint temp = vin.index % (sliceNum);
-	uint y = temp / (uint)VoxelDim;
-	uint x = temp % (uint)VoxelDim;
-	uint3 c = uint3(x, y, z);
-		float4 voxel = gVoxelList.SampleLevel(SVOFilter, c, min(MIPMAP_HARDCAP, level));
+		uint3 pos = uint3(c);
+		float4 voxel = gVoxelList.SampleLevel(SVOFilter, pos, min(MIPMAP_HARDCAP, level));
+		//float4 voxel =float4(pos,0);
 		acc += 0.075 * ll * voxel * pow(1 - voxel.a, 2);
 		dist += ll * VOXEL_SIZE * 2;
 	}
@@ -187,7 +180,7 @@ float3 IndirectDiffLighting(float3 pos,float3 normal,Material material)
 	const float CONE_OFFSET = -0.01;
 
 	// Trace front cone
-	//acc += w[0] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * normal, normal);
+	acc += w[0] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * normal, normal);
 
 	// Trace 4 side cones.
 	const float3 s1 = lerp(normal, ortho, ANGLE_MIX);
@@ -195,10 +188,10 @@ float3 IndirectDiffLighting(float3 pos,float3 normal,Material material)
 	const float3 s3 = lerp(normal, ortho2, ANGLE_MIX);
 	const float3 s4 = lerp(normal, -ortho2, ANGLE_MIX);
 
-	//acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho, s1);
-	//acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho, s2);
-	//acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho2, s3);
-	//acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho2, s4);
+	acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho, s1);
+	acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho, s2);
+	acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * ortho2, s3);
+	acc += w[1] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * ortho2, s4);
 
 	// Trace 4 corner cones.
 	const float3 c1 = lerp(normal, corner, ANGLE_MIX);
@@ -206,10 +199,10 @@ float3 IndirectDiffLighting(float3 pos,float3 normal,Material material)
 	const float3 c3 = lerp(normal, corner2, ANGLE_MIX);
 	const float3 c4 = lerp(normal, -corner2, ANGLE_MIX);
 
-	//acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner, c1);
-	//acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner, c2);
-	//acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner2, c3);
-	//acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner2, c4);
+	acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner, c1);
+	acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner, c2);
+	acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN + CONE_OFFSET * corner2, c3);
+	acc += w[2] * traceDiffuseVoxelCone(C_ORIGIN - CONE_OFFSET * corner2, c4);
 
 	// Return result.
 	return DIFFUSE_INDIRECT_FACTOR * material.Diffuse.a * acc * (material.Diffuse.xyz + float3(0.001f,0.001f,0.001f));
@@ -239,11 +232,7 @@ float4 PS(VS_OUT pin) : SV_Target
 	float3 viewVec=normalize(pin.posW.xyz-gEyePosW);
 
 	float4 rgba=float4(IndirectDiffLighting(pin.posW.xyz,pin.normW,gMat),1.0f);
-
 	return rgba;
-
-
-
 
 	//pin.normW=normalize(pin.normW);
 	//float3 toEyeW=normalize(gEyePosW-pin.posW.xyz);
