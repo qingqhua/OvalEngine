@@ -32,6 +32,8 @@ struct PointLight
 
 	DirectX::XMFLOAT3 Attenuation;
 	float Pad;
+
 };
+
 
 

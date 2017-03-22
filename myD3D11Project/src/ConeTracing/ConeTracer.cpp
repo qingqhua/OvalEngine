@@ -38,16 +38,16 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList)
 	mfxVoxelList->SetResource(iVoxelList);
 
 	//update light
-	 mPointLight.Diffuse = XMFLOAT4(0.2f, 0.2f, 0.3f, 1.0f);
-	 mPointLight.Specular = XMFLOAT4(0.0f, 0.3f, 1.0f, 1.0f);
-	 mPointLight.Attenuation = XMFLOAT3(0.0f, 0.1f, 0.0f);
-	 mPointLight.Position = XMFLOAT3(4.0f, 0.0f, -3.0f);
-	 mPointLight.Range = 25.0f;
-	 mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
+	mPointLight.Diffuse = XMFLOAT4(0.7f, 0.2f, 0.3f, 1.00001f);
+	mPointLight.Specular = XMFLOAT4(1.00f, 0.71f, 0.29f, 1.0f);
+	mPointLight.Attenuation = XMFLOAT3(1.01f, 1.01f, 1.01f);
+	mPointLight.Position = XMFLOAT3(5.6f,  0.0f, -3.0f);
+	mPointLight.Range = 225.0f;
+	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material
-	mMat.Diffuse = XMFLOAT4(0.3f, 0.3f, 1.0f, 1.0f);
-	mMat.Specular = XMFLOAT4(0.0f, 0.5f, 1.0f, 1.0f);
+	mMat.Diffuse = XMFLOAT4(0.2f, 0.0f, 0.0f, 0.00001f);
+	mMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
 
 	//Update eyePos
@@ -62,35 +62,21 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList)
 
 void ConeTracer::BuildFX()
 {
-	DWORD shaderFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-	shaderFlags |= D3D10_SHADER_DEBUG;
-	shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
+	//compile shader
+	ID3DBlob* errorBlob;
+	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined _DEBUG || defined DEBUG
+	shaderFlags = D3DCOMPILE_DEBUG;
 #endif
-	ID3D10Blob* compiledShader = 0;
-	ID3D10Blob* compilationMsgs = 0;
-	HRESULT hr = D3DCompileFromFile(L"src/shader/conetest.fx", 0, 0, NULL,
-		"fx_5_0", shaderFlags,
-		0, &compiledShader, &compilationMsgs);
-	// compilationMsgs can store errors or warnings.
-	if (compilationMsgs != 0)
-	{
-		MessageBoxA(0, (char*)compilationMsgs->GetBufferPointer(), 0, 0);
-		ReleaseCOM(compilationMsgs);
-	}
-	//Even if there are no compilationMsgs, check to make sure there
-	// were no other errors.
+
+	HRESULT hr = D3DX11CompileEffectFromFile(L"src/shader/conetracer.fx", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, shaderFlags,
+		0, md3dDevice, &mFX, &errorBlob);
 	if (FAILED(hr))
 	{
-		DXTrace(__FILEW__, (DWORD)__LINE__, hr,
-			L"D3DCompileFromFile", true);
-	} HR
-	(D3DX11CreateEffectFromMemory(
-		compiledShader->GetBufferPointer(),
-		compiledShader->GetBufferSize(),
-		0, md3dDevice, &mFX));
-	// Done with compiled shader.
-	ReleaseCOM(compiledShader);
+		MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK);
+		return ;
+	}
+
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("ConeTracingTech");

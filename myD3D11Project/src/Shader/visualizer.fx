@@ -20,7 +20,7 @@ Texture2D gEdge;
 //--------------------
 struct VS_IN
 {
-	uint index : SV_VertexID;
+	uint index	: SV_VertexID;
 };
 
 struct VS_OUT
@@ -111,6 +111,12 @@ SamplerState gAnisotropicSam
 	MaxAnisotropy = 16;
 };
 
+//map from 0,1 to -1,1
+float map(float from)
+{
+	return float(2.0f*from-1.0f);
+}
+
 //-----------------------------
 //VERTEX SHADER
 //-----------------------------
@@ -128,12 +134,20 @@ VS_OUT VS(VS_IN vin)
 	uint3 pos = uint3(x, y, z);
 
 	VS_OUT output;
-	if(gVoxelList[pos].w)
+	if(gVoxelList[pos].w >0)
 		output.isvoxel = 1;
 	else 
 		output.isvoxel = 0;
 
-	output.posL = pos;
+	//from[0,255] to [0,1]
+	//output.posL = (float3)pos/(float)VoxelDim;
+	//from [0,1] to[-1,1]
+	//output.posL = float3(map(output.posL.x),map(output.posL.y),map(output.posL.z));
+	//from[-1,1] to [-128,128]
+	//output.posL *=(float)(VoxelDim/2.0f);
+
+	output.posL =pos-VoxelDim/2.0f;
+	output.posL.xz +=VoxelDim/24.0f;
 	output.normW=gVoxelList[pos].xyz;
 
 	return output;
@@ -155,23 +169,18 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 					PS_IN output;
 
 					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f;
-					float4x4 translate;
-					translate[0] = float4(1,0,0,0);
-					 translate[1] = float4(0,1,0,0); 
-					 translate[2] = float4(0,0,1,0);
-					 translate[3] = float4(-5,-6,0,1);
-
-					 float4x4 rotateZ;
-					 rotateZ[0] = float4(cos(90),sin(90),0,0);
-					 rotateZ[1] = float4(-sin(90),cos(90),0,0);
-					 rotateZ[2] = float4(0,0,1,0);
-					 rotateZ[3] = float4(0,0,0,1);
-
-					 float4x4 mat=mul(translate,rotateZ);
-
-					output.pos = mul(float4(vertex*gVoxelSize, 1), mat);
+					float4x4 matri=float4x4(1.0f, 0, 0, 0,
+											0, 1, 0, 0,
+											0, 0, 1, 0,
+											0, 0, 0, 1);
+					
+					 //matrix transform
+					output.pos = mul(float4(vertex, 1), matri);
+					output.pos = float4(vertex, 1);
 					output.pos=mul(output.pos, gView);
 					output.pos = mul(output.pos, gProj);
+
+					//todo normal offset?
 					output.normW=(gin[0].normW);
 
 					output.texcoord = boxTexArray[j];
@@ -194,7 +203,7 @@ float4 PS(PS_IN pin) : SV_Target
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;
 
-	return float4(normal.rgb,1.0);
+	return float4(normal);
 }
 
 technique11 VisualTech

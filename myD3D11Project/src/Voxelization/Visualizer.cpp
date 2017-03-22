@@ -37,7 +37,6 @@ void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const 
 	mfxWorld->SetMatrix((float*)(iWorld));
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
-  	//mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
  	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);

@@ -43,24 +43,41 @@ void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext,
 	mfxVoxelSize->SetFloatVector((float *)&mVoxelSize);
 }
 
-void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj)
+void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos)
 {
 	mfxWorld->SetMatrix((float*)(iWorld));
 	mfxView->SetMatrix((float*)(iView));
 	mfxProj->SetMatrix((float*)(iProj));
+
+	mfxEyePos->SetFloatVector((float *)&icamPos);
 }
 
-void Voxelizer::Render()
+void Voxelizer::Render(float totalTime)
 {
+	//update light
+	mPointLight.Diffuse = XMFLOAT4(0.2f, 0.2f, 1.3f, 1.0f);
+	mPointLight.Specular = XMFLOAT4(0.5f, 0.3f, 1.0f, 1.0f);
+	mPointLight.Attenuation = XMFLOAT3(0.01f, 0.01f, 0.01f);
+	mPointLight.Position = XMFLOAT3(-15.0f*cosf(0.7f*totalTime), 0.0f, -15.0f*sinf(0.7f*totalTime));
+	mPointLight.Range = 225.0f;
+	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
+
+	//Update Material
+	mMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
+
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	const float zero[4] = { 0, 0, 0, 0 };
 	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
-	mfxTargetUAV->SetUnorderedAccessView(mUAV);
+	mfxUAVColor->SetUnorderedAccessView(mUAV);
+	//mfxUAVPosW->SetUnorderedAccessView(mUAV);
 	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
+
 }
 
 void Voxelizer::BuildFX()
@@ -102,8 +119,14 @@ void Voxelizer::BuildFX()
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
  	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsVector();
- 	mfxTargetUAV = mFX->GetVariableByName("gTargetUAV")->AsUnorderedAccessView();
+ 	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
+	//mfxUAVPosW = mFX->GetVariableByName("gUAVPosW")->AsUnorderedAccessView();
  	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
+
+	//light
+	mfxPointLight = mFX->GetVariableByName("gPointLight");
+	mfxMat = mFX->GetVariableByName("gMat");
+	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
 	
 }
 

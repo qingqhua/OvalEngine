@@ -47,9 +47,9 @@ bool myDirectX11::Init()
 
 	//init world matrix
 	mWorld = XMMATRIX
-	(1000.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1000.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1000.0f, 0.0f,
+	(0.1f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.1f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.1f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 
 	BuildGeometryBuffer();
@@ -65,7 +65,9 @@ bool myDirectX11::Init()
 	//init visualizer
 	mVisualizer.Init(md3dDevice, md3dImmediateContext);
 
-	//mConeTracer.Init(md3dDevice, md3dImmediateContext);
+	mConeTracer.Init(md3dDevice, md3dImmediateContext);
+
+
 
 	return true;
 }
@@ -112,12 +114,12 @@ void myDirectX11::DrawScene()
   		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
   		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
  
- 		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj());
- 		mVoxelizer.Render();
+ 		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+ 		mVoxelizer.Render(mTimer.TotalTime());
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
-    	resetOMTargetsAndViewport();
+		resetOMTargetsAndViewport();
    		//m_bVoxelize = false;
    	}
 
@@ -130,11 +132,10 @@ void myDirectX11::DrawScene()
 	//-----------------------
 	//render cone tracing
 	//---------------------
-
-// 	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
-// 	mConeTracer.Render(mVoxelizer.SRV());
-// 
-// 	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+ 	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+ 	mConeTracer.Render(mVoxelizer.SRV());
+ 
+ 	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
  	HR(mSwapChain->Present(0, 0));
 }
@@ -143,7 +144,8 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.LoadModel("data/Model/bunny.obj", model);
+	shapes.LoadModel("data/Model/apple.obj", model);
+	//shapes.CreateBox(XMFLOAT3(0, 0, 0), 5.0f, model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
@@ -186,7 +188,7 @@ void myDirectX11::resetOMTargetsAndViewport()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	viewport.Width = (float)mClientWidth;
-	viewport.Height = (float)mClientHeight;
+	viewport.Height = (float)mClientHeight;	
 	md3dImmediateContext->RSSetViewports(1, &viewport);
 }
 

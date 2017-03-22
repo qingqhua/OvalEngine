@@ -1,28 +1,52 @@
 
-#define PI 3.1415926
+//--------------------------
+// light structure
+//---------------------------
+struct PointLight
+{
+	float4 Diffuse;
+	float4 Specular;
+
+	float3 Position;
+	float Range;
+
+	float3 Attenuation;
+	float Pad;
+};
+
+//--------------------------
+// material structure
+//---------------------------
+struct Material
+{
+	float4 Diffuse;
+	float4 Specular;
+};
 
 //-----------------------
 //constant buffer
 //---------------------
-
-//todo register
 cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
 	int gDim;
 	float3 gVoxelSize;
+
+	PointLight gPointLight;
+	float3 gEyePosW;
 };
 
 cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
+	Material gMat;
 };
 
 //--------------------------
 //read write 3d texture
 //---------------------------
-RWTexture3D<float4> gTargetUAV;
+RWTexture3D<float4> gUAVColor;
 
 //----------------------
 //shader structure
@@ -35,8 +59,7 @@ struct VS_IN
 
 struct VS_OUT
 {
-	float4 posW  : POSW;
-	float4 posV  : POSV;
+	float4 posW  : SV_POSITION;
 	float3 normW : NORMW;
 };
 
@@ -45,6 +68,7 @@ struct PS_IN
 	float4 pos    : SV_POSITION;	//pos just for rasterization
 	float3 normW  : NORMW;
 	float3 svoPos : SVO;	//voxel-space boundary coordinates xyz>=0 && xyz<=gDim
+	float4 posW	  : POSW;
 };
 
 //--------------------------------------------------------------------------------------
@@ -81,7 +105,6 @@ VS_OUT VS(VS_IN vin)
 	VS_OUT vout;
 
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
-	vout.posV=mul(vout.posW,gView);
 
 	vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
 
@@ -121,14 +144,14 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		}
 		else output.pos.xyz = gin[i].posW.xyz;
 		
-		//pos for rasterization
+		//pos for rasterization, still need to change z to 1
 		output.pos.xyz /= (float)gDim;
 
 		//map rasterpos to voxel space
 		//todo voxel size
-		uint x=map(output.pos.x)*(gDim-1);
-		uint y=map(output.pos.y)*(gDim-1);
-		uint z=map(output.pos.z)*(gDim-1);
+		uint x=map(output.pos.x)*(gDim);
+		uint y=map(output.pos.y)*(gDim);
+		uint z=map(output.pos.z)*(gDim);
 
 		if (axis == facenormal.x)
 		{
@@ -145,9 +168,50 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 
 		output.normW = gin[i].normW;
 
+		output.posW=gin[i].posW;
+
 		triStream.Append(output);
 	}
 	triStream.RestartStrip();
+}
+
+//----------------------------
+//compute point light color in pixel shader
+//-------------------------
+void ComputePointLight(Material mat,PointLight L,float3 pos,float3 normal,float3 toEye,
+						out float4 diffuse, out float4 spec)
+{
+	diffuse=float4 (0,0,0,0);
+	spec=float4 (0,0,0,0);
+
+	normal=normalize(normal);
+
+	float3 lightVec=L.Position-pos;
+
+	//distance from light to surface
+	float d=length(lightVec);
+
+	//if(d>L.Range) return;
+
+	//normalize light vector
+	lightVec=normalize(lightVec);
+
+	//diffuse lighting part
+	float diffFactor=dot(lightVec,normal);
+	if(diffFactor>0.0f)
+	{
+
+	diffuse=diffFactor *L.Diffuse*mat.Diffuse;
+
+	//spec lighting part
+	float3 r=reflect(-lightVec,normal);
+	float specFactor=pow(max(dot(toEye,r),0.0f),mat.Specular.a);
+	spec = specFactor * mat.Specular * L.Specular;
+	}
+	
+	float attFactor= 1.0f / dot(L.Attenuation, float3(1.0f, d, d*d));;
+	diffuse *= attFactor;
+	spec    *= attFactor;
 }
 
 //----------------------------
@@ -155,18 +219,26 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 //-------------------------
 float4 PS(PS_IN pin) : SV_Target
 {
+	float4 litColor,diffuse, spec;
+
 	// Store voxels which are inside voxel-space boundary.
 	if (all(pin.svoPos>= 0) && all(pin.svoPos < gDim)) 
-	{
-		// map normal from -1~1 to 0~1 .
-		float3 normal = (pin.normW + 1.f)*0.5f;	
+	{	
 
-		gTargetUAV[pin.svoPos] = float4(normal, 1.0f);
+		float3 toEyeW = normalize(gEyePosW - pin.posW.xyz);
+
+		ComputePointLight(gMat,gPointLight, pin.posW.xyz, pin.normW, toEyeW,
+									diffuse, spec);
+		litColor = diffuse +spec;
+		litColor.a= gMat.Diffuse.a;
+
+		gUAVColor[pin.svoPos] = float4(litColor);
+
 		//to make it easier to check the result.
-		return float4(normal,0.0);
+		return float4(litColor);
 	}
 
-	else return float4(0,0,0, 0);
+	else return float4(1,1,1, 0);
 }
 
 technique11 VoxelizerTech

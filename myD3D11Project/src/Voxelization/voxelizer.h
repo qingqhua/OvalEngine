@@ -18,8 +18,8 @@ public:
 	~Voxelizer();
 
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float iRes, float imaxSize);
-	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj);
-	void Render();
+	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
+	void Render(float totalTime);
 
 	ID3D11ShaderResourceView* SRV();
 	float Res();
@@ -50,7 +50,8 @@ private:
 
 	ID3DX11EffectScalarVariable* mfxDim;
 	ID3DX11EffectVectorVariable* mfxVoxelSize;
-	ID3DX11EffectUnorderedAccessViewVariable* mfxTargetUAV;
+	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
+	//ID3DX11EffectUnorderedAccessViewVariable* mfxUAVPosW;
 
 	//texture var
 	ID3D11Texture3D* mTex3D;
@@ -58,6 +59,17 @@ private:
 	ID3D11ShaderResourceView* mSrvList;
 	ID3D11UnorderedAccessView* mUAV;
 	ID3D11UnorderedAccessView *mUavList;
+
+	//LIGHTING
+	ID3DX11EffectVariable* mfxPointLight;
+	ID3DX11EffectVariable* mfxMat;
+	ID3DX11EffectVectorVariable* mfxEyePos;
+
+	//init class
+	PointLight mPointLight;
+	Material mMat;
+
+	DirectX::XMFLOAT3 mEyePos;
 
 	//buffer
 	ID3D11InputLayout* mInputLayout;
