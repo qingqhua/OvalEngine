@@ -2,7 +2,7 @@
 #define Cone_Tracer_H
 
 #include <DirectXMath.h>
-#include "Common/d3dApp.h"
+#include "3rdParty/d3dApp.h"
 
 class ConeTracer
 {
@@ -13,11 +13,11 @@ public:
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext);
 	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
 	void Render(ID3D11ShaderResourceView* iVoxelList);
+	void Render(ID3D11ShaderResourceView* iVoxelList, float totalTime);
 private:
 	void BuildFX();
 	void BuildVertexLayout();
 
-	void InitLightMat();
 private:
 
 	//input var
@@ -41,8 +41,8 @@ private:
 	ID3D11InputLayout* mInputLayout;
 
 	//init class
-	PointLight mPointLight;
-	Material mMat;
+	PointLightBRDF mPointLight;
+	MaterialBRDF mMat;
 
 	DirectX::XMFLOAT3 mEyePos;
 };

@@ -51,7 +51,7 @@ bool myDirectX11::Init()
 		0.0f, 0.1f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.1f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
-
+	//mWorld = XMMatrixIdentity();
 	BuildGeometryBuffer();
 
 	//build voxelizer
@@ -60,10 +60,10 @@ bool myDirectX11::Init()
 	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0f * mBoundingBox.Extents.x / iVoxelRes, 2.0f * mBoundingBox.Extents.y / iVoxelRes , 2.0f * mBoundingBox.Extents.z / iVoxelRes);
 	// Find the maximum component of a voxel.
 	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
-	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, 1.0f);
+	//mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, 1.0f);
 
 	//init visualizer
-	mVisualizer.Init(md3dDevice, md3dImmediateContext);
+	//mVisualizer.Init(md3dDevice, md3dImmediateContext);
 
 	mConeTracer.Init(md3dDevice, md3dImmediateContext);
 
@@ -108,32 +108,32 @@ void myDirectX11::DrawScene()
 	//-----------------------
 	//voxelize
 	//---------------------
-  	if (m_bVoxelize)
-  	{
-  		ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
-  		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
-  		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
- 
- 		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
- 		mVoxelizer.Render(mTimer.TotalTime());
- 
- 		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-  
-		resetOMTargetsAndViewport();
-   		//m_bVoxelize = false;
-   	}
+//   	if (m_bVoxelize)
+//   	{
+//   		ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
+//   		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
+//   		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
+//  
+//  		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+//  		mVoxelizer.Render(mTimer.TotalTime());
+//  
+//  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+//   
+ 		resetOMTargetsAndViewport();
+//    		m_bVoxelize = false;
+//    	}
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
+	//mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
 
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
  	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
- 	mConeTracer.Render(mVoxelizer.SRV());
+ 	mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
  
  	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
@@ -144,14 +144,15 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.LoadModel("data/Model/apple.obj", model);
-	//shapes.CreateBox(XMFLOAT3(0, 0, 0), 5.0f, model);
+	//shapes.LoadModel("data/Model/apple.obj", model);
+	//shapes.CreateBox(XMFLOAT3(0, 0, 0), 2.0f, model);
+	shapes.LoadFromTinyObj("data/Model/appleonly.obj", "data/Model/", true, model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*model.vertices.size();
+	vbd.ByteWidth = 2*sizeof(XMFLOAT3)*model.vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -163,17 +164,17 @@ void myDirectX11::BuildGeometryBuffer()
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int)*model.indices.size();
+	ibd.ByteWidth = sizeof(int)*model.indiceindex.size();
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &model.indices[0];
+	iinitData.pSysMem = &model.indiceindex[0];
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
 
-	indexCount = model.indices.size();
+	indexCount = model.indiceindex.size();
 }
 
 void myDirectX11::resetOMTargetsAndViewport()

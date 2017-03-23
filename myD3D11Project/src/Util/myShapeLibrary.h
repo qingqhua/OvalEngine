@@ -9,6 +9,7 @@
 #include <scene.h>
 #include <postprocess.h>
 #include "Octree/octree.h"
+#include "3rdParty/tiny_obj_loader.h"
 
 class myShapeLibrary {
 public:
@@ -17,8 +18,10 @@ public:
 		Vertex() {}
 		Vertex(float px, float py, float pz)
 			: Position(px, py, pz) {}
-		Vertex(const DirectX::XMFLOAT3 &p)
-			: Position(p.x, p.y, p.z) {}
+		Vertex(const DirectX::XMFLOAT3 &n)
+			: Normal(n.x, n.y, n.z) {}
+		Vertex(float u, float v)
+			: Texture(u, v) {}
 		Vertex(const DirectX::XMFLOAT3 &p,const DirectX::XMFLOAT2 &uv)
 			: Position(p),Texture(uv) {}
 		Vertex(float px, float py, float pz, float n1, float n2, float n3)
@@ -35,13 +38,18 @@ public:
 	{
 		std::vector <Vertex> vertices;
 		std::vector <unsigned int> indices;
+		std::vector <DirectX::XMFLOAT3> verticeindex;
+		std::vector <int> indiceindex;
 	};
+
 
 	void CreateQuad(MeshData &meshdata);
 	void CreateBox(DirectX::XMFLOAT3 center, float extent, MeshData &meshData);
 	void CreateCylinder(float bottomRadius, float topRadius, float height, UINT sliceCount, UINT stackCount, MeshData& meshData);
 	void LoadModel(const char *file, MeshData &meshData);
+	void LoadFromTinyObj(const char* filename, const char* basepath /*= NULL*/, bool triangulate /*= true*/, MeshData &meshData);
 
+	void PrintInfo(const tinyobj::attrib_t& attrib, const std::vector<tinyobj::shape_t>& shapes, const std::vector<tinyobj::material_t>& materials);
 	DirectX::BoundingBox GetAABB(MeshData meshdata);
 private:
 	void ComputeNorm(MeshData &meshData);

@@ -155,11 +155,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="myDirectX11.cpp" />
-    <ClCompile Include="src\Common\d3dApp.cpp" />
-    <ClCompile Include="src\Common\d3dUtil.cpp" />
-    <ClCompile Include="src\Common\DDSTextureLoader.cpp" />
-    <ClCompile Include="src\Common\dxerr.cpp" />
-    <ClCompile Include="src\Common\GameTimer.cpp" />
+    <ClCompile Include="src\3rdParty\d3dApp.cpp" />
+    <ClCompile Include="src\3rdParty\d3dUtil.cpp" />
+    <ClCompile Include="src\3rdParty\DDSTextureLoader.cpp" />
+    <ClCompile Include="src\3rdParty\dxerr.cpp" />
+    <ClCompile Include="src\3rdParty\GameTimer.cpp" />
+    <ClCompile Include="src\3rdParty\tiny_obj_loader.cc" />
     <ClCompile Include="src\ConeTracing\ConeTracer.cpp" />
     <ClCompile Include="src\Octree\octree.cpp" />
     <ClCompile Include="src\Octree\OctreeNode.cpp" />
@@ -171,12 +172,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myDirectX11.h" />
-    <ClInclude Include="src\Common\d3dApp.h" />
-    <ClInclude Include="src\Common\d3dUtil.h" />
-    <ClInclude Include="src\Common\d3dx11effect.h" />
-    <ClInclude Include="src\Common\DDSTextureLoader.h" />
-    <ClInclude Include="src\Common\dxerr.h" />
-    <ClInclude Include="src\Common\GameTimer.h" />
+    <ClInclude Include="src\3rdParty\d3dApp.h" />
+    <ClInclude Include="src\3rdParty\d3dUtil.h" />
+    <ClInclude Include="src\3rdParty\d3dx11effect.h" />
+    <ClInclude Include="src\3rdParty\DDSTextureLoader.h" />
+    <ClInclude Include="src\3rdParty\dxerr.h" />
+    <ClInclude Include="src\3rdParty\GameTimer.h" />
+    <ClInclude Include="src\3rdParty\tiny_obj_loader.h" />
     <ClInclude Include="src\ConeTracing\ConeTracer.h" />
     <ClInclude Include="src\Octree\octree.h" />
     <ClInclude Include="src\Octree\OctreeNode.h" />

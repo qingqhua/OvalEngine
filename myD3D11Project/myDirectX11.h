@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Common/d3dApp.h"
+#include "3rdParty/d3dApp.h"
 #include "Util/Camera.h"
 
 #include "Voxelization/Voxelizer.h"

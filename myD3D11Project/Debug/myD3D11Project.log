@@ -1,9 +1,14 @@
-﻿  ConeTracer.cpp
+﻿  Voxelizer.cpp
 c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\crtdbg.h(302): warning C4005: '_malloca': macro redefinition
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\malloc.h(120): note: see previous definition of '_malloca'
 i:\assimp-3.3.1\include\assimp\defs.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
 i:\assimp-3.3.1\include\assimp\matrix3x3.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
 i:\assimp-3.3.1\include\assimp\matrix3x3.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
 i:\assimp-3.3.1\include\assimp\matrix4x4.inl : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+i:\real-time-rendering-engine\myd3d11project\src\voxelization\voxelizer.cpp(42): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+i:\real-time-rendering-engine\myd3d11project\src\voxelization\voxelizer.cpp(153): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+i:\real-time-rendering-engine\myd3d11project\src\voxelization\voxelizer.cpp(154): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+i:\real-time-rendering-engine\myd3d11project\src\voxelization\voxelizer.cpp(155): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+i:\real-time-rendering-engine\myd3d11project\src\voxelization\voxelizer.cpp(172): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
   myD3D11Project.vcxproj -> I:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.exe
   myD3D11Project.vcxproj -> I:\Real-time-rendering-engine\myD3D11Project\Debug\myD3D11Project.pdb (Full PDB)

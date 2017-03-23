@@ -20,28 +20,13 @@
     <Filter Include="ConeTracing">
       <UniqueIdentifier>{941b2b9a-ce2d-4c70-8a8e-b960feb959b1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Common">
+    <Filter Include="3rdParty">
       <UniqueIdentifier>{d32a462b-4e2a-44a1-8e6a-e4c01202120f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="myDirectX11.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\d3dApp.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\d3dUtil.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\DDSTextureLoader.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\dxerr.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\GameTimer.cpp">
-      <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Octree\octree.cpp">
       <Filter>Octree</Filter>
@@ -67,28 +52,28 @@
     <ClCompile Include="src\ConeTracing\ConeTracer.cpp">
       <Filter>ConeTracing</Filter>
     </ClCompile>
+    <ClCompile Include="src\3rdParty\d3dApp.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\3rdParty\d3dUtil.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\3rdParty\DDSTextureLoader.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\3rdParty\dxerr.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\3rdParty\GameTimer.cpp">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="src\3rdParty\tiny_obj_loader.cc">
+      <Filter>3rdParty</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myDirectX11.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\d3dApp.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\d3dUtil.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\d3dx11effect.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\DDSTextureLoader.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\dxerr.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Common\GameTimer.h">
-      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="src\Octree\octree.h">
       <Filter>Octree</Filter>
@@ -116,6 +101,27 @@
     </ClInclude>
     <ClInclude Include="src\ConeTracing\ConeTracer.h">
       <Filter>ConeTracing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\d3dApp.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\d3dUtil.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\d3dx11effect.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\DDSTextureLoader.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\dxerr.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\GameTimer.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="src\3rdParty\tiny_obj_loader.h">
+      <Filter>3rdParty</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

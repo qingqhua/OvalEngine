@@ -2,7 +2,7 @@
 #define VOXEL_VISUAL_H
 
 #include <DirectXMath.h>
-#include "Common/d3dApp.h"
+#include "3rdParty/d3dApp.h"
 
 class Visualizer
 {

@@ -5,24 +5,19 @@
 //---------------------------
 struct PointLight
 {
-	float4 Diffuse;
-	float4 Specular;
-
-	float3 Position;
-	float Range;
-
-	float3 Attenuation;
-	float Pad;
+	float3 position;
+	float3 color;
 };
-
 
 //--------------------------
 // material structure
 //---------------------------
 struct Material
 {
-	float4 Diffuse;
-	float4 Specular;
+	float3 diffAlbedo;
+	float metallic;
+	float3 specAlbedo;
+	float roughness;
 };
 
 //-----------------------
@@ -46,7 +41,7 @@ cbuffer cbPerObject : register(b1)
 //--------------------------
 //read voxel from 3d texture
 //---------------------------
-Texture3D<float4> gVoxelList;
+//Texture3D<float4> gVoxelList;
 
 //--------------------------
 //set sampler
@@ -59,7 +54,8 @@ SamplerState SVOFilter;
 struct VS_IN
 {
 	float3 posL  : POSITION;
-	float3 normL  :NORMAL;
+	float3 normL : NORMAL;
+	//float2 tex   : TEXTURE;
 };
 
 struct VS_OUT
@@ -69,46 +65,69 @@ struct VS_OUT
 	float3 normW  : NORMAL;
 };
 
-float3 DirectDiffuseBRDF(float3 diffAlbedo,float nDotL)
+
+//--------------------------
+//direct diffuse lighting
+//  c/PI
+//---------------------------
+float3 DirectDiffuseBRDF()
 {
-	return (diffAlbedo*nDotL)/PI;
+	return gMat.diffAlbedo/PI;
 }
 
-float3 DirectSpecularBRDF(float3 specAlbedo,float3 posW,float3 normW,float3 lightDir,float roughness)
-{
-	float3 viewDir=normalize(gEyePosW-posW);
-	float3 halfVec=normalize(viewDir+lightDir);
+//--------------------------
+//direct specular lighting
+//  NDF * G * F / denominator
+//---------------------------
+void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V,
+						out float3 color,out float3 F)
+{    
+	// calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use their albedo color as F0 (metallic workflow)    
+	float3 metallic=gMat.metallic;
 
-	float nDotH=saturate(dot(normW,halfVec));
-	float nDotL=saturate(dot(normW,lightDir));
-	float nDotV=max(dot(normW,viewDir),0.0001f);
+	float3 f0 = 0.04f; 
+    f0 = lerp(f0, gMat.specAlbedo, metallic);
 
-	float alpha2=roughness*roughness;
+	F = Schlick_Fresnel(f0,H,V);
+	float NDF = D_GGX(N, H, gMat.roughness);   
+    float G = G_Smith(N, V, L, gMat.roughness);      
 
-	float D=alpha2/(PI*pow(nDotH*nDotH*(alpha2-1)+1,2.0f));
+	float3 nominator = NDF * G * F; 
+	float denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.001f;
 
-	float3 F= Schlick_Fresnel(specAlbedo, halfVec,lightDir);
-
-	float G=G_Smith(roughness,nDotV,nDotL);
-
-	return D*F*G;
+	color = nominator / denominator;
 }
 
-float3 DirectLighting(float3 normW,float3 posW,float3 lightColor, float3 lightVec,float3 diffAlbedo, float3 specAlbedo,float roughness)
+//--------------------------
+//composite spec and diff direct lighting
+//---------------------------
+float3 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 {
-	float3 dist=length(lightVec);
-	lightVec/=dist;
+	float dist=length(lightVec);
+	float att=1.0f;///(dist*dist);
+	float3 radiance=gPointLight.color*att;
 
-	float nDotL=saturate(dot(normW,lightVec));
+	float3 kS=0.0f;
+	float3 specBRDF=0.0f;
 
-	float3 directLighting=0.0f;
+	DirectSpecularBRDF(N,H,L,V,specBRDF,kS);
 
-	if(nDotL>0.0f)
-		directLighting = DirectDiffuseBRDF(diffAlbedo,nDotL)+
-						DirectSpecularBRDF(specAlbedo,posW,normW,lightVec,roughness);
+	float3 kD = 1.0f - kS;
+    kD *= 1.0f - gMat.metallic;	
+	  
+	float3 diffBRDF=DirectDiffuseBRDF();
 
-	return max(directLighting,0.0f)*lightColor;
+	float NdotL = max(dot(N, L), 0.0);   
+	float3 Lo = (kD * diffBRDF + specBRDF) * radiance * NdotL;
+
+	float3 ambient = 0.03 * diffBRDF * float3(0.0,0.05,1.0);
+
+	float3 color=Lo;
+
+	return color;
 }
+
 //-----------------------------
 //VERTEX SHADER
 //-----------------------------
@@ -120,7 +139,8 @@ VS_OUT VS(VS_IN vin)
 	vout.posH=mul(vout.posW,gView);
 	vout.posH=mul(vout.posH,gProj);
 
-	vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
+	vout.normW=0.0f;
+	//vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
 	return vout;
 }
 
@@ -129,22 +149,23 @@ VS_OUT VS(VS_IN vin)
 //-------------------------
 float4 PS(VS_OUT pin) : SV_Target
 {
-	float3 normW=normalize(pin.normW);
-	float3 lightVec=gPointLight.Position-gEyePosW;
+	float3 lightVec=gPointLight.position-pin.posW;
+	float3 viewVec=gEyePosW-pin.posW;
 
-	float3 diffAlbedo=gMat.Diffuse.xyz;
-	float3 specAlbedo=gMat.Specular.xyz;
-	float roughness=gMat.Diffuse.a;
-	float nDotL=dot(normW,lightVec);
+	float3 N=normalize(pin.normW);
+	float3 V=normalize(viewVec);
+	float3 L= normalize(lightVec);
+	float3 H=normalize(V+L);
 
-	float3 directLighting=DirectLighting(normW,pin.posW.xyz,gPointLight.Attenuation, lightVec,diffAlbedo,specAlbedo,roughness);
-	return float4(directLighting,1.0f);
+	float3 directlighting = DirectLighting(N, H, lightVec, V, L);
+
+	return float4(directlighting,1.0f);
 }
 
 RasterizerState SolidRS
 {
 	FillMode = SOLID;
-	CullMode = BACK;
+	CullMode = None;
 	FrontCounterClockwise = false;
 };
 

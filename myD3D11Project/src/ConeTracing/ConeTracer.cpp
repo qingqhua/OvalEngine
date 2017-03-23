@@ -20,7 +20,6 @@ void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext
 
 	BuildFX();
 	BuildVertexLayout();
-	InitLightMat();
 }
 
 void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj,const DirectX::XMFLOAT3 icamPos)
@@ -32,22 +31,21 @@ void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMAT
 	mfxEyePos->SetFloatVector((float *)&icamPos);
 }
 
-void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList)
+void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 {
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
 
 	//update light
-	mPointLight.Diffuse = XMFLOAT4(0.7f, 0.2f, 0.3f, 1.00001f);
-	mPointLight.Specular = XMFLOAT4(1.00f, 0.71f, 0.29f, 1.0f);
-	mPointLight.Attenuation = XMFLOAT3(1.01f, 1.01f, 1.01f);
-	mPointLight.Position = XMFLOAT3(5.6f,  0.0f, -3.0f);
-	mPointLight.Range = 225.0f;
+	mPointLight.Position = XMFLOAT3(7.0f+12.0f*cosf(0.7f*totalTime), 20.0f, 12.0f*sinf(0.7f*totalTime)); 
+	mPointLight.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material
-	mMat.Diffuse = XMFLOAT4(0.2f, 0.0f, 0.0f, 0.00001f);
-	mMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	mMat.SpecAlbedo = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	mMat.metallic = 0.0f;
+	mMat.roughness = 0.3f;
 	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
 
 	//Update eyePos
@@ -57,6 +55,7 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList)
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
+
 	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
 }
 
@@ -76,7 +75,6 @@ void ConeTracer::BuildFX()
 		MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK);
 		return ;
 	}
-
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("ConeTracingTech");
@@ -100,6 +98,7 @@ void ConeTracer::BuildVertexLayout()
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
 		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
+		//{ "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 }
 	};
 
 	//create the input layout
@@ -107,16 +106,5 @@ void ConeTracer::BuildVertexLayout()
 	mTech->GetPassByName("ConeTracingPass")->GetDesc(&passDesc);
 	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
-}
-
-void ConeTracer::InitLightMat()
-{
-	mPointLight.Diffuse = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	mPointLight.Specular = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	mPointLight.Attenuation = XMFLOAT3(0.0f, 0.1f, 0.0f);
-	mPointLight.Range = 25.0f;
-
-	mMat.Diffuse = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-	mMat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
 }
 

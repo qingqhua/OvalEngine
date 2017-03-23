@@ -2,7 +2,7 @@
 #define VOXELIZER_H
 
 #include <DirectXMath.h>
-#include "Common/d3dApp.h"
+#include "3rdParty/d3dApp.h"
 
 struct VoxelData
 {

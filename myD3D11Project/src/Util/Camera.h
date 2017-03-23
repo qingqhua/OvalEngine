@@ -5,7 +5,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "Common/d3dUtil.h"
+#include "3rdParty/d3dUtil.h"
 
 class Camera
 {
