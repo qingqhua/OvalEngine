@@ -1,7 +1,6 @@
-myD3D11Project/.vs/
-myD3D11Project/.vscode/
-myD3D11Project/x64/
-myD3D11Project/[Dd]ebug/
+GOAL/.vs/
+GOAL/.vscode/
+GOAL/x64/
+GOAL/[Dd]ebug/
 *.db
 *.opendb
-*.obj
