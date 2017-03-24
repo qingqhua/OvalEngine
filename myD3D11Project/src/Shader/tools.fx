@@ -47,3 +47,29 @@ float3 Schlick_Fresnel(float3 f0, float3 H, float3 V)
 	return f0 + (1.0f - f0) * pow((1.0f - cosTheta), 5.0f);
 }
 
+float3 world_to_svo(float3 posW,float voxel_dim)
+{
+	float3 pos_svo=0.0f;
+
+	//from[-256,256] to [-1,1]
+	pos_svo = posW/voxel_dim;
+	//from [-1,1] to[0,1]
+	posW = 0.5*posW+0.5;
+	//from[0,1] to [0,256]
+	posW *=(float)(voxel_dim);
+	
+	pos_svo=posW;
+
+	return pos_svo;
+}
+
+//-----------------------------------------------------------------------------------------
+// Default Sampler.
+//-----------------------------------------------------------------------------------------
+SamplerState gAnisotropicSam
+{
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 16;
+};
+
+SamplerState SVOFilter      : register(s1);

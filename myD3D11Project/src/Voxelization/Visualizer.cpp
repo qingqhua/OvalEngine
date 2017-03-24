@@ -24,7 +24,6 @@ void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const 
 {
 	//update data in "voxelizer.fx"
 	mfxVoxelList->SetResource(iVoxelList);
-
 	//update voxel size
 	float fScale = 10.0f;
 	float voxelScale = fScale / iRes;

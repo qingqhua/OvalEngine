@@ -67,8 +67,6 @@ bool myDirectX11::Init()
 
 	mConeTracer.Init(md3dDevice, md3dImmediateContext);
 
-
-
 	return true;
 }
 
@@ -82,7 +80,7 @@ void myDirectX11::OnResize()
 
 void myDirectX11::UpdateScene(float dt)
 {
-	ControlCamera(dt,5.0f);
+	ControlCamera(dt,25.0f);
 	mCam.UpdateViewMatrix();
 }
 
@@ -119,8 +117,8 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
-  		resetOMTargetsAndViewport();
-   		m_bVoxelize = false;
+   		resetOMTargetsAndViewport();
+   		//m_bVoxelize = false;
    	}
 
 	//-----------------------
@@ -128,14 +126,13 @@ void myDirectX11::DrawScene()
 	//---------------------
 	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
 
-
 	//-----------------------
 	//render cone tracing
 	//---------------------
- 	//mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
- 	//mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
+ 	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+ 	mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
  
- 	//md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+ 	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
 
  	HR(mSwapChain->Present(0, 0));
 }
@@ -188,10 +185,9 @@ void myDirectX11::resetOMTargetsAndViewport()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	viewport.Width = (float)mClientWidth;
-	viewport.Height = (float)mClientHeight;	
+	viewport.Height = (float)mClientHeight;
 	md3dImmediateContext->RSSetViewports(1, &viewport);
 }
-
 
 //-------------------
 //mouse control

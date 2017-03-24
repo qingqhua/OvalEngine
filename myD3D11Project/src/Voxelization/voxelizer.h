@@ -56,9 +56,7 @@ private:
 	//texture var
 	ID3D11Texture3D* mTex3D;
 	ID3D11ShaderResourceView* mSRV;
-	ID3D11ShaderResourceView* mSrvList;
 	ID3D11UnorderedAccessView* mUAV;
-	ID3D11UnorderedAccessView *mUavList;
 
 	//LIGHTING
 	ID3DX11EffectVariable* mfxPointLight;

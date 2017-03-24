@@ -43,15 +43,6 @@ cbuffer cbPerObject : register(b1)
 Texture3D<float4> gVoxelList;
 Texture2D gTex;
 
-//-----------------------------------------------------------------------------------------
-// Sampler.
-//-----------------------------------------------------------------------------------------
-SamplerState gAnisotropicSam
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 16;
-};
-
 //----------------------
 //shader structure
 //--------------------
@@ -65,6 +56,7 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 posW   : POSITION;
+	uint3 pos_svo   : SVO;
 	float4 posH   : SV_POSITION;
 	float3 normW  : NORMAL;
 	float2 tex    : TEXCOORD;
@@ -133,11 +125,41 @@ float3 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 }
 
 //--------------------------
+//cone tracing
+//---------------------------
+/*float4 conetracing(float3 dir,float tanHalfAngle,float3 posW)
+{
+	float LOD=0.0f;
+	float3 color=0.0f;
+	float alpha=0.0f;
+
+	float dist=1.0f;
+	float3 startPos=world_to_svo(posW);
+
+	while(dist<10.0f&&alpha<1.0f)
+	{
+		float diameter=2.0f*tanHalfAngle*dist;
+		float lodLevel=log2(diameter);
+		float4 voxelColor=gVoxelList.SampleLevel(gAnisotropicSam, startPos+dist*dir ,lodLevel);
+
+		float a=1.0f-alpha;
+		color+=a*voxelColor.rgb;
+		alpha+=a*voxelColor.a;
+		occlusion += (a * voxelColor.a) / (1.0 + 0.03 * diameter);
+        dist += diameter * 0.5; 
+	}
+
+	return float4(color,alpha);
+}*/
+
+//--------------------------
 //composite indirect lighting
 //---------------------------
 float3 InDirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 {
-	float3 color=0.0f;
+	float4 color=0.0f;
+
+	float4 occlusion=0.0f;
 
 
 
@@ -150,7 +172,7 @@ float3 InDirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 VS_OUT VS(VS_IN vin)
 {
 	VS_OUT vout;
-
+	vout.pos_svo=vin.posL+128.0f;
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
 	vout.posH=mul(vout.posW,gView);
 	vout.posH=mul(vout.posH,gProj);
@@ -173,8 +195,9 @@ float4 PS(VS_OUT pin) : SV_Target
 	float3 H=normalize(V+L);
 
 	float3 directlighting = DirectLighting(N, H, lightVec, V, L);
-	float3 output = gTex.Sample(gAnisotropicSam, pin.tex).xyz;
-	return float4(directlighting+output,1.0f);
+	//float3 output = gTex.Sample(gAnisotropicSam, pin.tex).xyz;
+	float4 output = gVoxelList.SampleLevel(SVOFilter, uint3(0,0,0),0);
+	return output;
 	
 }
 

@@ -1,4 +1,4 @@
-
+#include"tools.fx"
 //--------------------------
 // light structure
 //---------------------------
@@ -144,14 +144,16 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		}
 		else output.pos.xyz = gin[i].posW.xyz;
 		
+		//at first I try to map raster coordinate to [0,255] to pair cualquier model,but the "exact" map will loss accuracy
+		//for example, we cant back to world coordinate
+		//here we simply need to give the offset and keep it in mind
+		float3 offset=0.5*gDim;
+		uint x=output.pos.x+offset;
+		uint y=output.pos.y+offset;
+		uint z=output.pos.z+offset;
+
 		//pos for rasterization, still need to change z to 1
 		output.pos.xyz /= (float)gDim;
-
-		//map rasterpos to voxel space
-		//todo voxel size
-		uint x=map(output.pos.x)*(gDim);
-		uint y=map(output.pos.y)*(gDim);
-		uint z=map(output.pos.z)*(gDim);
 
 		if (axis == facenormal.x)
 		{
@@ -224,7 +226,6 @@ float4 PS(PS_IN pin) : SV_Target
 	// Store voxels which are inside voxel-space boundary.
 	if (all(pin.svoPos>= 0) && all(pin.svoPos < gDim)) 
 	{	
-
 		float3 toEyeW = normalize(gEyePosW - pin.posW.xyz);
 
 		ComputePointLight(gMat,gPointLight, pin.posW.xyz, pin.normW, toEyeW,
@@ -232,8 +233,8 @@ float4 PS(PS_IN pin) : SV_Target
 		litColor = diffuse +spec;
 		litColor.a= gMat.Diffuse.a;
 
-		gUAVColor[pin.svoPos] = float4(litColor);
-
+		gUAVColor[pin.svoPos] = float4(0.0f,0.0f,1.0f,1.0f);
+		gUAVColor[uint3(1,0,0)] = float4(1.0f,0.0f,0.0f,1.0f);
 		//to make it easier to check the result.
 		return float4(litColor);
 	}

@@ -72,7 +72,6 @@ void Voxelizer::Render(float totalTime)
 	const float zero[4] = { 0, 0, 0, 0 };
 	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
-	//mfxUAVPosW->SetUnorderedAccessView(mUAV);
 	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
@@ -101,7 +100,6 @@ void Voxelizer::BuildFX()
 
  	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsVector();
  	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
-	//mfxUAVPosW = mFX->GetVariableByName("gUAVPosW")->AsUnorderedAccessView();
  	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 
 	//light
@@ -131,10 +129,10 @@ void Voxelizer::BuildTexture()
 {
 	//SET TEXTURE DESC
 	D3D11_TEXTURE3D_DESC txDesc;
-	txDesc.Width = mWidth;
-	txDesc.Height = mHeight;
-	txDesc.Depth = mDepth;
-	txDesc.MipLevels = 0;
+	txDesc.Width = mWidth; //256
+	txDesc.Height = mHeight; //256
+	txDesc.Depth = mDepth; //256
+	txDesc.MipLevels = 1;
 	txDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	txDesc.Usage = D3D11_USAGE_DEFAULT;
 	txDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
@@ -158,7 +156,7 @@ void Voxelizer::BuildTexture()
 	// SET SRV
 	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
 	SRVDesc.Format = txDesc.Format;
-	SRVDesc.Texture3D.MipLevels = 1;
+	SRVDesc.Texture3D.MipLevels = 1 ;
 	SRVDesc.Texture3D.MostDetailedMip = 0;
 	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 

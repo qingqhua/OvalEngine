@@ -139,15 +139,8 @@ VS_OUT VS(VS_IN vin)
 	else 
 		output.isvoxel = 0;
 
-	//from[0,255] to [0,1]
-	//output.posL = (float3)pos/(float)VoxelDim;
-	//from [0,1] to[-1,1]
-	//output.posL = float3(map(output.posL.x),map(output.posL.y),map(output.posL.z));
-	//from[-1,1] to [-128,128]
-	//output.posL *=(float)(VoxelDim/2.0f);
-
-	output.posL =pos-VoxelDim/2.0f;
-	output.posL.xz +=VoxelDim/24.0f;
+	//output.posL =pos-VoxelDim/2.0f;
+	output.posL =pos;
 	output.normW=gVoxelList[pos].xyz;
 
 	return output;
@@ -203,7 +196,9 @@ float4 PS(PS_IN pin) : SV_Target
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;
 
-	return float4(normal);
+	float3 test = gVoxelList.SampleLevel(gAnisotropicSam, uint3(1,0,0),1).xyz;
+
+	return float4(test,1.0f);
 }
 
 technique11 VisualTech
