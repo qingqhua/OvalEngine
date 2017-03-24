@@ -130,18 +130,13 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Shader\visualizer.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="src\Shader\voxelizer.fx">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="src\Shader\contest.fx">
-      <Filter>Shader</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="src\Shader\conetracer.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\visualizer.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\voxelizer.fx">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

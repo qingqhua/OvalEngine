@@ -81,36 +81,17 @@ void Voxelizer::Render(float totalTime)
 }
 
 void Voxelizer::BuildFX()
-{
-	DWORD shaderFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-	shaderFlags |= D3D10_SHADER_DEBUG;
-	shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
+{	
+	//compile shader
+	ID3DBlob* errorBlob;
+	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined _DEBUG || defined DEBUG
+	shaderFlags = D3DCOMPILE_DEBUG;
 #endif
-	ID3D10Blob* compiledShader = 0;
-	ID3D10Blob* compilationMsgs = 0;
-	HRESULT hr = D3DCompileFromFile(L"src/shader/voxelizer.fx", 0, 0, NULL,
-		"fx_5_0", shaderFlags,
-		0, &compiledShader, &compilationMsgs);
-	// compilationMsgs can store errors or warnings.
-	if (compilationMsgs != 0)
-	{
-		MessageBoxA(0, (char*)compilationMsgs->GetBufferPointer(), 0, 0);
-		ReleaseCOM(compilationMsgs);
-	}
-	//Even if there are no compilationMsgs, check to make sure there
-	// were no other errors.
-	if (FAILED(hr))
-	{
-		DXTrace(__FILEW__, (DWORD)__LINE__, hr,
-			L"D3DCompileFromFile", true);
-	} HR
-	(D3DX11CreateEffectFromMemory(
-		compiledShader->GetBufferPointer(),
-		compiledShader->GetBufferSize(),
-		0, md3dDevice, &mFX));
-	// Done with compiled shader.
-	ReleaseCOM(compiledShader);
+
+	HRESULT hr = D3DX11CompileEffectFromFile(L"src/shader/voxelizer.fx", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, shaderFlags,
+		0, md3dDevice, &mFX, &errorBlob);
+	if (FAILED(hr)) { MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK); }
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("VoxelizerTech");

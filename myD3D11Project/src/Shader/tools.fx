@@ -44,6 +44,6 @@ float G_Smith(float3 N, float3 V, float3 L, float roughness)
 float3 Schlick_Fresnel(float3 f0, float3 H, float3 V)
 {
 	float cosTheta=max(dot(H, V), 0.0);
-	return f0 + (1.0f - f0) * pow(1.0f - cosTheta, 5.0f);
+	return f0 + (1.0f - f0) * pow((1.0f - cosTheta), 5.0f);
 }
 

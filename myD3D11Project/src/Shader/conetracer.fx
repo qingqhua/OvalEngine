@@ -37,16 +37,20 @@ cbuffer cbPerObject : register(b1)
 	Material gMat;
 };
 
-
 //--------------------------
 //read voxel from 3d texture
 //---------------------------
-//Texture3D<float4> gVoxelList;
+Texture3D<float4> gVoxelList;
+Texture2D gTex;
 
-//--------------------------
-//set sampler
-//---------------------------
-SamplerState SVOFilter;
+//-----------------------------------------------------------------------------------------
+// Sampler.
+//-----------------------------------------------------------------------------------------
+SamplerState gAnisotropicSam
+{
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 16;
+};
 
 //----------------------
 //shader structure
@@ -54,8 +58,8 @@ SamplerState SVOFilter;
 struct VS_IN
 {
 	float3 posL  : POSITION;
-	//float3 normL : NORMAL;
-	//float2 tex   : TEXTURE;
+	float3 normL : NORMAL;
+	float2 tex   : TEXCOORD;
 };
 
 struct VS_OUT
@@ -63,8 +67,8 @@ struct VS_OUT
 	float4 posW   : POSITION;
 	float4 posH   : SV_POSITION;
 	float3 normW  : NORMAL;
+	float2 tex    : TEXCOORD;
 };
-
 
 //--------------------------
 //direct diffuse lighting
@@ -105,7 +109,7 @@ void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V,
 float3 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 {
 	float dist=length(lightVec);
-	float att=1.0f;///(dist*dist);
+	float att=100.0f/(dist*dist);
 	float3 radiance=gPointLight.color*att;
 
 	float3 kS=0.0f;
@@ -121,9 +125,21 @@ float3 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
 	float NdotL = max(dot(N, L), 0.0);   
 	float3 Lo = (kD * diffBRDF + specBRDF) * radiance * NdotL;
 
-	float3 ambient = 0.03 * diffBRDF * float3(0.0,0.05,1.0);
+	float3 ambient = 0.3 * gMat.diffAlbedo * float3(0.8,0.8,0.8);
 
-	float3 color=Lo;
+	float3 color=Lo+ambient;
+
+	return color;
+}
+
+//--------------------------
+//composite indirect lighting
+//---------------------------
+float3 InDirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L)
+{
+	float3 color=0.0f;
+
+
 
 	return color;
 }
@@ -139,8 +155,8 @@ VS_OUT VS(VS_IN vin)
 	vout.posH=mul(vout.posW,gView);
 	vout.posH=mul(vout.posH,gProj);
 
-	vout.normW=0.0f;
-	//vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
+	vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
+	vout.tex=vin.tex;
 	return vout;
 }
 
@@ -150,16 +166,16 @@ VS_OUT VS(VS_IN vin)
 float4 PS(VS_OUT pin) : SV_Target
 {
 	float3 lightVec=gPointLight.position-pin.posW;
-	float3 viewVec=gEyePosW-pin.posW;
 
 	float3 N=normalize(pin.normW);
-	float3 V=normalize(viewVec);
+	float3 V=normalize(gEyePosW-pin.posW);
 	float3 L= normalize(lightVec);
 	float3 H=normalize(V+L);
 
 	float3 directlighting = DirectLighting(N, H, lightVec, V, L);
-
-	return float4(directlighting,1.0f);
+	float3 output = gTex.Sample(gAnisotropicSam, pin.tex).xyz;
+	return float4(directlighting+output,1.0f);
+	
 }
 
 RasterizerState SolidRS

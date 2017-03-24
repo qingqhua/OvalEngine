@@ -37,13 +37,13 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	mfxVoxelList->SetResource(iVoxelList);
 
 	//update light
-	mPointLight.Position = XMFLOAT3(7.0f+12.0f*cosf(0.7f*totalTime), 20.0f, 12.0f*sinf(0.7f*totalTime)); 
-	mPointLight.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	mPointLight.Position = XMFLOAT3(3.0f, 3.0f, -5.0f); 
+	mPointLight.Color = XMFLOAT3(1.0f, 0.2f, 0.3f);
 	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material
-	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	mMat.SpecAlbedo = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	mMat.DiffAlbedo = XMFLOAT3(0.4f, 0.3f, 0.2f);
+	mMat.SpecAlbedo = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	mMat.metallic = 0.0f;
 	mMat.roughness = 0.3f;
 	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
@@ -70,11 +70,7 @@ void ConeTracer::BuildFX()
 
 	HRESULT hr = D3DX11CompileEffectFromFile(L"src/shader/conetracer.fx", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, shaderFlags,
 		0, md3dDevice, &mFX, &errorBlob);
-	if (FAILED(hr))
-	{
-		MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK);
-		return ;
-	}
+	if (FAILED(hr)){MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK);}
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("ConeTracingTech");
@@ -89,6 +85,13 @@ void ConeTracer::BuildFX()
 
 	//voxel
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
+	mfxTexSRV = mFX->GetVariableByName("gTex")->AsShaderResource();
+
+	// Set a texture value
+	ID3D11ShaderResourceView* TexRV;
+	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/skin.dds", nullptr, &TexRV));
+	mfxTexSRV->SetResource(TexRV);
+	
 }
 
 void ConeTracer::BuildVertexLayout()
@@ -97,14 +100,14 @@ void ConeTracer::BuildVertexLayout()
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		//{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
-		//{ "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 }
+		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,24,D3D11_INPUT_PER_VERTEX_DATA,0 }
 	};
 
 	//create the input layout
 	D3DX11_PASS_DESC passDesc;
 	mTech->GetPassByName("ConeTracingPass")->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
 }
 
