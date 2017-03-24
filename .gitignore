@@ -1,39 +1,4 @@
-c# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-
-# Executables
-*.exe
-*.out
-*.app
-
-# VS+CPP
-myD3D11Project/Debug/*
-myD3D11Project/.vs/*
-*.lastbuildstate
+myD3D11Project/.vs
+myD3D11Project/.vscode
+myD3D11Project/[Dd]dbug
 *.db
-*.log
-*.tlog
-*.pdb
-*.idb
-*.ilk
