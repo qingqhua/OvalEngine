@@ -97,14 +97,14 @@ void ConeTracer::BuildVertexLayout()
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
+		//{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D11_INPUT_PER_VERTEX_DATA,0 }
 		//{ "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 }
 	};
 
 	//create the input layout
 	D3DX11_PASS_DESC passDesc;
 	mTech->GetPassByName("ConeTracingPass")->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
 }
 

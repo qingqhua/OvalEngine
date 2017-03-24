@@ -146,13 +146,13 @@ void myDirectX11::BuildGeometryBuffer()
 	myShapeLibrary shapes;
 	//shapes.LoadModel("data/Model/apple.obj", model);
 	//shapes.CreateBox(XMFLOAT3(0, 0, 0), 2.0f, model);
-	shapes.LoadFromTinyObj("data/Model/appleonly.obj", "data/Model/", true, model);
+	shapes.LoadFromTinyObj("data/Model/apple.obj", "data/Model/", true, model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = 2*sizeof(XMFLOAT3)*model.vertices.size();
+	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*model.vertices.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;

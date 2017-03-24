@@ -131,16 +131,13 @@ void myShapeLibrary::LoadModel(const char *file,MeshData &meshData)
 
 void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath /*= NULL*/, bool triangulate /*= true*/, MeshData &meshData)
 {
-	std::cout << "Loading " << filename << std::endl;
-
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 
 	std::string err;
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename,
-		basepath, triangulate);
-
+								basepath, triangulate);
 
 	if (!ret) {
 		MessageBox(0, L"RegisterClass Failed.", L"error", MB_OK);
@@ -149,8 +146,8 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 	
 	//push vertexs & normals
 	for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
-		meshData.vertices.push_back(Vertex(attrib.vertices[3 * v + 0], attrib.vertices[3 * v + 1], attrib.vertices[3 * v + 2],
-			attrib.normals[3 * v + 0], attrib.normals[3 * v + 1], attrib.normals[3 * v + 2]
+		meshData.vertices.push_back(Vertex(attrib.vertices[3 * v + 0], attrib.vertices[3 * v + 1], attrib.vertices[3 * v + 2]
+			//,attrib.normals[3 * v + 0], attrib.normals[3 * v + 1], attrib.normals[3 * v + 2]
 			));
 	}
 		

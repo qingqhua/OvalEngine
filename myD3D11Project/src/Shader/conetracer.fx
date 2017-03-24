@@ -54,7 +54,7 @@ SamplerState SVOFilter;
 struct VS_IN
 {
 	float3 posL  : POSITION;
-	float3 normL : NORMAL;
+	//float3 normL : NORMAL;
 	//float2 tex   : TEXTURE;
 };
 
