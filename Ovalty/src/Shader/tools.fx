@@ -47,11 +47,9 @@ float3 Schlick_Fresnel(float3 f0, float3 H, float3 V)
 	return f0 + (1.0f - f0) * pow((1.0f - cosTheta), 5.0f);
 }
 
-float3 world_to_svo(float3 posW,float voxel_dim)
+uint3 world_to_svo(float3 posW,float voxel_dim)
 {
-
-
-	return float3(posW+voxel_dim/2.0f);
+	return ceil(posW+voxel_dim/2.0f);
 }
 
 //-----------------------------------------------------------------------------------------

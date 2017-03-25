@@ -117,14 +117,14 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
-   		resetOMTargetsAndViewport();
-   		//m_bVoxelize = false;
+    	resetOMTargetsAndViewport();
+   		m_bVoxelize = false;
    	}
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
+	//mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
 
 	//-----------------------
 	//render cone tracing

@@ -105,7 +105,6 @@ VS_OUT VS(VS_IN vin)
 	VS_OUT vout;
 
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
-
 	vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
 
 	return vout;
@@ -145,15 +144,11 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		else output.pos.xyz = gin[i].posW.xyz;
 		
 		//at first I try to map raster coordinate to [0,255] to pair cualquier model,but the "exact" map will loss accuracy
-		//for example, we cant back to world coordinate
-		//here we simply need to give the offset and keep it in mind
+		//here we simply give the offset and keep it in mind
 		float3 offset=0.5*gDim;
-		uint x=output.pos.x+offset;
-		uint y=output.pos.y+offset;
-		uint z=output.pos.z+offset;
-
-		//pos for rasterization, still need to change z to 1
-		output.pos.xyz /= (float)gDim;
+		uint x=ceil(output.pos.x+offset);
+		uint y=ceil(output.pos.y+offset);
+		uint z=ceil(output.pos.z+offset);
 
 		if (axis == facenormal.x)
 		{
@@ -165,7 +160,9 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		}
 		else output.svoPos=uint3(x,y,z);
 
+
 		//pos for rasterization
+		output.pos.xyz /= (float)gDim;
 		output.pos.zw = 1;
 
 		output.normW = gin[i].normW;
@@ -234,7 +231,7 @@ float4 PS(PS_IN pin) : SV_Target
 		litColor.a= gMat.Diffuse.a;
 
 		gUAVColor[pin.svoPos] = float4(0.0f,0.0f,1.0f,1.0f);
-		gUAVColor[uint3(1,0,0)] = float4(1.0f,0.0f,0.0f,1.0f);
+
 		//to make it easier to check the result.
 		return float4(litColor);
 	}

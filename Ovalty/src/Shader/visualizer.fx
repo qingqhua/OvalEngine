@@ -196,10 +196,7 @@ float4 PS(PS_IN pin) : SV_Target
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;
 
-	//float3 test = gVoxelList.SampleLevel(gAnisotropicSam, uint3(1,0,0),0).xyz;
-	float3 test = gVoxelList[uint3(1,0,0)].xyz;
-
-	return float4(test,1.0f);
+	return float4(output,1.0f);
 }
 
 technique11 VisualTech
