@@ -1,6 +1,6 @@
-GOAL/.vs/
-GOAL/.vscode/
-GOAL/x64/
-GOAL/[Dd]ebug/
+Ovality/.vs/
+Ovality/.vscode/
+Ovality/x64/
+Ovality/[Dd]ebug/
 *.db
 *.opendb
