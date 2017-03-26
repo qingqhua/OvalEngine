@@ -65,8 +65,8 @@ private:
 	ID3DX11EffectVectorVariable* mfxEyePos;
 
 	//init class
-	PointLight mPointLight;
-	Material mMat;
+	PointLightBRDF mPointLight;
+	MaterialBRDF mMat;
 
 	DirectX::XMFLOAT3 mEyePos;
 

@@ -35,7 +35,7 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 
 	//update light
 	mPointLight.Position = XMFLOAT3(2.0f*cosf(0.7f*totalTime), 0.6f, 2.0f*sinf(0.7f*totalTime));
-	mPointLight.Color = XMFLOAT3(0.0f, 0.8f, 0.3f);
+	mPointLight.Color = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material

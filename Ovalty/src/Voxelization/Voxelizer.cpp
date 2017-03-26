@@ -56,16 +56,15 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATR
 void Voxelizer::Render(float totalTime)
 {
 	//update light
-	mPointLight.Diffuse = XMFLOAT4(0.0f, 0.8f, 0.3f, 1.0f);
-	mPointLight.Specular = XMFLOAT4(0.0f, 0.8f, 0.3f, 1.0f);
-	mPointLight.Attenuation = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	mPointLight.Position = XMFLOAT3(20.0f*cosf(0.7f*totalTime), 6.0f, 20.0f*sinf(0.7f*totalTime));
-	mPointLight.Range = 225.0f;
+	mPointLight.Color = XMFLOAT3(0,1,0);
 	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material
-	mMat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	mMat.Specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	mMat.SpecAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	mMat.metallic = 1.3f;
+	mMat.roughness = 1.2f;
 	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
 
 	//set primitive topology
