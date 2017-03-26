@@ -46,13 +46,10 @@ bool myDirectX11::Init()
 		return false;
 
 	//init world matrix
-	mWorld = XMMATRIX
-	(0.1f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.1f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.1f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
 	mWorld = XMMatrixIdentity();
 	BuildGeometryBuffer();
+
+	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
 	//build voxelizer
 	//float iVoxelRes = max(2.0 * mBoundingBox.Extents.x, max(2.0 * mBoundingBox.Extents.y, 2.0 * mBoundingBox.Extents.z));
@@ -80,7 +77,7 @@ void myDirectX11::OnResize()
 
 void myDirectX11::UpdateScene(float dt)
 {
-	ControlCamera(dt,25.0f);
+	ControlCamera(dt,5.0f);
 	mCam.UpdateViewMatrix();
 }
 
@@ -112,24 +109,24 @@ void myDirectX11::DrawScene()
   		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
   		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
  
- 		mVoxelizer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+ 		mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
  		mVoxelizer.Render(mTimer.TotalTime());
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
     	resetOMTargetsAndViewport();
-   		m_bVoxelize = false;
+   		//m_bVoxelize = false;
    	}
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	//mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld);
+	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
- 	mConeTracer.SetMatrix(&mWorld, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+ 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
  	mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
  
  	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
@@ -141,8 +138,7 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	//shapes.CreateBox(XMFLOAT3(0, 0, 0), 2.0f, model);
-	shapes.LoadFromTinyObj("data/Model/apple.obj", "data/Model/", true, model);
+	shapes.LoadFromTinyObj("data/Model/CornellBox.obj", "data/Model/", true, model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer

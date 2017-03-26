@@ -106,9 +106,9 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 		int n_id = n_index_temp[i];
 		int t_id = t_index_temp[i];
 		meshData.vertices.push_back(Vertex(attrib.vertices[3 * v_id], attrib.vertices[3 * v_id + 1], attrib.vertices[3 * v_id + 2],
-									attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2],
-									attrib.texcoords[2 * t_id], attrib.texcoords[2 * t_id + 1]
-		));
+			attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2],
+			attrib.texcoords[2 * t_id], attrib.texcoords[2 * t_id + 1]));
+
 		meshData.indiceindex.push_back(i);
 	}
 }
@@ -154,7 +154,7 @@ void myShapeLibrary::ComputeNorm(MeshData &meshData)
 		meshData.vertices[i2].Normal = myMathLibrary::add(facenormal, meshData.vertices[i2].Normal);
 	}
 
-	for (int i = 0; i < meshData.vertices.size(); i++)
+	for (size_t i = 0; i < meshData.vertices.size(); i++)
 		meshData.vertices[i].Normal = myMathLibrary::normlize(meshData.vertices[i].Normal);
 }
 

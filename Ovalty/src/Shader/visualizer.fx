@@ -5,8 +5,13 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
-	float4x4 gWorld;
 	float gVoxelSize;
+};
+
+cbuffer cbPerObject : register(b1)
+{
+	float4x4 gWorld;
+	float4x4 gWorldInverTrans;
 };
 
 //--------------------------
@@ -139,8 +144,9 @@ VS_OUT VS(VS_IN vin)
 	else 
 		output.isvoxel = 0;
 
-	//output.posL =pos-VoxelDim/2.0f;
-	output.posL =pos;
+	output.posL =pos-VoxelDim/2.0f;
+	output.posL.xz +=VoxelDim/12.0f;
+	//output.posL =pos;
 	output.normW=gVoxelList[pos].xyz;
 
 	return output;
@@ -162,14 +168,9 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 					PS_IN output;
 
 					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f;
-					float4x4 matri=float4x4(1.0f, 0, 0, 0,
-											0, 1, 0, 0,
-											0, 0, 1, 0,
-											0, 0, 0, 1);
 					
 					 //matrix transform
-					output.pos = mul(float4(vertex, 1), matri);
-					output.pos = float4(vertex, 1);
+					output.pos = mul(float4(vertex, 1.0f), gWorld);
 					output.pos=mul(output.pos, gView);
 					output.pos = mul(output.pos, gProj);
 
@@ -196,7 +197,7 @@ float4 PS(PS_IN pin) : SV_Target
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;
 
-	return float4(output,1.0f);
+	return float4(normal.rgb,1.0f);
 }
 
 technique11 VisualTech

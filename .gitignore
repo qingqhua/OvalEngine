@@ -1,6 +1,7 @@
-Ovality/.vs/
-Ovality/.vscode/
-Ovality/x64/
-Ovality/[Dd]ebug/
+Ovalty/.vs/
+Ovalty/.vscode/
+Ovalty/x64/
+Ovalty/[Dd]ebug/
 *.db
 *.opendb
+*.suo

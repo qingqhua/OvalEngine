@@ -3,15 +3,11 @@
 using namespace DirectX;
 
 ConeTracer::ConeTracer():mInputLayout(0), md3dDevice(0), mDeviceContext(0),mTech(0),mFX(0),
-						mfxProj(0),mfxView(0),mfxWorld(0)
-						
-{
-}
+						mfxProj(0),mfxView(0),mfxWorld(0)					
+{}
 
 ConeTracer::~ConeTracer()
-{
-
-}
+{}
 
 void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext)
 {
@@ -22,9 +18,10 @@ void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext
 	BuildVertexLayout();
 }
 
-void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj,const DirectX::XMFLOAT3 icamPos)
+void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj,const DirectX::XMFLOAT3 icamPos)
 {
 	mfxWorld->SetMatrix((float*)(iWorld));
+	mfxWorldInverTrans->SetMatrix((float*)(iWorldInverTrans));
 	mfxView->SetMatrix((float*)(iView));
 	mfxProj->SetMatrix((float*)(iProj));
 
@@ -37,15 +34,15 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	mfxVoxelList->SetResource(iVoxelList);
 
 	//update light
-	mPointLight.Position = XMFLOAT3(3.0f, 3.0f, -5.0f); 
-	mPointLight.Color = XMFLOAT3(1.0f, 0.2f, 0.3f);
+	mPointLight.Position = XMFLOAT3(2.0f*cosf(0.7f*totalTime), 0.6f, 2.0f*sinf(0.7f*totalTime));
+	mPointLight.Color = XMFLOAT3(0.0f, 0.8f, 0.3f);
 	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
 
 	//Update Material
-	mMat.DiffAlbedo = XMFLOAT3(0.4f, 0.3f, 0.2f);
-	mMat.SpecAlbedo = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	mMat.SpecAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	mMat.metallic = 0.0f;
-	mMat.roughness = 0.3f;
+	mMat.roughness = 0.2f;
 	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
 
 	//Update eyePos
@@ -76,6 +73,7 @@ void ConeTracer::BuildFX()
 	mTech = mFX->GetTechniqueByName("ConeTracingTech");
 	mfxView = mFX->GetVariableByName("gView")->AsMatrix();
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
+	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
 	//light
@@ -85,13 +83,6 @@ void ConeTracer::BuildFX()
 
 	//voxel
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
-	mfxTexSRV = mFX->GetVariableByName("gTex")->AsShaderResource();
-
-	// Set a texture value
-	ID3D11ShaderResourceView* TexRV;
-	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/skin.dds", nullptr, &TexRV));
-	mfxTexSRV->SetResource(TexRV);
-	
 }
 
 void ConeTracer::BuildVertexLayout()

@@ -40,6 +40,7 @@ cbuffer cbPerFrame : register(b0)
 cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
+	float4x4 gWorldInverTrans;
 	Material gMat;
 };
 
@@ -105,7 +106,8 @@ VS_OUT VS(VS_IN vin)
 	VS_OUT vout;
 
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
-	vout.normW=mul(float4(vin.normL,1.0f),gWorld).xyz;
+	vout.posW*=10.0f;
+	vout.normW=mul(float4(vin.normL,1.0f),gWorldInverTrans).xyz;
 
 	return vout;
 }
@@ -131,7 +133,6 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 	for( uint i = 0; i < 3; i++)
 	{
 		PS_IN output;
-
 		// Projection the main face
 		if (axis == facenormal.x)
 		{
@@ -177,7 +178,7 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 //----------------------------
 //compute point light color in pixel shader
 //-------------------------
-void ComputePointLight(Material mat,PointLight L,float3 pos,float3 normal,float3 toEye,
+void ComputePointLight(float3 pos,float3 normal,float3 toEye,
 						out float4 diffuse, out float4 spec)
 {
 	diffuse=float4 (0,0,0,0);
@@ -185,12 +186,12 @@ void ComputePointLight(Material mat,PointLight L,float3 pos,float3 normal,float3
 
 	normal=normalize(normal);
 
-	float3 lightVec=L.Position-pos;
+	float3 lightVec=gPointLight.Position-pos;
 
 	//distance from light to surface
 	float d=length(lightVec);
 
-	//if(d>L.Range) return;
+	//if(d>gPointLight.Range) return;
 
 	//normalize light vector
 	lightVec=normalize(lightVec);
@@ -200,15 +201,15 @@ void ComputePointLight(Material mat,PointLight L,float3 pos,float3 normal,float3
 	if(diffFactor>0.0f)
 	{
 
-	diffuse=diffFactor *L.Diffuse*mat.Diffuse;
+	diffuse=diffFactor *gPointLight.Diffuse*gMat.Diffuse;
 
 	//spec lighting part
 	float3 r=reflect(-lightVec,normal);
-	float specFactor=pow(max(dot(toEye,r),0.0f),mat.Specular.a);
-	spec = specFactor * mat.Specular * L.Specular;
+	float specFactor=pow(max(dot(toEye,r),0.0f),gMat.Specular.a);
+	spec = specFactor * gMat.Specular * gPointLight.Specular;
 	}
 	
-	float attFactor= 1.0f / dot(L.Attenuation, float3(1.0f, d, d*d));;
+	float attFactor= 1.0f / dot(gPointLight.Attenuation, float3(1.0f, d, d*d));;
 	diffuse *= attFactor;
 	spec    *= attFactor;
 }
@@ -225,12 +226,15 @@ float4 PS(PS_IN pin) : SV_Target
 	{	
 		float3 toEyeW = normalize(gEyePosW - pin.posW.xyz);
 
-		ComputePointLight(gMat,gPointLight, pin.posW.xyz, pin.normW, toEyeW,
+		ComputePointLight(pin.posW.xyz, pin.normW, toEyeW,
 									diffuse, spec);
 		litColor = diffuse +spec;
 		litColor.a= gMat.Diffuse.a;
+		 
+		gUAVColor[pin.svoPos] = litColor;
 
-		gUAVColor[pin.svoPos] = float4(0.0f,0.0f,1.0f,1.0f);
+		uint3 light_visualize=world_to_svo(gPointLight.Position,gDim);
+		gUAVColor[light_visualize] = float4(1.0,0.0,0.0,1.0);
 
 		//to make it easier to check the result.
 		return float4(litColor);

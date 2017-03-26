@@ -38,8 +38,8 @@ public:
 	};
 
 	void CreateBox(DirectX::XMFLOAT3 center, float extent, MeshData &meshData);
-	void LoadFromTinyObj(const char* filename, const char* basepath /*= NULL*/, bool triangulate /*= true*/, MeshData &meshData);
 
+	void LoadFromTinyObj(const char* filename, const char* basepath /*= NULL*/, bool triangulate /*= true*/, MeshData &meshData);
 	DirectX::BoundingBox GetAABB(MeshData meshdata);
 private:
 	void ComputeNorm(MeshData &meshData);

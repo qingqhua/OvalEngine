@@ -49,6 +49,7 @@ private:
 	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectX::XMMATRIX mWorld;
+	DirectX::XMMATRIX mWorldInversTrans;
 
 	int indexCount;
 

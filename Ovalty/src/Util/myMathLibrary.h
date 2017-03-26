@@ -22,6 +22,8 @@ public:
 	static DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M)
 	{
 		DirectX::XMMATRIX A = M;
+
+		//prevent 4th column to multiply to view matrix later
 		A.r[3] = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
 		DirectX::XMVECTOR det = DirectX::XMMatrixDeterminant(A);

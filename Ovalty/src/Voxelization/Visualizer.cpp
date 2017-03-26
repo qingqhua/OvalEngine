@@ -20,7 +20,7 @@ void Visualizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext
 	//BuildVertexLayout();
 }
 
-void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld)
+void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld, const DirectX::XMMATRIX * iWorldInverTrans)
 {
 	//update data in "voxelizer.fx"
 	mfxVoxelList->SetResource(iVoxelList);
@@ -33,6 +33,7 @@ void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const 
 	mfxView->SetMatrix((float*)(iView));
 	mfxProj->SetMatrix((float*)(iProj));
 	mfxWorld->SetMatrix((float*)(iWorld));
+	mfxWorldInverTrans->SetMatrix((float*)(iWorldInverTrans));
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -62,6 +63,7 @@ void Visualizer::BuildFX()
 	mfxView = mFX->GetVariableByName("gView")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
+	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 
 	mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();

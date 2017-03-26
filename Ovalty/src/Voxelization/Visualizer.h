@@ -12,7 +12,7 @@ public:
 
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext);
 
-	void Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld);
+	void Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld, const DirectX::XMMATRIX * iWorldInverTrans);
 private:
 	void BuildFX();
 	void BuildVertexLayout();
@@ -31,6 +31,7 @@ private:
 	ID3DX11EffectMatrixVariable* mfxView;
 	ID3DX11EffectMatrixVariable* mfxProj;
 	ID3DX11EffectMatrixVariable* mfxWorld;
+	ID3DX11EffectMatrixVariable* mfxWorldInverTrans;
 
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectShaderResourceVariable* mfxEdgeTex;

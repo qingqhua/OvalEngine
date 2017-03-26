@@ -18,7 +18,7 @@ public:
 	~Voxelizer();
 
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float iRes, float imaxSize);
-	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
+	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
 	void Render(float totalTime);
 
 	ID3D11ShaderResourceView* SRV();
@@ -46,6 +46,7 @@ private:
 
 	ID3DX11EffectMatrixVariable* mfxView;
 	ID3DX11EffectMatrixVariable* mfxWorld;
+	ID3DX11EffectMatrixVariable* mfxWorldInverTrans;
 	ID3DX11EffectMatrixVariable* mfxProj;
 
 	ID3DX11EffectScalarVariable* mfxDim;

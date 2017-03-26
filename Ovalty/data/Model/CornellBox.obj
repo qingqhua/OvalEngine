@@ -6,8 +6,8 @@
 # Created by Guedis Cardenas and Morgan McGuire at Williams College, 2011
 # Released into the Public Domain.
 #
-# http://graphics.cs.williams.edu/data
-# http://scholar.google.com/scholar?q=global+illumination+using+photon+maps+jensen&hl=en&as_sdt=0&as_vis=1&oi=scholart 
+# http:/1/graphics.cs.williams.edu/data
+# http:/1/scholar.google.com/scholar?q=global+illumination+using+photon+maps+jensen&hl=en&as_sdt=0&as_vis=1&oi=scholart 
 #
 
 mtllib CornellBox-Glossy.mtl
@@ -2880,3 +2880,98 @@ s 64
 f 548/632/552 547/629/552 551/630/552 
 f 551/630/552 554/631/552 548/632/552 
 # 12 faces
+
+
+## Object floor
+v   1.0000 0.0000 -1.0400
+v  -0.9900 0.0000 -1.0400
+v  -1.0100 0.0000  0.9900
+v   1.0000 0.0000  0.9900
+# 4 vertices
+
+vn 0.0000 1.0000 -0.0000
+# 1 vertex normals
+
+g floor
+usemtl floor
+
+s 1
+f 555/1/553 556/1/553 557/1/553 
+f 557/1/553 558/1/553 555/1/553 
+# 2 faces
+
+
+## Object ceiling
+v   1.0000 1.5900 -1.0400
+v   1.0000 1.5900  0.9900
+v  -1.0200 1.5900  0.9900
+v  -1.0200 1.5900 -1.0400
+# 4 vertices
+
+vn 0.0000 1.0000 -0.0000
+# 1 vertex normals
+
+g ceiling
+usemtl ceiling
+
+s 1
+f 559/1/554 560/1/554 561/1/554 
+f 561/1/554 562/1/554 559/1/554 
+# 2 faces
+
+## Object backWall
+v   1.0000 1.5900 0.9900
+v  -1.0200 1.5900 0.9900
+v  -1.0100 0.0000 0.9900
+v   1.0000 0.0000 0.9900
+# 4 vertices
+
+vn 0.0000 0.0000 1.0000
+# 1 vertex normals
+
+g backWall
+usemtl backWall
+
+s 1
+f 563/1/555 564/1/555 565/1/555 
+f 565/1/555 566/1/555 563/1/555 
+# 2 faces
+
+## Object rightWall
+v  1.0000 1.5900 0.9900
+v  1.0000 1.5900 -1.0400
+v  1.0000 0.0000 -1.0400
+v  1.0000 0.0000 0.9900
+# 4 vertices
+
+vn 1.0000 0.0000 -0.0000
+# 1 vertex normals
+
+g rightWall
+usemtl rightWall
+
+s 1
+f 567/1/556 568/1/556 569/1/556 
+f 569/1/556 570/1/556 567/1/556 
+# 2 faces
+
+## Object leftWall
+v  -1.0200 1.5900 -1.0400
+v  -1.0200 1.5900 0.9900
+v  -1.0100 0.0000 0.9900
+v  -0.9900 0.0000 -1.0400
+# 4 vertices
+
+vn -0.9999 0.0135 0.0057
+vn -1.0000 0.0063 -0.0000
+vn -0.9999 0.0116 0.0042
+vn -0.9998 0.0189 0.0098
+# 4 vertex normals
+
+g leftWall
+usemtl leftWall
+
+s 1
+f 571/1/557 572/1/558 573/1/559 
+f 573/1/559 574/1/560 571/1/557 
+# 2 faces
