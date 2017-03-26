@@ -1,5 +1,7 @@
 #include "tools.fx"
 
+#define MAX_DIST 10.0f
+
 //-----------------------
 //constant buffer
 //---------------------
@@ -47,21 +49,23 @@ struct VS_OUT
 //---------------------------
 float4 conetracing(float3 dir,float tanHalfAngle,float3 svo)
 {
-	float LOD=0.0f;
-	float4 color=0.0f;
+	float3 color=0.0f;
 	float alpha=0.0f;
 
 	float dist=1.0f;
 	float3 startPos=svo;
 
-	while(dist<10.0f)
+	while(dist<MAX_DIST && alpha<1.0f)
 	{
 		float diameter=2.0f*tanHalfAngle*dist;
 		float lodLevel=log2(diameter);
+		float f=1.0f-alpha;
+
 		float3 ray=startPos+dir*dist;
 
 		float4 voxelColor=gVoxelList.SampleLevel(SVOFilter, ray/256.0f ,lodLevel);
-		color.rgb+=voxelColor.rgb;
+		color += f * voxelColor.rgb;
+		alpha += f*voxelColor.a;
 
         dist += diameter * 0.5; 
 	}
@@ -69,7 +73,7 @@ float4 conetracing(float3 dir,float tanHalfAngle,float3 svo)
 	//todo it seems that pos_svo and world_to_svo(posW) have different result, dont know thy
 	//float4 voxelColor=gVoxelList.SampleLevel(gAnisotropicSam, world_to_svo(ray,256.0f)/256.0f ,0);
 	
-	return color;
+	return float4(color,alpha);
 }
 
 //--------------------------
@@ -81,7 +85,9 @@ float4 InDirectLighting(float3 N,float3 svo)
 	
 	float4 occlusion=0.0f;
 
-	color=conetracing(N,1,svo);
+	color+=conetracing(N,1,svo);
+	color+=conetracing(N*cos(PI/3),0.577,svo);
+	color+=conetracing(N*cos(PI/6),0.577,svo);
 
 	return color;
 }
@@ -108,7 +114,6 @@ VS_OUT VS(VS_IN vin)
 //-------------------------
 float4 PS(VS_OUT pin) : SV_Target
 {
-	float4 litColor=0.0f;
 	float3 lightVec=gPointLight.position-pin.posW;
 
 	float3 N=normalize(pin.normW);
@@ -118,7 +123,8 @@ float4 PS(VS_OUT pin) : SV_Target
 
 	float4 directlighting = DirectLighting(N, H, lightVec, V, L,gPointLight,gMat);
 	float4 indirectlighting=InDirectLighting(N,pin.pos_svo);
-	return directlighting;
+
+	return indirectlighting;
 }
 
 RasterizerState SolidRS

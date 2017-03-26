@@ -138,7 +138,7 @@ void myDirectX11::BuildGeometryBuffer()
 {
 	myShapeLibrary::MeshData model;
 	myShapeLibrary shapes;
-	shapes.LoadFromTinyObj("data/Model/CornellBox.obj", "data/Model/", true, model);
+	shapes.LoadFromTinyObj("data/Model/CornellBox-Glossy.obj", "data/Model/", true, model);
 	mBoundingBox = shapes.GetAABB(model);
 
 	//Create vertex buffer
