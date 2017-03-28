@@ -12,8 +12,7 @@ cbuffer cbPerFrame : register(b0)
 	float gDim;
 	float gVoxelSize;
 	float3 gVoxelOffset;
-
-	PointLightBRDF gPointLight[2];
+	float gTime;
 	float3 gEyePosW;
 };
 
@@ -21,7 +20,6 @@ cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
 	float4x4 gWorldInverTrans;
-	MaterialBRDF gMat;
 };
 
 //--------------------------
@@ -171,7 +169,8 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 //-------------------------
 float4 PS(PS_IN pin) : SV_Target
 {
-	float4 litColor,diffuse, spec;
+	float4 litColor=0.0f;
+	float4 diffuse, spec;
 
 	// Store voxels which are inside voxel-space boundary.
 	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim)) 
@@ -179,18 +178,29 @@ float4 PS(PS_IN pin) : SV_Target
 		MaterialBRDF mat;
 		setMatPerObject(pin.ID,mat);
 
-		float3 viewVec = gEyePosW - pin.posW.xyz;
-		float3 V=normalize(viewVec);
+		PointLightBRDF light[LIGHT_NUM];
+		setPointLight(light[0],light[1]);
 
-		BlinnPointLight(pin.posW.xyz, pin.normW, V, gPointLight[0], mat,
-									diffuse, spec);
-		litColor = diffuse +spec;
+		float3 V=normalize(gEyePosW - pin.posW.xyz);
+		float3 N=normalize(pin.normW);
+
+		for(uint i=0;i<LIGHT_NUM;i++)
+		{
+			float3 lightVec=light[i].position-pin.posW;
+			float3 L=normalize(light[i].position-pin.posW.xyz);
+			float3 H=normalize(V+L);
+			litColor.xyz += DirectLighting(N, H, lightVec, V, L, light[i], mat);
+			
+			uint3 light_visualize=world_to_svo(light[i].position,gDim,gVoxelSize,gVoxelOffset);
+			gUAVColor[light_visualize] = float4(0.0,1.0,0.0,1.0);
+		}
+
+		//tonemapping
+		litColor.xyz=ACESToneMapping(litColor.xyz,1.0f);
+
 		litColor.a= 1.0f;
-		 
 		gUAVColor[pin.svoPos] = litColor;
 
-		uint3 light_visualize=world_to_svo(gPointLight[0].position,gDim,gVoxelSize,gVoxelOffset);
-		gUAVColor[light_visualize] = float4(0.0,1.0,0.0,1.0);
 
 		//to make it easier to check the result.
 		return float4(0,0,1,1);

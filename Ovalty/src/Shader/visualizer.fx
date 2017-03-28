@@ -45,7 +45,6 @@ struct PS_IN
 	float2 texcoord		: TEXCOORD;	
 };
 
-
 static const float2 boxTexArray[4] =
 {
 	0, 0,
@@ -96,6 +95,7 @@ static const float3 boxNormalArray[6] =
 	0, 1, 0,
 	0, -1, 0
 };
+
 //--------------------------------------------------------------------------------------
 // Render States.
 //--------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ VS_OUT VS(VS_IN vin)
 		output.isvoxel = 0;
 
 	output.posL =svo_to_world(pos,gDim,gVoxelSize,gVoxelOffset);
-	output.posL.x +=2.0f;
+	output.posL.x +=2.1f;
 
 	output.normW=gVoxelList[pos].xyz;
 

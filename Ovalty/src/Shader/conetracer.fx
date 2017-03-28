@@ -7,7 +7,6 @@
 cbuffer cbPerFrame : register(b0)
 {
 	float3 gEyePosW;
-	PointLightBRDF gPointLight[2];
 	float4x4 gView;
 	float4x4 gProj;
 	float gDim;
@@ -19,7 +18,6 @@ cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
 	float4x4 gWorldInverTrans;
-	MaterialBRDF gMat;
 };
 
 //--------------------------
@@ -50,12 +48,12 @@ struct VS_OUT
 //--------------------------
 //cone tracing
 //---------------------------
-float4 conetracing(float3 dir,float theta,float3 posW)
+float4 DiffuseCone(float3 dir,float theta,float3 posW)
 {
 	float3 color=0.0f;
 	float alpha=0.0f;
 
-	float dist=1.0f;
+	float dist=0.1f;
 	float3 startPos=posW;
 	float tanHalfAngle=tan(theta);
 
@@ -70,7 +68,7 @@ float4 conetracing(float3 dir,float theta,float3 posW)
 		float3 ray_svo= world_to_svo(ray,gDim,gVoxelSize,gVoxelOffset);
 
 		float4 voxelColor=gVoxelList.SampleLevel(SVOFilter, ray_svo/256.0f ,lodLevel);
-		color += voxelColor.rgb;
+		color += 0.1*voxelColor.rgb;
 		//alpha += f*voxelColor.a;
 
         dist += diameter * 0.5; 
@@ -86,15 +84,25 @@ float4 InDirectLighting(float3 N,float3 posW)
 {
 	float4 color=0.0f;
 	
-	float4 occlusion=0.0f;
+	const float w[3]={1.0,1.0,1.0};
 
-	color+=conetracing(N,PI/2,posW);
-	color+=conetracing(N*cos(PI/3),PI/3,posW);
-	color+=conetracing(N*cos(PI/6),PI/3,posW);
-	color+=conetracing(N*cos(PI),PI/3,posW);
-	color+=conetracing(N*cos(PI/2),PI/3,posW);
-	color+=conetracing(N*cos(PI/2*3),PI/2,posW);
-	color+=conetracing(N*cos(PI/6*3),PI/3,posW);
+	const float3 orth=normalize(orthogonal(N));
+	const float3 orth2=normalize(cross(orth,N));
+
+	const float3 corner=normalize(orth+orth2);
+	const float3 corner2=normalize(orth-orth2);
+
+	color+=w[0]*DiffuseCone(N,PI/3,posW);
+
+	color+=w[1]*DiffuseCone(lerp(N,orth,0.5f),PI/3,posW);
+	color+=w[1]*DiffuseCone(lerp(N,-orth,0.5f),PI/3,posW);
+	color+=w[1]*DiffuseCone(lerp(N,orth2,0.5f),PI/3,posW);
+	color+=w[1]*DiffuseCone(lerp(N,-orth2,0.5f),PI/3,posW);
+
+	color+=w[2]*DiffuseCone(lerp(N,corner,0.5f),PI/3,posW);
+	color+=w[2]*DiffuseCone(lerp(N,-corner,0.5f),PI/3,posW);
+	color+=w[2]*DiffuseCone(lerp(N,corner2,0.5f),PI/3,posW);
+	color+=w[2]*DiffuseCone(lerp(N,-corner2,0.5f),PI/3,posW);
 
 	return color;
 }
@@ -130,18 +138,24 @@ float4 PS(VS_OUT pin) : SV_Target
 	MaterialBRDF mat;
 	setMatPerObject(pin.ID,mat);
 
-	for(int i=0;i<1;i++)
+	PointLightBRDF light[LIGHT_NUM];
+	setPointLight(light[0],light[1]);
+
+	for(uint i=0;i<LIGHT_NUM;i++)
 	{
-		float3 lightVec=gPointLight[i].position-pin.posW;
+		float3 lightVec=light[i].position-pin.posW;
 		float3 L= normalize(lightVec);
 		float3 H=normalize(V+L);
 
-		directlighting += DirectLighting(N, H, lightVec, V, L,gPointLight[i],mat);
+		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
 	}
 
+	float3 ray_svo= world_to_svo(pin.posW,gDim,gVoxelSize,gVoxelOffset);
 	float4 indirectlighting=InDirectLighting(N,pin.posW);
-	
-	return indirectlighting;
+
+	float3 ray_sv= world_to_svo(pin.posW,gDim,gVoxelSize,gVoxelOffset);
+		float4 voxelColor=gVoxelList.SampleLevel(SVOFilter, ray_sv/256.0f ,0);
+	return voxelColor;
 }
 
 RasterizerState SolidRS

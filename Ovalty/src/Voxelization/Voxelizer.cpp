@@ -54,7 +54,7 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRI
 void Voxelizer::Render(float totalTime)
 {
 	//update light
-	MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
+	//MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
 
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

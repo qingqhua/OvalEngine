@@ -63,10 +63,10 @@ public:
 
 		L[0].Position = DirectX::XMFLOAT3(0.5f*cosf(0.7f*t), 1.0f, -2.0f+0.7f*sinf(0.5f*t));
 		//L[0].Position = DirectX::XMFLOAT3(0.5f, 1.0f, -5.0f);
-		L[0].Color = DirectX::XMFLOAT3(0.6f, 0.6f, 0.6f);
+		L[0].Color = DirectX::XMFLOAT3(0.4f, 0.6f, 0.8f);
 		L[1].Position = DirectX::XMFLOAT3(0.5f, 1.0f, -2.0f);
-		L[1].Color = DirectX::XMFLOAT3(0.8f, 0.5f, 0.3f);
-		fxL->SetRawValue(&L, 0, sizeof(L));
+		L[1].Color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.6f);
+		fxL->SetRawValue(&L[1], 0, sizeof(L[1]));
 
 		//Update Material
 		M.DiffAlbedo = DirectX::XMFLOAT3(0.8f, 0.5f, 0.3f);

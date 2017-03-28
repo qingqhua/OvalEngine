@@ -53,44 +53,27 @@ float G_Smith(float3 N, float3 V, float3 L, float roughness)
 //means the amount of light that reflects from a mirror surface
 //fo = specAlbedo
 //-------------------------------
-float3 Schlick_Fresnel(float3 f0, float3 H, float3 V)
+float3 Schlick_Fresnel(float3 f0, float cosTheta)
 {
-	float cosTheta=max(dot(H, V), 0.0);
 	return f0 + (1.0f - f0) * pow((1.0f - cosTheta), 5.0f);
-}
-
-//--------------------------
-//direct diffuse lighting
-//lambert: c/PI
-//---------------------------
-float3 DirectDiffuseBRDF(MaterialBRDF _mat)
-{
-	return _mat.diffAlbedo/PI;
 }
 
 //--------------------------
 //direct specular lighting
 //  NDF * G * F / denominator
 //---------------------------
-void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat,
-						out float3 color,out float3 F)
-{    
-	// calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use their albedo color as F0 (metallic workflow)    
-	float3 metallic=_mat.metallic;
+float3 DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat)
+{     
+	float f0=lerp(0.04,_mat.albedo,_mat.metallic);
 
-	float3 f0 = 0.04f; 
-   // f0 = lerp(f0, _mat.specAlbedo, metallic);
-	f0=_mat.specAlbedo;
-
-	F = Schlick_Fresnel(f0,H,V);
+	float F = Schlick_Fresnel(f0,max(dot(H, V),0.0));
 	float NDF = D_GGX(N, H, _mat.roughness);   
     float G = G_Smith(N, V, L, _mat.roughness);      
 
 	float3 nominator = NDF * G * F; 
 	float denominator = 4.0f * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.001f;
 
-	color = nominator / denominator;
+	return nominator / denominator;
 }
 
 //--------------------------
@@ -99,73 +82,40 @@ void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat,
 //---------------------------
 float4 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L,PointLightBRDF _light, MaterialBRDF _mat)
 {
-	float dist=length(lightVec);
-	float att=1.0f/(dist*dist);
-	float3 radiance=_light.color*att;
+	float f0=lerp(0.04,_mat.albedo,_mat.metallic);
 
-	float3 kS=0.0f;
-	float3 specBRDF=0.0f;
+	float dist = length(lightVec);
+    float attenuation = _light.intensity / (dist * dist);
+    float3 radiance = _light.color * attenuation;
 
-	DirectSpecularBRDF(N,H,L,V,_mat, 
-	//out 
-	specBRDF,kS);
+	float3 kS=Schlick_Fresnel(f0,max(dot(H, V),0.0));
 
-	float3 kD = 1.0f - kS;
-    //kD *= 1.0f - _mat.metallic;	
-	  
-	float3 diffBRDF=DirectDiffuseBRDF(_mat);
+	float3 kD=1.0-kS;
+	kD*=1.0-_mat.metallic;
+
+	float3 specBRDF=DirectSpecularBRDF(N,H,L,V,_mat);
+	float3 diffBRDF=(kD*_mat.albedo/PI);
 
 	float NdotL = max(dot(N, L), 0.0);   
-	float3 Lo = (kD * diffBRDF + specBRDF) * radiance * NdotL;
+	float3 Lo = (diffBRDF + specBRDF) * radiance * NdotL;
 
-	float3 color=Lo;
-	
-    //HDR tonemapping
-    color = color / (color + 1.0);
-    //gamma correct
-    color = pow(color, 1.0/2.2); 
-
-	return float4(color,1.0f);
+	return float4(Lo,1.0f);
 }
 
-//----------------------------
-//compute local point light color
-//-------------------------
-void BlinnPointLight(float3 pos,float3 normal,float3 toEye, PointLightBRDF _light, MaterialBRDF _mat,
-						out float4 diffuse, out float4 spec)
+//----------------------------------------------
+// tone mapping
+//----------------------------------------------
+float3 ACESToneMapping(float3 color, float adapted_lum)
 {
-	diffuse=float4 (0,0,0,0);
-	spec=float4 (0,0,0,0);
+	const float A = 2.51f;
+	const float B = 0.03f;
+	const float C = 2.43f;
+	const float D = 0.59f;
+	const float E = 0.14f;
 
-	normal=normalize(normal);
-
-	float3 lightVec=_light.position-pos;
-
-	//distance from light to surface
-	float d=length(lightVec);
-
-	//normalize light vector
-	lightVec=normalize(lightVec);
-
-	//diffuse lighting part
-	float diffFactor=dot(lightVec,normal);
-	if(diffFactor>0.0f)
-	{
-
-	diffuse=float4(diffFactor *_light.color*_mat.diffAlbedo,1.0f);
-
-	//spec lighting part
-	float3 r=reflect(-lightVec,normal);
-	float specFactor=pow(max(dot(toEye,r),0.0f),_mat.roughness);
-	spec = float4(specFactor * _mat.specAlbedo * _light.color,1.0f);
-	}
-
-	float att=0.01f;
-	float attFactor= 10.0f / dot(att, float3(1.0f, d, d*d));;
-	diffuse *= attFactor;
-	spec    *= attFactor;
+	color *= adapted_lum;
+	return (color * (A * color + B)) / (color * (C * color + D) + E);
 }
-
 
 //-----------------------------------------------------------------------------------------
 // Default Sampler.
@@ -204,4 +154,9 @@ float3 svo_to_world(float3 posW,float voxel_dim,float voxel_size,float3 offset)
 float map(float from)
 {
 	return float(0.5f*from+0.5f);
+}
+
+float3 orthogonal(float3 u){
+	float3 v = float3(0.0, 1.0, 0.0); 
+	return abs(dot(u, v)) > 0.99999f ? cross(u, float3(1, 0, 0)) : cross(u, v);
 }

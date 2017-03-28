@@ -37,9 +37,6 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
 
-	//UPDATE LIGHT AND MATERIAL
-	MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
-
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
 
@@ -71,9 +68,6 @@ void ConeTracer::BuildFX()
 	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
-	//light
-	mfxPointLight = mFX->GetVariableByName("gPointLight");
-	mfxMat = mFX->GetVariableByName("gMat");
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
 
 	//voxel
