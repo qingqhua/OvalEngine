@@ -103,7 +103,7 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
-     	resetOMTargetsAndViewport();
+      	resetOMTargetsAndViewport();
 			//m_bVoxelize = false;
    	}
 	//-----------------------

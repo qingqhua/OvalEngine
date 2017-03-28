@@ -61,7 +61,7 @@ void Voxelizer::Render(float totalTime)
 	const float zero[4] = { 0, 0, 0, 0 };
 	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
-	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
+	mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
@@ -124,9 +124,9 @@ void Voxelizer::BuildTexture()
 {
 	//SET TEXTURE DESC
 	D3D11_TEXTURE3D_DESC txDesc;
-	txDesc.Width = mWidth; 
-	txDesc.Height = mHeight; 
-	txDesc.Depth = mDepth; 
+	txDesc.Width = mWidth; //256
+	txDesc.Height = mHeight; //256
+	txDesc.Depth = mDepth; //256
 	txDesc.MipLevels = 1;
 	txDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	txDesc.Usage = D3D11_USAGE_DEFAULT;

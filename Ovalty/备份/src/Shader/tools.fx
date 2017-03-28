@@ -64,7 +64,7 @@ float3 Schlick_Fresnel(float3 f0, float cosTheta)
 //---------------------------
 float3 DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat)
 {     
-	float3 f0=lerp(0.04,_mat.albedo,_mat.metallic);
+	float f0=lerp(0.04,_mat.albedo,_mat.metallic);
 
 	float F = Schlick_Fresnel(f0,max(dot(H, V),0.0));
 	float NDF = D_GGX(N, H, _mat.roughness);   
@@ -133,12 +133,12 @@ float3 world_to_svo(float3 posW,float voxel_size,float3 offset)
 {
 	float3 pos=posW;
 
-	pos=((pos+offset)/voxel_size);
+	pos=(pos+offset)/voxel_size;
 	//pos.z-=0.00001;
 	return pos;
 }
 
-float3 svo_to_world(float3 posW,float voxel_size,float3 offset)
+float3 svo_to_world(float3 posW,float voxel_dim,float voxel_size,float3 offset)
 {
 	float3 pos=posW;
 

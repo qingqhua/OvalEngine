@@ -55,6 +55,7 @@ void Visualizer::BuildFX()
 		0, md3dDevice, &mFX, &errorBlob);
 	if (FAILED(hr)) { MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK); }
 
+
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("VisualTech");
 

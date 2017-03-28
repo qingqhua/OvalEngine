@@ -130,7 +130,7 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 			output.pos.xyz = gin[i].posW.xyz;
 		}
 
-		output.svoPos=world_to_svo(gin[i].posW.xyz,gVoxelSize,gVoxelOffset);
+		output.svoPos=float3((gin[i].posW.xyz+gVoxelOffset)/gVoxelSize);
 		//prevent for rasterzation
 		//output.svoPos.z-=0.00001;
 
@@ -148,6 +148,7 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		triStream.Append(output);
 	}
 	triStream.RestartStrip();
+
 }
 
 //----------------------------
@@ -177,17 +178,19 @@ float4 PS(PS_IN pin) : SV_Target
 			float3 H=normalize(V+L);
 			litColor += DirectLighting(N, H, lightVec, V, L, light[i], mat);
 			
-			float3 light_visualize=world_to_svo(light[i].position,gVoxelSize,gVoxelOffset);
+			uint3 light_visualize=world_to_svo(light[i].position,gVoxelSize,gVoxelOffset);
 			gUAVColor[light_visualize] = float4(0.0,1.0,0.0,1.0);
+			gUAVColor[uint3(1,0,0)] = float4(0.0,1.0,0.0,0.0);
 		}
 
 		//tonemapping
 		litColor=ACESToneMapping(litColor.xyz,1.0f);
 
-		gUAVColor[pin.svoPos] = float4(litColor,1.0f);
+		gUAVColor[pin.svoPos] = float4(0,1,0,1.0f);
+
 
 		//to make it easier to check the result.
-		return float4(1,1,1,1);
+		return float4(0,0,1,1);
 	}
 
 	else return float4(1,1,1, 0);

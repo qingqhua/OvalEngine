@@ -43,7 +43,7 @@ struct VS_OUT
 	float3 normW  : NORMAL;
 	float2 tex    : TEXCOORD;
 	uint ID		  :ID;
-	float3 pos_svo :SVO;
+	uint3 pos_svo :SVO;
 };
 
 //--------------------------
@@ -68,7 +68,7 @@ float4 DiffuseCone(float3 dir,float theta,float3 posW)
 
 		float3 ray_svo= world_to_svo(ray,gVoxelSize,gVoxelOffset);
 
-		float4 voxelColor=gVoxelList.SampleLevel(SVOFilter, ray_svo/gDim ,lodLevel);
+		float4 voxelColor=gVoxelList.SampleLevel(SVOFilter, ray_svo/256.0f ,lodLevel);
 		color += 0.1*voxelColor.rgb;
 		//alpha += f*voxelColor.a;
 
@@ -127,10 +127,8 @@ VS_OUT VS(VS_IN vin)
 	vout.pos_svo=world_to_svo(vout.posW,gVoxelSize,gVoxelOffset);
 
 	if(gVoxelList[vout.pos_svo].w>0)
-	{
 		vout.normW=float3(0,1,0);
-	}
-	else vout.normW=float3(1,0,0);
+		else vout.normW=float3(1,0,0);
 
 	return vout;
 }
@@ -144,29 +142,25 @@ float4 PS(VS_OUT pin) : SV_Target
 	float3 V=normalize(gEyePosW-pin.posW);
 	float4 directlighting=0.0f;
 
-	MaterialBRDF mat;
-	setMatPerObject(pin.ID,mat);
+	//MaterialBRDF mat;
+	//setMatPerObject(pin.ID,mat);
 
-	PointLightBRDF light[LIGHT_NUM];
-	setPointLight(light[0],light[1]);
+	//PointLightBRDF light[LIGHT_NUM];
+	//setPointLight(light[0],light[1]);
 
 	for(uint i=0;i<LIGHT_NUM;i++)
 	{
-		float3 lightVec=light[i].position-pin.posW;
-		float3 L= normalize(lightVec);
-		float3 H=normalize(V+L);
+		//float3 lightVec=light[i].position-pin.posW;
+		//float3 L= normalize(lightVec);
+		//float3 H=normalize(V+L);
 
-		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
+		//directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
 	}
 
-	float4 indirectlighting=InDirectLighting(N,pin.posW);
-	float4 color=0;
-	uint3 pos_svo=((pin.posW+gVoxelOffset)/gVoxelSize);
-	//float3 pos_svo=world_to_svo(pin.posW,gVoxelSize,gVoxelOffset);
-	color=gVoxelList.SampleLevel(SVOFilter, (float3)pos_svo/gDim+0.5f/gDim ,0);
-	//color=gVoxelList[pos_svo];
-	//color=float4(pin.normW,1.0f);
-	return color;
+	//float4 indirectlighting=InDirectLighting(N,pin.posW);
+	//float4 color=gVoxelList.SampleLevel(SVOFilter, pin.pos_svo/256.0f+0.5f/256.0f ,0);
+
+	return float4(pin.normW,1);
 }
 
 RasterizerState SolidRS

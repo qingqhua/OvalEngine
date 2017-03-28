@@ -63,7 +63,7 @@ void setMatPerObject(int id,out MaterialBRDF mat)
 	 setMatSilver(mat);
 	//short box
 	else if(id>=3264&&id<3300)
-		  setMatCopper(mat);
+		  setMatGold(mat);
 	//floor
 	else if(id>=3300&&id<3306)
 		 setMatSilver(mat);
