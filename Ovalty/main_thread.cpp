@@ -47,22 +47,11 @@ bool myDirectX11::Init()
 
 	//init world matrix
 	mWorld = XMMatrixIdentity();
-	BuildGeometryBuffer();
-
 	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
-	//build voxelizer
-	//float iVoxelRes = max(2.0 * mBoundingBox.Extents.x, max(2.0 * mBoundingBox.Extents.y, 2.0 * mBoundingBox.Extents.z));
-	float iVoxelRes = 256.0f;
-	XMFLOAT3 ivoxelRealSize = XMFLOAT3(2.0f * mBoundingBox.Extents.x / iVoxelRes, 2.0f * mBoundingBox.Extents.y / iVoxelRes , 2.0f * mBoundingBox.Extents.z / iVoxelRes);
-	// Find the maximum component of a voxel.
-	float imaxVoxelSize = max(ivoxelRealSize.z, max(ivoxelRealSize.x, ivoxelRealSize.y));
-	mVoxelizer.Init(md3dDevice, md3dImmediateContext, iVoxelRes, 1.0f);
+	BuildGeometryBuffer();
 
-	//init visualizer
-	mVisualizer.Init(md3dDevice, md3dImmediateContext);
-
-	mConeTracer.Init(md3dDevice, md3dImmediateContext);
+	Initvoxel(256.0f);
 
 	return true;
 }
@@ -114,14 +103,13 @@ void myDirectX11::DrawScene()
  
  		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
   
-    	resetOMTargetsAndViewport();
-   		//m_bVoxelize = false;
+     	resetOMTargetsAndViewport();
+			//m_bVoxelize = false;
    	}
-
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.Render(mVoxelizer.SRV(), mVoxelizer.Res(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
+	mVisualizer.Render(mVoxelizer.SRV(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
 
 	//-----------------------
 	//render cone tracing
@@ -136,37 +124,38 @@ void myDirectX11::DrawScene()
 
 void myDirectX11::BuildGeometryBuffer()
 {
-	myShapeLibrary::MeshData model;
-	myShapeLibrary shapes;
-	shapes.LoadFromTinyObj("data/Model/CornellBox-Glossy.obj", "data/Model/", true, model);
-	mBoundingBox = shapes.GetAABB(model);
+	Object mObjectCornellBox;
+	mObjectCornellBox.LoadModel("data/Model/CornellBox.obj");
+	mBoundingBox = mObjectCornellBox.boundingbox();
+
+	unsigned int totalVbd = mObjectCornellBox.verticeByteWidth();
+	unsigned int totalIbd = mObjectCornellBox.indiceByteWidth();
+	indexCount = mObjectCornellBox.indiceNum();
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(myShapeLibrary::Vertex)*model.vertices.size();
+	vbd.ByteWidth = totalVbd;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &model.vertices[0];
+	vinitData.pSysMem = &mObjectCornellBox.model.vertices[0];
 	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int)*model.indiceindex.size();
+	ibd.ByteWidth = totalIbd;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &model.indiceindex[0];
+	iinitData.pSysMem = &mObjectCornellBox.model.indiceindex[0];
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB));
-
-	indexCount = model.indiceindex.size();
 }
 
 void myDirectX11::resetOMTargetsAndViewport()
@@ -190,7 +179,10 @@ void myDirectX11::resetOMTargetsAndViewport()
 //-------------------
 void myDirectX11::OnMouseUp(WPARAM btnState, int x, int y)
 {
-	ReleaseCapture();
+	if ((btnState & MK_RBUTTON) != 0)
+	{
+		m_bVoxelize = !m_bVoxelize;
+	}
 }
 
 void myDirectX11::OnMouseMove(WPARAM btnState, int x, int y)
@@ -234,5 +226,24 @@ void myDirectX11::ControlCamera(float dt,float speed)
 		m_bVoxelize = !m_bVoxelize;
 }
 
+void myDirectX11::Initvoxel(float res)
+{
+	//build voxelizer
+	float voxelRes = res;
+
+	//2*extent/res
+	XMFLOAT3 voxelRealSize = myMathLibrary::multiply(2.0f*(1.0f / voxelRes), mBoundingBox.Extents);
+	// Find the maximum component of a voxel.
+	float maxVoxelSize = max(voxelRealSize.z, max(voxelRealSize.x, voxelRealSize.y));
+	//the vector from min corner to center 
+	XMFLOAT3 offset = myMathLibrary::sub(mBoundingBox.Center, mBoundingBox.Extents); 
+	//minus -1 to transfom model min corner to zero
+	offset = myMathLibrary::multiply(-1.0f, offset);
+	
+	mVoxelizer.Init(md3dDevice, md3dImmediateContext, voxelRes, maxVoxelSize, offset);
+
+	mVisualizer.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
+	mConeTracer.Init(md3dDevice, md3dImmediateContext,mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
+}
 
 

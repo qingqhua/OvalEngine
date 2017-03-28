@@ -166,6 +166,7 @@
     <ClCompile Include="src\Core\d3dApp.cpp" />
     <ClCompile Include="src\Core\d3dUtil.cpp" />
     <ClCompile Include="src\Core\dxerr.cpp" />
+    <ClCompile Include="src\Core\object.cpp" />
     <ClCompile Include="src\Octree\octree.cpp" />
     <ClCompile Include="src\Octree\OctreeNode.cpp" />
     <ClCompile Include="src\Util\Camera.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="src\Core\d3dx11effect.h" />
     <ClInclude Include="src\Core\D3DX11tex.h" />
     <ClInclude Include="src\Core\dxerr.h" />
+    <ClInclude Include="src\Core\object.h" />
     <ClInclude Include="src\Octree\octree.h" />
     <ClInclude Include="src\Octree\OctreeNode.h" />
     <ClInclude Include="src\Util\Camera.h" />

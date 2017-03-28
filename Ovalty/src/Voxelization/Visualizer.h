@@ -10,9 +10,8 @@ public:
 	Visualizer();
 	~Visualizer();
 
-	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext);
-
-	void Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld, const DirectX::XMMATRIX * iWorldInverTrans);
+	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res, float voxelsize, DirectX::XMFLOAT3 offset);
+	void Render(ID3D11ShaderResourceView* voxelList, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMMATRIX * world, const DirectX::XMMATRIX * worldInverTrans);
 private:
 	void BuildFX();
 	void BuildVertexLayout();
@@ -34,8 +33,14 @@ private:
 	ID3DX11EffectMatrixVariable* mfxWorldInverTrans;
 
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
+	ID3DX11EffectVectorVariable* mfxVoxelOffset;
+	ID3DX11EffectScalarVariable* mfxDim;
 	ID3DX11EffectShaderResourceVariable* mfxEdgeTex;
 	ID3DX11EffectShaderResourceVariable* mfxVoxelList;
+
+	float mRes;
+	float mVoxelSize;
+	DirectX::XMFLOAT3 mOffset;
 };
 
 #endif // VOXEL_VISUAL_H

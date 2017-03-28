@@ -80,7 +80,8 @@ void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat,
 	float3 metallic=_mat.metallic;
 
 	float3 f0 = 0.04f; 
-    f0 = lerp(f0, _mat.diffAlbedo, metallic);
+   // f0 = lerp(f0, _mat.specAlbedo, metallic);
+	f0=_mat.specAlbedo;
 
 	F = Schlick_Fresnel(f0,H,V);
 	float NDF = D_GGX(N, H, _mat.roughness);   
@@ -99,7 +100,7 @@ void DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat,
 float4 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L,PointLightBRDF _light, MaterialBRDF _mat)
 {
 	float dist=length(lightVec);
-	float att=5.0f/(dist*dist);
+	float att=1.0f/(dist*dist);
 	float3 radiance=_light.color*att;
 
 	float3 kS=0.0f;
@@ -110,16 +111,14 @@ float4 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L,Point
 	specBRDF,kS);
 
 	float3 kD = 1.0f - kS;
-    kD *= 1.0f - _mat.metallic;	
+    //kD *= 1.0f - _mat.metallic;	
 	  
 	float3 diffBRDF=DirectDiffuseBRDF(_mat);
 
 	float NdotL = max(dot(N, L), 0.0);   
 	float3 Lo = (kD * diffBRDF + specBRDF) * radiance * NdotL;
 
-	float3 ambient = 0.03 * _mat.diffAlbedo * float3(0.8,0.8,0.8);
-
-	float3 color=Lo+ambient;
+	float3 color=Lo;
 	
     //HDR tonemapping
     color = color / (color + 1.0);
@@ -162,7 +161,7 @@ void BlinnPointLight(float3 pos,float3 normal,float3 toEye, PointLightBRDF _ligh
 	}
 
 	float att=0.01f;
-	float attFactor= 1.0f / dot(att, float3(1.0f, d, d*d));;
+	float attFactor= 10.0f / dot(att, float3(1.0f, d, d*d));;
 	diffuse *= attFactor;
 	spec    *= attFactor;
 }
@@ -180,9 +179,23 @@ SamplerState SVOFilter
 //-----------------------------------------------------------------------------------------
 // give offset to transfer to voxel coordinate
 //-----------------------------------------------------------------------------------------
-uint3 world_to_svo(float3 posW,float voxel_dim)
+float3 world_to_svo(float3 posW,float voxel_dim,float voxel_size,float3 offset)
 {
-	return ceil(posW+voxel_dim/2.0f);
+	float3 pos=posW;
+
+	pos+=offset;
+	pos/=voxel_size;
+
+	return pos;
+}
+
+float3 svo_to_world(float3 posW,float voxel_dim,float voxel_size,float3 offset)
+{
+	float3 pos=posW;
+
+	pos*=voxel_size;
+	pos-=offset;
+	return pos;
 }
 
 //-----------------------------------------------------------------------------------------

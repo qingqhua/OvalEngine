@@ -9,10 +9,14 @@ ConeTracer::ConeTracer():mInputLayout(0), md3dDevice(0), mDeviceContext(0),mTech
 ConeTracer::~ConeTracer()
 {}
 
-void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext)
+void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res, float voxelsize, DirectX::XMFLOAT3 offset)
 {
 	md3dDevice = idevice;
 	mDeviceContext = ideviceContext;
+
+	mRes = res;
+	mOffset = offset;
+	mVoxelSize = voxelsize;
 
 	BuildFX();
 	BuildVertexLayout();
@@ -33,17 +37,8 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
 
-	//update light
-	mPointLight.Position = XMFLOAT3(2.0f*cosf(0.7f*totalTime), 0.6f, 2.0f*sinf(0.7f*totalTime));
-	mPointLight.Color = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
-
-	//Update Material
-	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	mMat.SpecAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	mMat.metallic = 0.0f;
-	mMat.roughness = 0.2f;
-	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
+	//UPDATE LIGHT AND MATERIAL
+	MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
 
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
@@ -83,6 +78,14 @@ void ConeTracer::BuildFX()
 
 	//voxel
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
+	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
+	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
+	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
+
+	//set voxel value
+	mfxVoxelSize->SetFloat((float)(mVoxelSize));
+	mfxDim->SetFloat((float)(mRes));
+	mfxVoxelOffset->SetFloatVector((float*)&mOffset);
 }
 
 void ConeTracer::BuildVertexLayout()

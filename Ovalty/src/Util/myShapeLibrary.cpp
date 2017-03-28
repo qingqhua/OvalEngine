@@ -78,7 +78,7 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 	std::vector<int> v_index_temp;
 	std::vector<int> n_index_temp;
 	std::vector<int> t_index_temp;
-
+	
 	// For each shape
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
@@ -95,6 +95,7 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 			}
 			index_offset += fnum;
 		}
+
 	}
 
 	//remap triangle
@@ -157,4 +158,6 @@ void myShapeLibrary::ComputeNorm(MeshData &meshData)
 	for (size_t i = 0; i < meshData.vertices.size(); i++)
 		meshData.vertices[i].Normal = myMathLibrary::normlize(meshData.vertices[i].Normal);
 }
+
+
 

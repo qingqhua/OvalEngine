@@ -1,3 +1,4 @@
+#include "tools.fx"
 //-----------------------
 //constant buffer
 //---------------------
@@ -6,6 +7,8 @@ cbuffer cbPerFrame : register(b0)
 	float4x4 gView;
 	float4x4 gProj;
 	float gVoxelSize;
+	float3 gVoxelOffset;
+	float gDim;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -116,12 +119,6 @@ SamplerState gAnisotropicSam
 	MaxAnisotropy = 16;
 };
 
-//map from 0,1 to -1,1
-float map(float from)
-{
-	return float(2.0f*from-1.0f);
-}
-
 //-----------------------------
 //VERTEX SHADER
 //-----------------------------
@@ -144,9 +141,9 @@ VS_OUT VS(VS_IN vin)
 	else 
 		output.isvoxel = 0;
 
-	output.posL =pos-VoxelDim/2.0f;
-	output.posL.xz +=VoxelDim/12.0f;
-	//output.posL =pos;
+	output.posL =svo_to_world(pos,gDim,gVoxelSize,gVoxelOffset);
+	output.posL.x +=2.0f;
+
 	output.normW=gVoxelList[pos].xyz;
 
 	return output;
@@ -167,7 +164,7 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 				{
 					PS_IN output;
 
-					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f;
+					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f*gVoxelSize;
 					
 					 //matrix transform
 					output.pos = mul(float4(vertex, 1.0f), gWorld);
@@ -197,7 +194,7 @@ float4 PS(PS_IN pin) : SV_Target
 	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
 	normal.rgb *= output;
 
-	return float4(normal.rgb,1.0f);
+	return float4(normal.rgb,1.0);
 }
 
 technique11 VisualTech

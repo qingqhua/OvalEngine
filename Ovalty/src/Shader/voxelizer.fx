@@ -9,10 +9,11 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
-	int gDim;
-	float3 gVoxelSize;
+	float gDim;
+	float gVoxelSize;
+	float3 gVoxelOffset;
 
-	PointLightBRDF gPointLight;
+	PointLightBRDF gPointLight[2];
 	float3 gEyePosW;
 };
 
@@ -35,12 +36,14 @@ struct VS_IN
 {
 	float3 posL   : POSITION;
 	float3 normL  : NORMAL;
+	uint index	: SV_VertexID;
 };
 
 struct VS_OUT
 {
 	float4 posW  : SV_POSITION;
 	float3 normW : NORMW;
+	uint ID	     : ID;
 };
 
 struct PS_IN
@@ -49,6 +52,7 @@ struct PS_IN
 	float3 normW  : NORMW;
 	float3 svoPos : SVO;	//voxel-space boundary coordinates xyz>=0 && xyz<=gDim
 	float4 posW	  : POSW;
+	uint ID	      : ID;
 };
 
 //--------------------------------------------------------------------------------------
@@ -85,9 +89,8 @@ VS_OUT VS(VS_IN vin)
 	VS_OUT vout;
 
 	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
-	vout.posW*=10.0f;
 	vout.normW=mul(float4(vin.normL,1.0f),gWorldInverTrans).xyz;
-
+	vout.ID=vin.index;
 	return vout;
 }
 
@@ -106,23 +109,32 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 	for( uint i = 0; i < 3; i++)
 	{
 		PS_IN output;
+
+		float offsetX=gVoxelOffset.x;
+		float offsetY=gVoxelOffset.y;
+		float offsetZ=gVoxelOffset.z;
+
 		// Projection the main face
 		if (axis == facenormal.x)
 		{
 			output.pos.xyz = gin[i].posW.zyx;
+			offsetX=gVoxelOffset.z;
+			offsetZ=gVoxelOffset.x;
 		}
 		else if (axis == facenormal.y)
 		{
 			output.pos.xyz = gin[i].posW.xzy;
+			offsetY=gVoxelOffset.z;
+			offsetZ=gVoxelOffset.y;			
 		}
-		else output.pos.xyz = gin[i].posW.xyz;
-		
-		//at first I try to map raster coordinate to [0,255] to pair cualquier model,but the "exact" map will loss accuracy
-		//here we simply give the offset and keep it in mind
-		float3 offset=0.5*gDim;
-		uint x=ceil(output.pos.x+offset);
-		uint y=ceil(output.pos.y+offset);
-		uint z=ceil(output.pos.z+offset);
+		else
+		{
+			output.pos.xyz = gin[i].posW.xyz;
+		}
+
+		uint x=(output.pos.x+offsetX)/gVoxelSize;
+		uint y=(output.pos.y+offsetY)/gVoxelSize;
+		uint z=(output.pos.z+offsetZ)/gVoxelSize;
 
 		if (axis == facenormal.x)
 		{
@@ -134,18 +146,24 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		}
 		else output.svoPos=uint3(x,y,z);
 
+		//prevent for rasterzation
+		output.svoPos.z-=0.00001;
 
 		//pos for rasterization
+		output.pos.xyz+=uint3(offsetX,offsetY,offsetZ);
 		output.pos.xyz /= (float)gDim;
+		output.pos.xyz /= gVoxelSize;
 		output.pos.zw = 1;
 
 		output.normW = gin[i].normW;
 
 		output.posW=gin[i].posW;
+		output.ID=gin[i].ID;
 
 		triStream.Append(output);
 	}
 	triStream.RestartStrip();
+
 }
 
 //----------------------------
@@ -156,23 +174,26 @@ float4 PS(PS_IN pin) : SV_Target
 	float4 litColor,diffuse, spec;
 
 	// Store voxels which are inside voxel-space boundary.
-	if (all(pin.svoPos>= 0) && all(pin.svoPos < gDim)) 
+	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim)) 
 	{	
+		MaterialBRDF mat;
+		setMatPerObject(pin.ID,mat);
+
 		float3 viewVec = gEyePosW - pin.posW.xyz;
 		float3 V=normalize(viewVec);
 
-		BlinnPointLight(pin.posW.xyz, pin.normW, V, gPointLight, gMat,
+		BlinnPointLight(pin.posW.xyz, pin.normW, V, gPointLight[0], mat,
 									diffuse, spec);
 		litColor = diffuse +spec;
 		litColor.a= 1.0f;
 		 
 		gUAVColor[pin.svoPos] = litColor;
 
-		uint3 light_visualize=world_to_svo(gPointLight.position,gDim);
-		gUAVColor[light_visualize] = float4(1.0,0.0,0.0,1.0);
+		uint3 light_visualize=world_to_svo(gPointLight[0].position,gDim,gVoxelSize,gVoxelOffset);
+		gUAVColor[light_visualize] = float4(0.0,1.0,0.0,1.0);
 
 		//to make it easier to check the result.
-		return float4(litColor);
+		return float4(0,0,1,1);
 	}
 
 	else return float4(1,1,1, 0);

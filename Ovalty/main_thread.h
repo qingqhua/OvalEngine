@@ -11,6 +11,7 @@
 #include "Voxelization/Voxelizer.h"
 #include "Voxelization/Visualizer.h"
 #include "ConeTracing/ConeTracer.h"
+#include "Core/object.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -30,10 +31,10 @@ public:
 
 	
 private:
-
 	void BuildGeometryBuffer();
-
 	void ControlCamera(float dt, float speed);
+
+	void Initvoxel(float res);
 private:
 
 	//buffer
@@ -51,8 +52,6 @@ private:
 	DirectX::XMMATRIX mWorld;
 	DirectX::XMMATRIX mWorldInversTrans;
 
-	int indexCount;
-
 	POINT mLastMousePos;
 
 	//voxel attribute
@@ -62,10 +61,12 @@ private:
 
 	//flag
 	bool m_bVoxelize;
+	int indexCount;
 
 	//util object
 	Voxelizer mVoxelizer;
 	Visualizer mVisualizer;
 	ConeTracer mConeTracer;
 	Camera mCam;
+	
 };

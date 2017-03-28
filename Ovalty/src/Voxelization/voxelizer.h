@@ -17,13 +17,14 @@ public:
 	Voxelizer();
 	~Voxelizer();
 
-	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float iRes, float imaxSize);
-	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
+	void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
+	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos);
 	void Render(float totalTime);
 
 	ID3D11ShaderResourceView* SRV();
 	float Res();
 
+	float voxelSize();
 private:
 	void BuildFX();
 	void BuildVertexLayout();
@@ -50,9 +51,9 @@ private:
 	ID3DX11EffectMatrixVariable* mfxProj;
 
 	ID3DX11EffectScalarVariable* mfxDim;
-	ID3DX11EffectVectorVariable* mfxVoxelSize;
+	ID3DX11EffectScalarVariable* mfxVoxelSize;
+	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
-	//ID3DX11EffectUnorderedAccessViewVariable* mfxUAVPosW;
 
 	//texture var
 	ID3D11Texture3D* mTex3D;
@@ -65,8 +66,8 @@ private:
 	ID3DX11EffectVectorVariable* mfxEyePos;
 
 	//init class
-	PointLightBRDF mPointLight;
-	MaterialBRDF mMat;
+	MyLightLibrary::PointLightBRDF mPointLight;
+	MyLightLibrary::MaterialBRDF mMat;
 
 	DirectX::XMFLOAT3 mEyePos;
 
@@ -74,7 +75,8 @@ private:
 	ID3D11InputLayout* mInputLayout;
 
 	//shader var
-	DirectX::XMFLOAT3 mVoxelSize;
+	float mVoxelSize;
+	DirectX::XMFLOAT3 mVoxelOffset;
 	float mRes;
 };
 

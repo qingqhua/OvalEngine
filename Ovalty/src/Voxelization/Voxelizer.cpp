@@ -13,15 +13,15 @@ Voxelizer::~Voxelizer()
 
 }
 
-void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float iRes,float imaxSize)
+void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res,float voxelsize,DirectX::XMFLOAT3 voxeloffset)
 {
-	md3dDevice = idevice;
-	mDeviceContext = ideviceContext;
+	md3dDevice = device;
+	mDeviceContext = deviceContext;
 
-	mWidth = iRes;
-	mHeight = iRes;
-	mDepth = iRes;
-	mRes = iRes;
+	mWidth = res;
+	mHeight = res;
+	mDepth = res;
+	mRes = res;
 
 	//reset viewport = voxel nums
 	//eg. 512x512 for 512^3 voxels
@@ -29,50 +29,39 @@ void Voxelizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext,
 	mViewport.TopLeftY = 0;
 	mViewport.MinDepth = 0.0f;
 	mViewport.MaxDepth = 1.0f;
-	mViewport.Width = iRes;
-	mViewport.Height = iRes;
+	mViewport.Width = res;
+	mViewport.Height = res;
  	mDeviceContext->RSSetViewports(1, &mViewport);
 
-	mVoxelSize = XMFLOAT3(imaxSize, imaxSize, imaxSize);
+	mVoxelSize = voxelsize;
+	mVoxelOffset = voxeloffset;
 
 	BuildFX();
 	BuildVertexLayout();
 	BuildTexture();
-
-	mfxDim->SetInt(iRes);
-	mfxVoxelSize->SetFloatVector((float *)&mVoxelSize);
 }
 
-void Voxelizer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos)
+void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos)
 {
-	mfxWorld->SetMatrix((float*)(iWorld));
-	mfxWorldInverTrans->SetMatrix((float*)(iWorldInverTrans));
-	mfxView->SetMatrix((float*)(iView));
-	mfxProj->SetMatrix((float*)(iProj));
+	mfxWorld->SetMatrix((float*)(world));
+	mfxWorldInverTrans->SetMatrix((float*)(worldInverTrans));
+	mfxView->SetMatrix((float*)(view));
+	mfxProj->SetMatrix((float*)(proj));
 
-	mfxEyePos->SetFloatVector((float *)&icamPos);
+	mfxEyePos->SetFloatVector((float *)&camPos);
 }
 
 void Voxelizer::Render(float totalTime)
 {
 	//update light
-	mPointLight.Position = XMFLOAT3(20.0f*cosf(0.7f*totalTime), 6.0f, 20.0f*sinf(0.7f*totalTime));
-	mPointLight.Color = XMFLOAT3(0,1,0);
-	mfxPointLight->SetRawValue(&mPointLight, 0, sizeof(mPointLight));
-
-	//Update Material
-	mMat.DiffAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	mMat.SpecAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	mMat.metallic = 1.3f;
-	mMat.roughness = 1.2f;
-	mfxMat->SetRawValue(&mMat, 0, sizeof(mMat));
+	MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
 
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	const float zero[4] = { 0, 0, 0, 0 };
 	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
-	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
+	mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
@@ -99,15 +88,20 @@ void Voxelizer::BuildFX()
 	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
- 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsVector();
+ 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
  	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
  	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
+	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
 	//light
 	mfxPointLight = mFX->GetVariableByName("gPointLight");
 	mfxMat = mFX->GetVariableByName("gMat");
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
-	
+
+	//set value
+	mfxDim->SetInt(mRes);
+	mfxVoxelOffset->SetFloatVector((float *)&mVoxelOffset);
+	mfxVoxelSize->SetFloat(mVoxelSize);
 }
 
 void Voxelizer::BuildVertexLayout()
@@ -174,6 +168,11 @@ ID3D11ShaderResourceView* Voxelizer::SRV()
 float Voxelizer::Res()
 {
 	return mRes;
+}
+
+float Voxelizer::voxelSize()
+{
+	return mVoxelSize;
 }
 
 

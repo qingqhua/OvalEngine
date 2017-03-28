@@ -11,35 +11,34 @@ Visualizer::~Visualizer()
 
 }
 
-void Visualizer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext)
+void Visualizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,float res, float voxelsize, DirectX::XMFLOAT3 offset)
 {
-	md3dDevice = idevice;
-	mDeviceContext = ideviceContext;
+	md3dDevice = device;
+	mDeviceContext = deviceContext;
+
+	mRes = res;
+	mOffset = offset;
+	mVoxelSize = voxelsize;
 
 	BuildFX();
-	//BuildVertexLayout();
 }
 
-void Visualizer::Render(ID3D11ShaderResourceView* iVoxelList, float iRes, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMMATRIX * iWorld, const DirectX::XMMATRIX * iWorldInverTrans)
+void Visualizer::Render(ID3D11ShaderResourceView* voxelList, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMMATRIX * world, const DirectX::XMMATRIX * worldInverTrans)
 {
 	//update data in "voxelizer.fx"
-	mfxVoxelList->SetResource(iVoxelList);
-	//update voxel size
-	float fScale = 10.0f;
-	float voxelScale = fScale / iRes;
-	mfxVoxelSize->SetFloat((float)(voxelScale));
+	mfxVoxelList->SetResource(voxelList);
 
 	//update matrix
-	mfxView->SetMatrix((float*)(iView));
-	mfxProj->SetMatrix((float*)(iProj));
-	mfxWorld->SetMatrix((float*)(iWorld));
-	mfxWorldInverTrans->SetMatrix((float*)(iWorldInverTrans));
+	mfxView->SetMatrix((float*)(view));
+	mfxProj->SetMatrix((float*)(proj));
+	mfxWorld->SetMatrix((float*)(world));
+	mfxWorldInverTrans->SetMatrix((float*)(worldInverTrans));
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
  	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
- 	int voxelNum = iRes*iRes*iRes;
+ 	int voxelNum = mRes*mRes*mRes;
 	mDeviceContext->Draw(voxelNum,0);
 }
 
@@ -68,24 +67,16 @@ void Visualizer::BuildFX()
 	mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
+	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
+	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
 	// Set a texture for voxels.
 	ID3D11ShaderResourceView* edgeTexRV;
 	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
 	mfxEdgeTex->SetResource(edgeTexRV);
-}
 
-void Visualizer::BuildVertexLayout()
-{
-	//Create the vertex input Layout
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 }
-	};
-
-	//create the input layout
-	D3DX11_PASS_DESC passDesc;
-	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
-		passDesc.IAInputSignatureSize, &mInputLayout));
+	//set voxel value
+	mfxVoxelSize->SetFloat((float)(mVoxelSize));
+	mfxDim->SetFloat((float)(mRes));
+	mfxVoxelOffset->SetFloatVector((float*)&mOffset);
 }
