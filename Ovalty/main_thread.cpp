@@ -93,19 +93,19 @@ void myDirectX11::DrawScene()
 	//voxelize
 	//---------------------
   	if (m_bVoxelize)
-  	{
-  		ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
-  		md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
-  		md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
- 
- 		mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
- 		mVoxelizer.Render(mTimer.TotalTime());
- 
- 		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-  
-      	resetOMTargetsAndViewport();
-			//m_bVoxelize = false;
-   	}
+ 		{
+ 			ID3D11ShaderResourceView *const pSRV[2] = { NULL, NULL };
+ 			md3dImmediateContext->PSSetShaderResources(0, 2, pSRV);
+ 			md3dImmediateContext->VSSetShaderResources(0, 2, pSRV);
+ 			 
+ 			mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+ 			mVoxelizer.Render(mTimer.TotalTime());
+ 			 
+ 			md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+ 			  
+ 			resetOMTargetsAndViewport();
+ 			 //m_bVoxelize = false;
+    	}
 	//-----------------------
 	//render visualizer
 	//---------------------
@@ -114,7 +114,7 @@ void myDirectX11::DrawScene()
 	//-----------------------
 	//render cone tracing
 	//---------------------
- 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(),mCam.GetPosition());
+ 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
  	mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
  
  	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
@@ -222,8 +222,25 @@ void myDirectX11::ControlCamera(float dt,float speed)
 		mCam.FlyVertical(speed*dt);
 	if (GetAsyncKeyState('E') & 0x8000)
 		mCam.FlyVertical(-speed*dt);
-	if (GetAsyncKeyState('1') & 0x8000)
-		m_bVoxelize = !m_bVoxelize;
+
+	//z
+	//up
+	if (GetAsyncKeyState('0x26') & 0x8000)
+		testoffset.z += 0.0001f ;
+	//z down
+	if (GetAsyncKeyState('0x28') & 0x8000)
+		testoffset.z -= 0.1f / 256.0f;
+	//x up
+	if (GetAsyncKeyState('0x25') & 0x8000)
+		testoffset.x += 0.01000f / 256.0f;
+	if (GetAsyncKeyState('0x27') & 0x8000)
+		testoffset.z -= 0.01000f / 256.0f;
+	if (GetAsyncKeyState('R') & 0x8000)
+	{
+		testoffset.z = 0.0f;
+		testoffset.x = 0.0f;
+	}
+		
 }
 
 void myDirectX11::Initvoxel(float res)

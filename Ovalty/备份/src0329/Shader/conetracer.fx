@@ -55,26 +55,26 @@ float4 ConeTracing(float3 dir,float theta,float3 posW,float3 N)
 	float alpha=1.0f;
 
 	
-	float3 startPos=posW+N*gVoxelSize;
+	float3 startPos=posW+N*gVoxelSize*1.732;
 	float samplestep=gVoxelSize/2;
 	float tanHalfAngle=tan(theta/2);
 	float tanHalfAngle2=tan(theta/2/4);
 	float sampleFactor=(1+tanHalfAngle2)/(1-tanHalfAngle2);
 	float dist=0;
-	while(dist<1.0f)
+	for(uint i=0;i<20;i++)
 	{
 		samplestep*=sampleFactor;
-		dist+=gVoxelSize/2;
+		dist+=samplestep;
 		float diameter=2.0f*tanHalfAngle*dist;
 		float lodLevel=log2(diameter);
 
-		float3 ray = startPos+dir*dist;
-		float3 ray_svo = world_to_svo(ray,gVoxelSize,gVoxelOffset);
+		float3 ray=startPos;
+		float3 ray_svo= world_to_svo(ray,gVoxelSize,gVoxelOffset);
 
-		if(!(all(ray_svo>= 0) && all(ray_svo <= gDim))) 
+		if(!(all(ray_svo>= 0) && all(ray_svo <= 256))) 
 			break;		
 
-		color+=0.3*gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim,lodLevel).xyz;
+		color+=gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/256,lodLevel).xyz;
 	}
 	
 	return float4(color,alpha);
@@ -100,7 +100,6 @@ float4 DiffuseCone(float3 N,float3 posW)
 	float4 color=0.0f;
 	
 	const float w[3]={1.0,1.0,1.0};
-	int conenum=9;
 
 	const float3 orth=normalize(orthogonal(N));
 	const float3 orth2=normalize(cross(orth,N));
@@ -120,14 +119,13 @@ float4 DiffuseCone(float3 N,float3 posW)
 	color+=w[2]*ConeTracing(lerp(N,corner2,0.5f),PI/3,posW,N);
 	color+=w[2]*ConeTracing(lerp(N,-corner2,0.5f),PI/3,posW,N);
 
-	return color/conenum;
+	return color/9.0f;
 }
 
 float4 IndirectLighting(float3 N,float3 V,float3 posW,MaterialBRDF mat )
 {
 	float4 diff=DiffuseCone(N,posW)*float4(mat.albedo*(1.0-mat.metallic),1.0f);
-	//float4 diff=DiffuseCone(N,posW);
-	float4 spec= SpecularCone(V,N,posW);
+	float4 spec= SpecularCone(V,N,posW)*float4(mat.albedo*mat.metallic,1.0f);
 	return diff;
 }
 
@@ -144,10 +142,16 @@ VS_OUT VS(VS_IN vin)
 
 	vout.normW=mul(float4(vin.normL,1.0f),gWorldInverTrans).xyz;
 	vout.tex=vin.tex;
-		
+
 	vout.ID=vin.index;
 
 	vout.pos_svo=world_to_svo(vout.posW,gVoxelSize,gVoxelOffset);
+
+	if(gVoxelList[vout.pos_svo].w>0)
+	{
+		vout.normW=float3(0,1,0);
+	}
+	else vout.normW=float3(1,0,0);
 
 	return vout;
 }
@@ -176,9 +180,14 @@ float4 PS(VS_OUT pin) : SV_Target
 		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
 	}
 
-	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
-
-	return indirectlighting+directlighting;
+	float4 indirectlighting=InDirectLighting(N,pin.posW);
+	float4 color=0;
+	uint3 pos_svo=((pin.posW+gVoxelOffset)/gVoxelSize);
+	//float3 pos_svo=world_to_svo(pin.posW,gVoxelSize,gVoxelOffset);
+	color=gVoxelList.SampleLevel(SVOFilter, (float3)pos_svo/gDim+0.5f/gDim ,0);
+	//color=gVoxelList[pos_svo];
+	//color=float4(pin.normW,1.0f);
+	return color;
 }
 
 RasterizerState SolidRS

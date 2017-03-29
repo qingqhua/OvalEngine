@@ -68,5 +68,5 @@ private:
 	Visualizer mVisualizer;
 	ConeTracer mConeTracer;
 	Camera mCam;
-	
+	DirectX::XMFLOAT3 testoffset;
 };

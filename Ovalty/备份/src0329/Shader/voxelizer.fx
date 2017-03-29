@@ -12,6 +12,7 @@ cbuffer cbPerFrame : register(b0)
 	float gDim;
 	float gVoxelSize;
 	float3 gVoxelOffset;
+	float gTime;
 	float3 gEyePosW;
 };
 
@@ -85,14 +86,7 @@ VS_OUT VS(VS_IN vin)
 {
 	VS_OUT vout;
 
-	float3 posL=vin.posL;
-	if(vin.index>=3264&&vin.index<3300)
-	{
-		posL.y+=0.00001f;
-	}
-		
-
-	vout.posW=mul(float4(posL,1.0f),gWorld);
+	vout.posW=mul(float4(vin.posL,1.0f),gWorld);
 	vout.normW=mul(float4(vin.normL,1.0f),gWorldInverTrans).xyz;
 	vout.ID=vin.index;
 	return vout;
@@ -141,7 +135,7 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		output.svoPos.z-=0.00001;
 
 		//pos for rasterization
-		//output.pos.xyz+=float3(offsetX,offsetY,offsetZ);
+		output.pos.xyz+=float3(offsetX,offsetY,offsetZ);
 		output.pos.xyz /= (float)gDim;
 		output.pos.xyz /= (float)gVoxelSize;
 		output.pos.zw = 1;

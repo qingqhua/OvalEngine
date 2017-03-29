@@ -91,7 +91,7 @@ float4 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L,Point
 	float3 kS=Schlick_Fresnel(f0,max(dot(H, V),0.0));
 
 	float3 kD=1.0-kS;
-	//kD*=1.0-_mat.metallic;
+	kD*=1.0-_mat.metallic;
 
 	float3 specBRDF=DirectSpecularBRDF(N,H,L,V,_mat);
 	float3 diffBRDF=(kD*_mat.albedo/PI);
@@ -135,7 +135,6 @@ float3 world_to_svo(float3 posW,float voxel_size,float3 offset)
 
 	pos=((pos+offset)/voxel_size);
 	pos.z-=0.00001;
-	pos.z-=0.5f/256.0f;
 	return pos;
 }
 
@@ -157,6 +156,6 @@ float map(float from)
 }
 
 float3 orthogonal(float3 u){
-	float3 v = float3(0.577, 0.577, 0.577); 
+	float3 v = float3(0.0, 1.0, 0.0); 
 	return abs(dot(u, v)) > 0.99999f ? cross(u, float3(1, 0, 0)) : cross(u, v);
 }
