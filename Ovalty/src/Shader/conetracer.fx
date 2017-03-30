@@ -162,7 +162,7 @@ float4 PS(VS_OUT pin) : SV_Target
 	float4 directlighting=0.0f;
 
 	MaterialBRDF mat;
-	setMatPerObject(pin.ID,mat);
+	setMatEmptyCornell(pin.ID,mat);
 
 	PointLightBRDF light[LIGHT_NUM];
 	setPointLight(light[0],light[1]);
@@ -178,7 +178,7 @@ float4 PS(VS_OUT pin) : SV_Target
 
 	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
 
-	return indirectlighting+directlighting;
+	return indirectlighting;
 }
 
 RasterizerState SolidRS

@@ -168,7 +168,7 @@ float4 PS(PS_IN pin) : SV_Target
 	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim)) 
 	{	
 		MaterialBRDF mat;
-		setMatPerObject(pin.ID,mat);
+		setMatEmptyCornell(pin.ID,mat);
 
 		PointLightBRDF light[LIGHT_NUM];
 		setPointLight(light[0],light[1]);
