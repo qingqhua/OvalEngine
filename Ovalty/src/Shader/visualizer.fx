@@ -110,15 +110,6 @@ DepthStencilState LessEqualDSS
 	DepthFunc = LESS_EQUAL;
 };
 
-//-----------------------------------------------------------------------------------------
-// Sampler.
-//-----------------------------------------------------------------------------------------
-SamplerState gAnisotropicSam
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 16;
-};
-
 //-----------------------------
 //VERTEX SHADER
 //-----------------------------
@@ -142,8 +133,8 @@ VS_OUT VS(VS_IN vin)
 		output.isvoxel = 0;
 
 	output.posL =svo_to_world(pos,gVoxelSize,gVoxelOffset);
-	output.posL.x +=4.1f;
-	output.posL.z -=2.1f;
+	output.posL.x +=2.1f;
+	//output.posL.z -=2.1f;
 
 	output.normW=gVoxelList[pos].xyz;
 
@@ -194,7 +185,7 @@ float4 PS(PS_IN pin) : SV_Target
 {
 	float4 normal = float4(pin.normW, 1);
 
-	float3 output = gEdge.Sample(gAnisotropicSam, pin.texcoord).xyz;
+	float3 output = gEdge.Sample(SVOFilter, pin.texcoord).xyz;
 	normal.rgb *= output;
 
 	return float4(pin.normW,1.0);

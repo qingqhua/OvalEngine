@@ -21,6 +21,7 @@ public:
 	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos);
 	void Render(float totalTime);
 
+	void Clear();
 	ID3D11ShaderResourceView* SRV();
 	float Res();
 

@@ -138,10 +138,10 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 
 		output.svoPos=world_to_svo(gin[i].posW.xyz,gVoxelSize,gVoxelOffset);
 		//prevent for rasterzation
-		output.svoPos.z-=0.00001;
+		//output.svoPos.y-=0.00001;
 
 		//pos for rasterization
-		//output.pos.xyz+=float3(offsetX,offsetY,offsetZ);
+		output.pos.xyz+=float3(offsetX,offsetY,offsetZ);
 		output.pos.xyz /= (float)gDim;
 		output.pos.xyz /= (float)gVoxelSize;
 		output.pos.zw = 1;
@@ -165,10 +165,10 @@ float4 PS(PS_IN pin) : SV_Target
 	float4 diffuse, spec;
 
 	// Store voxels which are inside voxel-space boundary.
-	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim)) 
+	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim) )
 	{	
 		MaterialBRDF mat;
-		setMatEmptyCornell(pin.ID,mat);
+		setMatCornellBox(pin.ID,mat);
 
 		PointLightBRDF light[LIGHT_NUM];
 		setPointLight(light[0],light[1]);

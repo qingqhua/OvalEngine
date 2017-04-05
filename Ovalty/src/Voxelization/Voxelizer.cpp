@@ -53,19 +53,33 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRI
 
 void Voxelizer::Render(float totalTime)
 {
-	//update light
-	//MyLightLibrary::SetLightMaterial(mfxPointLight, mfxMat,totalTime);
+	mDeviceContext->GenerateMips(mSRV);
+	//clear
+	//float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, clear_color);
+	//ID3D11UnorderedAccessView* uav_view[] = { mUAV };
+	//mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, nullptr, nullptr, 0, 1, uav_view, nullptr);
+	mfxUAVColor->SetUnorderedAccessView(mUAV);
 
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	const float zero[4] = { 0, 0, 0, 0 };
-	mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, zero);
-	mfxUAVColor->SetUnorderedAccessView(mUAV);
-	//mDeviceContext->OMSetRenderTargets(0, NULL, NULL);
-
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
 
+	
+}
+
+void Voxelizer::Clear()
+{
+	// cleanup
+	ID3D11ShaderResourceView* clear_srvs[] = { nullptr, nullptr, nullptr };
+	//mDeviceContext->PSSetShaderResources(0, 1, clear_srvs);
+	//mDeviceContext->VSSetShaderResources(0, 1, clear_srvs);
+
+	ID3D11UnorderedAccessView* clear_uavs[] = { nullptr, nullptr };
+	//float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, clear_color);
+	//mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, clear_uavs, nullptr);
 }
 
 void Voxelizer::BuildFX()
@@ -124,15 +138,15 @@ void Voxelizer::BuildTexture()
 {
 	//SET TEXTURE DESC
 	D3D11_TEXTURE3D_DESC txDesc;
-	txDesc.Width = mWidth; 
-	txDesc.Height = mHeight; 
-	txDesc.Depth = mDepth; 
-	txDesc.MipLevels = 1;
+	txDesc.Width = mWidth;
+	txDesc.Height = mHeight;
+	txDesc.Depth = mDepth;
+	txDesc.MipLevels = log2(mDepth);
 	txDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	txDesc.Usage = D3D11_USAGE_DEFAULT;
-	txDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	txDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
 	txDesc.CPUAccessFlags = 0;
-	txDesc.MiscFlags = 0;
+	txDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	//CREATE TEXTURE3D
 	HR(md3dDevice->CreateTexture3D(&txDesc, NULL, &mTex3D));
@@ -151,12 +165,14 @@ void Voxelizer::BuildTexture()
 	// SET SRV
 	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
 	SRVDesc.Format = txDesc.Format;
-	SRVDesc.Texture3D.MipLevels = 1 ;
+	SRVDesc.Texture3D.MipLevels = txDesc.MipLevels;
 	SRVDesc.Texture3D.MostDetailedMip = 0;
 	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 
 	//CREATE SRV
-	HR(md3dDevice->CreateShaderResourceView(mTex3D,&SRVDesc, &mSRV));
+	HR(md3dDevice->CreateShaderResourceView(mTex3D, &SRVDesc, &mSRV));
+
+
 }
 
 

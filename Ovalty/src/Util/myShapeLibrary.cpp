@@ -6,15 +6,15 @@ void myShapeLibrary::CreateBox(XMFLOAT3 center,float extent,MeshData &meshData)
 {
 	Vertex v[8];
 	
-	v[0] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z - extent), XMFLOAT2(0.0f, 1.0f));
-	v[1] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z - extent), XMFLOAT2(1.0f, 0.0f));
-	v[2] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z + extent), XMFLOAT2(-1.0f, 0.0f));
-	v[3] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z + extent), XMFLOAT2(0.0f, -1.0f));
+	v[0] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z - extent));
+	v[1] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z - extent));
+	v[2] = Vertex(XMFLOAT3(center.x + extent, center.y + extent, center.z + extent));
+	v[3] = Vertex(XMFLOAT3(center.x - extent, center.y + extent, center.z + extent));
 
-	v[4] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z - extent), XMFLOAT2(1.0f, 0.0f));
-	v[5] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z - extent), XMFLOAT2(0.0f, 1.0f));
-	v[6] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, 0.0f));
-	v[7] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z + extent), XMFLOAT2(0.0f, -1.0f));
+	v[4] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z - extent));
+	v[5] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z - extent));
+	v[6] = Vertex(XMFLOAT3(center.x + extent, center.y - extent, center.z + extent));
+	v[7] = Vertex(XMFLOAT3(center.x - extent, center.y - extent, center.z + extent));
 
 	meshData.vertices.assign(&v[0], &v[8]);
 
@@ -70,14 +70,13 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 		MessageBox(0, L"RegisterClass Failed.", L"error", MB_OK);
 		return;
 	}
-	if (!attrib.normals.size()||!attrib.texcoords.size() || !attrib.vertices.size()) {
+	if (!attrib.normals.size()|| !attrib.vertices.size()) {
 		MessageBox(0, L"obj file wrong.", L"error", MB_OK);
 		return;
 	}
 
 	std::vector<int> v_index_temp;
 	std::vector<int> n_index_temp;
-	std::vector<int> t_index_temp;
 	
 	// For each shape
 	for (size_t i = 0; i < shapes.size(); i++)
@@ -91,7 +90,6 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 				tinyobj::index_t idx = shapes[i].mesh.indices[index_offset + v];
 				v_index_temp.push_back(idx.vertex_index);
 				n_index_temp.push_back(idx.normal_index);
-				t_index_temp.push_back(idx.texcoord_index);
 			}
 			index_offset += fnum;
 		}
@@ -105,10 +103,8 @@ void myShapeLibrary::LoadFromTinyObj(const char* filename, const char* basepath 
 	{
 		int v_id = v_index_temp[i];
 		int n_id = n_index_temp[i];
-		int t_id = t_index_temp[i];
 		meshData.vertices.push_back(Vertex(attrib.vertices[3 * v_id], attrib.vertices[3 * v_id + 1], attrib.vertices[3 * v_id + 2],
-			attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2],
-			attrib.texcoords[2 * t_id], attrib.texcoords[2 * t_id + 1]));
+			attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2]));
 
 		meshData.indiceindex.push_back(i);
 	}

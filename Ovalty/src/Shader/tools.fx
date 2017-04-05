@@ -66,7 +66,7 @@ float3 DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat
 {     
 	float3 f0=lerp(0.04,_mat.albedo,_mat.metallic);
 
-	float F = Schlick_Fresnel(f0,max(dot(H, V),0.0));
+	float3 F = Schlick_Fresnel(f0,max(dot(H, V),0.0));
 	float NDF = D_GGX(N, H, _mat.roughness);   
     float G = G_Smith(N, V, L, _mat.roughness);      
 
@@ -82,7 +82,7 @@ float3 DirectSpecularBRDF(float3 N,float3 H,float3 L,float3 V, MaterialBRDF _mat
 //---------------------------
 float4 DirectLighting(float3 N,float3 H,float3 lightVec,float3 V, float3 L,PointLightBRDF _light, MaterialBRDF _mat)
 {
-	float f0=lerp(0.04,_mat.albedo,_mat.metallic);
+	float3 f0=lerp(0.04,_mat.albedo,_mat.metallic);
 
 	float dist = length(lightVec);
     float attenuation = _light.intensity / (dist * dist);
@@ -122,8 +122,9 @@ float3 ACESToneMapping(float3 color, float adapted_lum)
 //-----------------------------------------------------------------------------------------
 SamplerState SVOFilter
 {
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 16;
+	//Filter = ANISOTROPIC;
+	//MaxAnisotropy = 0;
+	//MipMapLevelOfDetailBias=0;
 };
 
 //-----------------------------------------------------------------------------------------
@@ -132,10 +133,7 @@ SamplerState SVOFilter
 float3 world_to_svo(float3 posW,float voxel_size,float3 offset)
 {
 	float3 pos=posW;
-
 	pos=((pos+offset)/voxel_size);
-	pos.z-=0.00001;
-	pos.z-=0.5f/256.0f;
 	return pos;
 }
 

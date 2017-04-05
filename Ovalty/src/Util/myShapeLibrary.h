@@ -13,22 +13,13 @@ public:
 	struct Vertex
 	{
 		Vertex() {}
-		Vertex(float px, float py, float pz)
-			: Position(px, py, pz) {}
-		Vertex(const DirectX::XMFLOAT3 &n)
-			: Normal(n.x, n.y, n.z) {}
-		Vertex(float u, float v)
-			: Texture(u, v) {}
-		Vertex(const DirectX::XMFLOAT3 &p,const DirectX::XMFLOAT2 &uv)
-			: Position(p),Texture(uv) {}
+		Vertex(DirectX::XMFLOAT3 p)
+			: Position(p.x, p.y, p.z) {}
 		Vertex(float px, float py, float pz, float n1, float n2, float n3)
-			: Position(px,py,pz), Normal(n1, n2, n3) {}
-		Vertex(float px, float py, float pz, float n1, float n2, float n3,float u, float v)
-			: Position(px, py, pz), Normal(n1, n2, n3),Texture(u, v) {}
+			: Position(px, py, pz), Normal(n1, n2, n3) {}
 
 		DirectX::XMFLOAT3 Position = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 		DirectX::XMFLOAT3 Normal = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-		DirectX::XMFLOAT2 Texture = DirectX::XMFLOAT2(0.0f, 0.0f);
 	};
 
 	struct MeshData

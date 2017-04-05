@@ -43,41 +43,58 @@ struct VS_OUT
 	float3 normW  : NORMAL;
 	float2 tex    : TEXCOORD;
 	uint ID		  :ID;
-	float3 pos_svo :SVO;
 };
 
 //--------------------------
 //cone tracing
 //---------------------------
-float4 ConeTracing(float3 dir,float theta,float3 posW,float3 N)
+float4 ConeTracing(float3 dir,float3 startPos)
 {
 	float3 color=0.0f;
 	float alpha=1.0f;
 
-	
-	float3 startPos=posW+N*gVoxelSize;
-	float samplestep=gVoxelSize/2;
-	float tanHalfAngle=tan(theta/2);
-	float tanHalfAngle2=tan(theta/2/4);
-	float sampleFactor=(1+tanHalfAngle2)/(1-tanHalfAngle2);
-	float dist=0;
-	while(dist<1.0f)
+	dir=normalize(dir);
+	float dist=gVoxelSize;
+
+	while(dist<1.414)
 	{
-		samplestep*=sampleFactor;
-		dist+=gVoxelSize/2;
-		float diameter=2.0f*tanHalfAngle*dist;
-		float lodLevel=log2(diameter);
+		float lodLevel=log2(dist/gVoxelSize);
 
 		float3 ray = startPos+dir*dist;
 		float3 ray_svo = world_to_svo(ray,gVoxelSize,gVoxelOffset);
 
-		if(!(all(ray_svo>= 0) && all(ray_svo <= gDim))) 
+		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
 			break;		
 
-		color+=0.3*gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim,lodLevel).xyz;
+		color+=gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim,lodLevel).xyz;
+		dist+=1.414*gVoxelSize;
 	}
 	
 	return float4(color,alpha);
+}
+
+float4 ShadowConeTracing(float3 dir,float3 startPos,float dist_L)
+{
+	float acc = 0;
+
+	float dist = 3 * gVoxelSize;
+	const float STOP = dist_L - 16 * gVoxelSize;
+
+	while(dist < STOP ){	
+		float3 ray = startPos + dist * dir;
+		float3 ray_svo = world_to_svo(ray,gVoxelSize,gVoxelOffset);
+
+		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
+			break;		
+
+		float l = pow(dist, 2); // Experimenting with inverse square falloff for shadows.
+		float s1 = 0.062 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 1 + 0.75 * l).a;
+		float s2 = 0.135 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 4.5 * l).a;
+		float s = s1 + s2;
+		acc += (1 - acc) * s;
+		dist += 0.9 * gVoxelSize * (1 + 0.05 * l);
+	}
+	return 1 - pow(smoothstep(0, 1, acc * 1.4), 1.0 / 1.4);
 }
 
 float4 SpecularCone(float3 V,float3 N,float3 posW)
@@ -88,7 +105,7 @@ float4 SpecularCone(float3 V,float3 N,float3 posW)
 	float3 r=reflect(v,N);
 	float angle=PI/2;
 
-	color=ConeTracing(r,angle,posW,N);
+	color=ConeTracing(r,posW);
 	return color;
 }
 
@@ -108,24 +125,25 @@ float4 DiffuseCone(float3 N,float3 posW)
 	const float3 corner=normalize(orth+orth2);
 	const float3 corner2=normalize(orth-orth2);
 
-	color+=w[0]*ConeTracing(N,PI/3,posW,N);
+	float3 offset=N*gVoxelSize*1.414*2;
+	color+=w[0]*ConeTracing(N,posW+offset);
 
-	color+=w[1]*ConeTracing(lerp(N,orth,0.5f),PI/3,posW,N);
-	color+=w[1]*ConeTracing(lerp(N,-orth,0.5f),PI/3,posW,N);
-	color+=w[1]*ConeTracing(lerp(N,orth2,0.5f),PI/3,posW,N);
-	color+=w[1]*ConeTracing(lerp(N,-orth2,0.5f),PI/3,posW,N);
+	color+=w[1]*ConeTracing(lerp(N,orth,0.5f),posW+offset);
+	color+=w[1]*ConeTracing(lerp(N,-orth,0.5f),posW+offset);
+	color+=w[1]*ConeTracing(lerp(N,orth2,0.5f),posW+offset);
+	color+=w[1]*ConeTracing(lerp(N,-orth2,0.5f),posW+offset);
 
-	color+=w[2]*ConeTracing(lerp(N,corner,0.5f),PI/3,posW,N);
-	color+=w[2]*ConeTracing(lerp(N,-corner,0.5f),PI/3,posW,N);
-	color+=w[2]*ConeTracing(lerp(N,corner2,0.5f),PI/3,posW,N);
-	color+=w[2]*ConeTracing(lerp(N,-corner2,0.5f),PI/3,posW,N);
+	color+=w[2]*ConeTracing(lerp(N,corner,0.5f),posW+offset);
+	color+=w[2]*ConeTracing(lerp(N,-corner,0.5f),posW+offset);
+	color+=w[2]*ConeTracing(lerp(N,corner2,0.5f),posW+offset);
+	color+=w[2]*ConeTracing(lerp(N,-corner2,0.5f),posW+offset);
 
 	return color/conenum;
 }
 
 float4 IndirectLighting(float3 N,float3 V,float3 posW,MaterialBRDF mat )
 {
-	float4 diff=DiffuseCone(N,posW)*float4(mat.albedo*(1.0-mat.metallic),1.0f);
+	float4 diff=DiffuseCone(N,posW)*float4(mat.albedo,1.0f);
 	//float4 diff=DiffuseCone(N,posW);
 	float4 spec= SpecularCone(V,N,posW);
 	return diff;
@@ -147,8 +165,6 @@ VS_OUT VS(VS_IN vin)
 		
 	vout.ID=vin.index;
 
-	vout.pos_svo=world_to_svo(vout.posW,gVoxelSize,gVoxelOffset);
-
 	return vout;
 }
 
@@ -158,27 +174,29 @@ VS_OUT VS(VS_IN vin)
 float4 PS(VS_OUT pin) : SV_Target
 {
 	float3 N=normalize(pin.normW);
-	float3 V=normalize(gEyePosW-pin.posW);
+	float3 V=normalize(gEyePosW-pin.posW.xyz);
 	float4 directlighting=0.0f;
+	float4 shadow=0.0f;
 
 	MaterialBRDF mat;
-	setMatEmptyCornell(pin.ID,mat);
+	setMatCornellBox(pin.ID,mat);
 
 	PointLightBRDF light[LIGHT_NUM];
 	setPointLight(light[0],light[1]);
 
 	for(uint i=0;i<LIGHT_NUM;i++)
 	{
-		float3 lightVec=light[i].position-pin.posW;
+		float3 lightVec=light[i].position-pin.posW.xyz;
 		float3 L= normalize(lightVec);
 		float3 H=normalize(V+L);
 
 		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
+		shadow+=ShadowConeTracing(N,pin.posW,length(lightVec));
 	}
 
 	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
-
-	return indirectlighting;
+	
+	return indirectlighting+0.25*directlighting+0.05*shadow;
 }
 
 RasterizerState SolidRS

@@ -15,7 +15,7 @@ void setPointLight(out PointLightBRDF L1,out PointLightBRDF L2)
 	L1.color=float3(1.0f, 1.0f, 1.0f);
 	L1.intensity=1.0f;
 
-	L2.position=float3(-0.0f, 0.8f, 0.3f);
+	L2.position=float3(-0.0f, 0.8f, 0.0f);
 	L2.color=float3(1.0f, 1.0f, 1.0f);
 	L2.intensity=1.0f;
 }
@@ -50,9 +50,9 @@ void setMatCopper(out MaterialBRDF M)
 	M.transparency=0.0f;
 }
 
-void setMatZinc(out MaterialBRDF M)
+void setMatGreen(out MaterialBRDF M)
 {
-	M.albedo = float3(0.664,0.824,0.850);
+	M.albedo = float3(0.0,0.824,0.850);
 	M.metallic = 0.0f;
 	M.roughness = 0.3f;
 	M.transparency=1.0f;
@@ -68,29 +68,39 @@ void setMatGold(out MaterialBRDF M)
 	M.transparency=1.0f;
 }
 
-void setMatPerObject(int id,out MaterialBRDF mat)
+void setMatWhite(out MaterialBRDF M)
+{
+	M.albedo = float3(1.000,1.00,1.00);
+	//if metallic = 0, we have no specular
+	//if metallic = 1, we have no diffuse
+	M.metallic = 0.0f;
+	M.roughness = 1.0f;
+	M.transparency=1.0f;
+}
+
+void setMatCornellBox(int id,out MaterialBRDF mat)
 {
 	//sphere
 	if(id<3264)
-	 setMatSilver(mat);
+	 setMatCopper(mat);
 	//short box
 	else if(id>=3264&&id<3300)
 		  setMatGold(mat);
 	//floor
 	else if(id>=3300&&id<3306)
-		 setMatZinc(mat);
+		 setMatWhite(mat);
 	//ceiling
 	else if(id>=3306&&id<3312)
 		 setMatCopper(mat);
 	//backwall
 	else if(id>=3312&&id<3318)
-		 setMatZinc(mat);
+		 setMatWhite(mat);
 	//leftwall
 	else if(id>=3324&&id<3330)
-		 setMatCopper(mat);
+		 setMatGreen(mat);
 	//rightwall
 	else if(id>=3300&&id<3336)
-		 setMatCopper(mat);
+		 setMatGold(mat);
 }
 
 void setMatEmptyCornell(int id,out MaterialBRDF mat)
@@ -103,11 +113,11 @@ void setMatEmptyCornell(int id,out MaterialBRDF mat)
 		  setMatGold(mat);
 	//backwall
 	else if(id>=12&&id<18)
-		 setMatZinc(mat);
+		 setMatWhite(mat);
 	//leftwall
 	else if(id>=18&&id<24)
 		 setMatCopper(mat);
 	//rightwall
 	else if(id>=24&&id<30)
-		 setMatZinc(mat);
+		 setMatGreen(mat);
 }
