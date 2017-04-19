@@ -28,9 +28,11 @@ void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, f
 	mViewport.TopLeftX = 0;
 	mViewport.TopLeftY = 0;
 	mViewport.MinDepth = 0.0f;
-	mViewport.MaxDepth = 1.0f;
+	mViewport.MaxDepth = 1.0f;
+
 	mViewport.Width = res;
-	mViewport.Height = res;
+	mViewport.Height = res;
+
  	mDeviceContext->RSSetViewports(1, &mViewport);
 
 	mVoxelSize = voxelsize;
@@ -60,13 +62,12 @@ void Voxelizer::Render(float totalTime)
 	//ID3D11UnorderedAccessView* uav_view[] = { mUAV };
 	//mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, nullptr, nullptr, 0, 1, uav_view, nullptr);
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
+	mfxTime->SetFloat(totalTime);
 
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
-
-	
 }
 
 void Voxelizer::Clear()
@@ -105,6 +106,7 @@ void Voxelizer::BuildFX()
  	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
  	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
  	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
+	mfxTime = mFX->GetVariableByName("gTime")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
 	//light
@@ -171,8 +173,6 @@ void Voxelizer::BuildTexture()
 
 	//CREATE SRV
 	HR(md3dDevice->CreateShaderResourceView(mTex3D, &SRVDesc, &mSRV));
-
-
 }
 
 

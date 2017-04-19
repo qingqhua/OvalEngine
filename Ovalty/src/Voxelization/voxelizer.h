@@ -55,6 +55,7 @@ private:
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
+	ID3DX11EffectScalarVariable* mfxTime;
 
 	//texture var
 	ID3D11Texture3D* mTex3D;

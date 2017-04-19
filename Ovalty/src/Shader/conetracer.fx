@@ -1,4 +1,5 @@
-#include "tools.fx"
+#include "common_tools.fx"
+#include "brdf_tools.fx"
 
 #define MAX_DIST 10.0f
 //-----------------------
@@ -47,37 +48,43 @@ struct VS_OUT
 
 //--------------------------
 //cone tracing
+//cone_ratio: diameter / max_dist.
 //---------------------------
-float4 ConeTracing(float3 dir,float3 startPos)
+float4 ConeTracing(float3 dir,float3 startPos,float cone_ratio)
 {
-	float3 color=0.0f;
-	float alpha=1.0f;
+	float4 accum = 0.0f;
 
-	dir=normalize(dir);
-	float dist=gVoxelSize;
+	dir = normalize(dir);
 
-	while(dist<1.414)
+	float dist = 0;
+
+	while(dist<2)
 	{
-		float lodLevel=log2(dist/gVoxelSize);
+		float diameter = cone_ratio*dist;
+		float lodLevel = log2(diameter / gVoxelSize);
 
-		float3 ray = startPos+dir*dist;
-		float3 ray_svo = world_to_svo(ray,gVoxelSize,gVoxelOffset);
+		float3 ray = startPos + dir*dist;
+		float3 ray_svo = world_to_svo(ray, gVoxelSize, gVoxelOffset);
 
-		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
-			break;		
+		if (!(all(ray_svo > 0) && all(ray_svo < gDim)))
+			break;
 
-		color+=gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim,lodLevel).xyz;
-		dist+=1.414*gVoxelSize;
+		float4 color = gVoxelList.SampleLevel(SVOFilter, ray_svo / gDim + 0.5f / gDim, lodLevel);
+
+		float a = 1.0f - accum.a;
+		accum += color*a;
+
+		dist += gVoxelSize;
 	}
 	
-	return float4(color,alpha);
+	return accum;
 }
 
 float4 ShadowConeTracing(float3 dir,float3 startPos,float dist_L)
 {
 	float acc = 0;
 
-	float dist = 3 * gVoxelSize;
+	float dist = gVoxelSize/8;
 	const float STOP = dist_L - 16 * gVoxelSize;
 
 	while(dist < STOP ){	
@@ -87,7 +94,7 @@ float4 ShadowConeTracing(float3 dir,float3 startPos,float dist_L)
 		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
 			break;		
 
-		float l = pow(dist, 2); // Experimenting with inverse square falloff for shadows.
+		float l = pow(dist, 2); 
 		float s1 = 0.062 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 1 + 0.75 * l).a;
 		float s2 = 0.135 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 4.5 * l).a;
 		float s = s1 + s2;
@@ -101,11 +108,12 @@ float4 SpecularCone(float3 V,float3 N,float3 posW)
 {
 	float4 color=0.0f;
 
-	float3 v=1.0f*V;
-	float3 r=reflect(v,N);
-	float angle=PI/2;
+	float3 dir = reflect(V, N);
 
-	color=ConeTracing(r,posW);
+	float cone_ratio =2.0f;
+	float3 offset = N*gVoxelSize*1.414*2;
+	color = ConeTracing(dir, posW + offset, cone_ratio);
+
 	return color;
 }
 
@@ -114,38 +122,58 @@ float4 SpecularCone(float3 V,float3 N,float3 posW)
 //---------------------------
 float4 DiffuseCone(float3 N,float3 posW)
 {
+	//accum color
 	float4 color=0.0f;
 	
-	const float w[3]={1.0,1.0,1.0};
-	int conenum=9;
-
+	//directions
 	const float3 orth=normalize(orthogonal(N));
 	const float3 orth2=normalize(cross(orth,N));
 
 	const float3 corner=normalize(orth+orth2);
 	const float3 corner2=normalize(orth-orth2);
 
-	float3 offset=N*gVoxelSize*1.414*2;
-	color+=w[0]*ConeTracing(N,posW+offset);
+#define cone_num 9
 
-	color+=w[1]*ConeTracing(lerp(N,orth,0.5f),posW+offset);
-	color+=w[1]*ConeTracing(lerp(N,-orth,0.5f),posW+offset);
-	color+=w[1]*ConeTracing(lerp(N,orth2,0.5f),posW+offset);
-	color+=w[1]*ConeTracing(lerp(N,-orth2,0.5f),posW+offset);
+	float3 dir[cone_num] = {
+		//normal direction
+		N,
 
-	color+=w[2]*ConeTracing(lerp(N,corner,0.5f),posW+offset);
-	color+=w[2]*ConeTracing(lerp(N,-corner,0.5f),posW+offset);
-	color+=w[2]*ConeTracing(lerp(N,corner2,0.5f),posW+offset);
-	color+=w[2]*ConeTracing(lerp(N,-corner2,0.5f),posW+offset);
+		//4 side directions
+		lerp(N,orth,0.5f),
+		lerp(N,-orth,0.5f),
+		lerp(N,orth2,0.5f),
+		lerp(N,-orth2,0.5f),
 
-	return color/conenum;
+		//4 corner directions
+		lerp(N,corner,0.5f),
+		lerp(N,-corner,0.5f),
+		lerp(N,corner2,0.5f),
+		lerp(N,-corner2,0.5f)
+	};
+
+	//60 degree cone for diffuse cone
+	float cone_ratio = 2.0f / 1.732f;
+
+	// trace 9 diffuse cones
+	for (uint i = 0; i < cone_num; i++)
+	{
+		//TODO why change offse t makes result wrong
+		float3 offset = N *gVoxelSize*1.414 * 2;
+		color += ConeTracing(dir[i], posW + offset, cone_ratio);
+	}
+	
+	//average
+	color *= 4.0 * PI / cone_num;
+	return color / PI;
+	//return color/ cone_num;
 }
 
 float4 IndirectLighting(float3 N,float3 V,float3 posW,MaterialBRDF mat )
 {
-	float4 diff=DiffuseCone(N,posW)*float4(mat.albedo,1.0f);
-	//float4 diff=DiffuseCone(N,posW);
-	float4 spec= SpecularCone(V,N,posW);
+	float4 diff = DiffuseCone(N, posW)*float4(mat.albedo,1.0f);
+
+	//TODO modify specular part
+	float4 spec= SpecularCone(V,N,posW)*float4(mat.albedo, 1.0f);
 	return diff;
 }
 
@@ -196,7 +224,7 @@ float4 PS(VS_OUT pin) : SV_Target
 
 	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
 	
-	return indirectlighting+0.25*directlighting+0.05*shadow;
+	return 0.4*(directlighting+ indirectlighting);
 }
 
 RasterizerState SolidRS

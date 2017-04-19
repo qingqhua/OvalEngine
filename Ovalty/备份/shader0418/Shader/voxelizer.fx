@@ -139,7 +139,7 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 
 		output.svoPos=world_to_svo(gin[i].posW.xyz,gVoxelSize,gVoxelOffset);
 		//prevent for rasterzation
-		//output.svoPos.y-=0.00001;
+		//output.svoPos.z-=0.00001;
 
 		//pos for rasterization
 		output.pos.xyz+=float3(offsetX,offsetY,offsetZ);

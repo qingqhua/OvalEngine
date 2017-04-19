@@ -121,7 +121,7 @@ void myDirectX11::DrawScene()
 void myDirectX11::BuildGeometryBuffer()
 {
 	Object mObjectCornellBox;
-	mObjectCornellBox.LoadModel("data/Model/cornell.obj");
+	mObjectCornellBox.LoadModel("data/Model/CornellBox.obj");
 	mBoundingBox = mObjectCornellBox.boundingbox();
 
 	unsigned int totalVbd = mObjectCornellBox.verticeByteWidth();
