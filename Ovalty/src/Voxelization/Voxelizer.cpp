@@ -98,17 +98,20 @@ void Voxelizer::BuildFX()
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("VoxelizerTech");
+
 	mfxView = mFX->GetVariableByName("gView")->AsMatrix();
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
 	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();
 
- 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
- 	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
- 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxTime = mFX->GetVariableByName("gTime")->AsScalar();
+
+ 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
+	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
+ 	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
+ 	
 	//light
 	mfxPointLight = mFX->GetVariableByName("gPointLight");
 	mfxMat = mFX->GetVariableByName("gMat");

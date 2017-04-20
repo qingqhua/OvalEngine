@@ -9,11 +9,11 @@ struct PointLightBRDF
 	float intensity;
 };
 
-void setPointLight(out PointLightBRDF L1,out PointLightBRDF L2)
+void setPointLight(out PointLightBRDF L1,out PointLightBRDF L2, float t)
 {
-	L1.position=float3(-0.0f, 1.0f, 0.0f);
-	//float t = 1;
-	//L1.position = float3(0.5f*cos(0.7f*t), 1.0f, -2.0f + 0.7f*sin(0.5f*t));
+	//L1.position=float3(-0.0f, 1.0f, 0.0f);
+	
+	L1.position = float3(0.5*cos(t), 1.2,  -1.0f+0.5*sin(t));
 	L1.color=float3(1.0f, 1.0f, 1.0f);
 	L1.intensity=1.0f;
 

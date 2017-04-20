@@ -1,7 +1,6 @@
-#include"common_tools.fx"
+#include "common_tools.fx"
 #include "brdf_tools.fx"
-
-#define ATT_FACTOR 0.01
+#include "compute.fx"
 
 //-----------------------
 //constant buffer
@@ -14,6 +13,7 @@ cbuffer cbPerFrame : register(b0)
 	float gVoxelSize;
 	float3 gVoxelOffset;
 	float3 gEyePosW;
+	float gTime;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -138,8 +138,6 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 		}
 
 		output.svoPos=world_to_svo(gin[i].posW.xyz,gVoxelSize,gVoxelOffset);
-		//prevent for rasterzation
-		//output.svoPos.y-=0.00001;
 
 		//pos for rasterization
 		output.pos.xyz+=float3(offsetX,offsetY,offsetZ);
@@ -172,7 +170,7 @@ float4 PS(PS_IN pin) : SV_Target
 		setMatCornellBox(pin.ID,mat);
 
 		PointLightBRDF light[LIGHT_NUM];
-		setPointLight(light[0],light[1]);
+		setPointLight(light[0],light[1],gTime);
 
 		float3 V=normalize(gEyePosW - pin.posW.xyz);
 		float3 N=normalize(pin.normW);
@@ -194,7 +192,7 @@ float4 PS(PS_IN pin) : SV_Target
 		gUAVColor[pin.svoPos] = float4(litColor,1.0f);
 
 		//to make it easier to check the result.
-		return float4(1,1,1,1);
+		return float4(0,0,0,1);
 	}
 
 	else return float4(1,1,1, 0);

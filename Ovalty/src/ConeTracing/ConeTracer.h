@@ -31,14 +31,18 @@ private:
 	ID3DX11EffectMatrixVariable* mfxWorldInverTrans;
 	ID3DX11EffectMatrixVariable* mfxWorld;
 	ID3DX11EffectMatrixVariable* mfxProj;
+	ID3DX11EffectVectorVariable* mfxEyePos;
 
 	ID3DX11EffectVariable* mfxPointLight;
 	ID3DX11EffectVariable* mfxMat;
-	ID3DX11EffectVectorVariable* mfxEyePos;
+	
 	ID3DX11EffectShaderResourceVariable* mfxVoxelList;
+
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectScalarVariable* mfxDim;
+
+	ID3DX11EffectScalarVariable* mfxTime;
 
 	//buffer
 	ID3D11InputLayout* mInputLayout;

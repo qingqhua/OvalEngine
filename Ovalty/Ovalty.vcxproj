@@ -163,6 +163,7 @@
     <ClCompile Include="src\3rdParty\DDSTextureLoader.cpp" />
     <ClCompile Include="src\3rdParty\tiny_obj_loader.cc" />
     <ClCompile Include="src\ConeTracing\ConeTracer.cpp" />
+    <ClCompile Include="src\Core\ComputeShader.cpp" />
     <ClCompile Include="src\Core\d3dApp.cpp" />
     <ClCompile Include="src\Core\d3dUtil.cpp" />
     <ClCompile Include="src\Core\dxerr.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="src\3rdParty\DDSTextureLoader.h" />
     <ClInclude Include="src\3rdParty\tiny_obj_loader.h" />
     <ClInclude Include="src\ConeTracing\ConeTracer.h" />
+    <ClInclude Include="src\Core\ComputeShader.h" />
     <ClInclude Include="src\Core\d3dApp.h" />
     <ClInclude Include="src\Core\d3dUtil.h" />
     <ClInclude Include="src\Core\d3dx11effect.h" />

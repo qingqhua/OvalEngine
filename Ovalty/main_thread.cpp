@@ -26,7 +26,7 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	: D3DApp(hInstance),
 	mBoxVB(0), mBoxIB(0),
 	mfxLight(0), mfxMat(0),
-	mfxTextureSRV(0), mDiffuseMapSRV(0), m_bVoxelize(1)
+	mfxTextureSRV(0), mDiffuseMapSRV(0)
 {
 	mMainWndCaption = L"box demo";
 
@@ -73,7 +73,7 @@ void myDirectX11::UpdateScene(float dt)
 
 void myDirectX11::DrawScene()
 {
- 	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::White));
+ 	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
  	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//reset depth/blend state
@@ -89,19 +89,18 @@ void myDirectX11::DrawScene()
 	//set index buffer
 	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
+	//send data to compute shader
+	//compute_shader.Render(mVoxelizer.SRV(), &mCam.View(), &mCam.Proj(), &mWorld, &mWorldInversTrans, mCam.GetPosition(), mTimer.TotalTime());
+
 	//-----------------------
 	//voxelize
 	//---------------------
-  	if (m_bVoxelize)
- 		{
- 			mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
- 			mVoxelizer.Render(mTimer.TotalTime());
-			md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-			mVoxelizer.Clear();
+ 		mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+ 		mVoxelizer.Render(mTimer.TotalTime());
+		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
+		mVoxelizer.Clear();
  		
- 			resetOMTargetsAndViewport();
- 			 //m_bVoxelize = false;
-    	}
+ 		resetOMTargetsAndViewport();
 	//-----------------------
 	//render visualizer
 	//---------------------
@@ -175,10 +174,6 @@ void myDirectX11::resetOMTargetsAndViewport()
 //-------------------
 void myDirectX11::OnMouseUp(WPARAM btnState, int x, int y)
 {
-	if ((btnState & MK_RBUTTON) != 0)
-	{
-		m_bVoxelize = !m_bVoxelize;
-	}
 }
 
 void myDirectX11::OnMouseMove(WPARAM btnState, int x, int y)
@@ -239,6 +234,8 @@ void myDirectX11::Initvoxel(float res)
 
 	mVisualizer.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
 	mConeTracer.Init(md3dDevice, md3dImmediateContext,mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
+
+	//compute_shader.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
 }
 
 

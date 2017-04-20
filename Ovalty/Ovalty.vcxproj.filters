@@ -60,6 +60,9 @@
     <ClCompile Include="src\Core\object.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Core\ComputeShader.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ConeTracing\ConeTracer.h">
@@ -117,6 +120,9 @@
       <Filter>SourceFile</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\object.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\ComputeShader.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

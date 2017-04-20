@@ -40,6 +40,9 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
 
+	//update time
+	mfxTime->SetFloat((float)(totalTime));
+
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -75,6 +78,8 @@ void ConeTracer::BuildFX()
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
+
+	mfxTime = mFX->GetVariableByName("gTime")->AsScalar();
 
 	//set voxel value
 	mfxVoxelSize->SetFloat((float)(mVoxelSize));

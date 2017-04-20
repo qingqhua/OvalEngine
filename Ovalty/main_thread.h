@@ -12,6 +12,7 @@
 #include "Voxelization/Visualizer.h"
 #include "ConeTracing/ConeTracer.h"
 #include "Core/object.h"
+#include "Core//ComputeShader.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -59,14 +60,15 @@ private:
 	bool mVoxelFlag;
 	DirectX::BoundingBox mBoundingBox;
 
-	//flag
-	bool m_bVoxelize;
 	int indexCount;
 
 	//util object
 	Voxelizer mVoxelizer;
 	Visualizer mVisualizer;
 	ConeTracer mConeTracer;
+
+	Compute compute_shader;
+
 	Camera mCam;
-	DirectX::XMFLOAT3 testoffset;
+
 };

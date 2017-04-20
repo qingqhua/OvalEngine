@@ -1,7 +1,8 @@
 #include "common_tools.fx"
 #include "brdf_tools.fx"
+#include "compute.fx"
 
-#define MAX_DIST 10.0f
+#define MAX_DIST 2.0f
 //-----------------------
 //constant buffer
 //---------------------
@@ -13,6 +14,7 @@ cbuffer cbPerFrame : register(b0)
 	float gDim;
 	float3 gVoxelOffset;
 	float gVoxelSize;
+	float gTime;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -58,7 +60,7 @@ float4 ConeTracing(float3 dir,float3 startPos,float cone_ratio)
 
 	float dist = 0;
 
-	while(dist<2)
+	while(dist<MAX_DIST)
 	{
 		float diameter = cone_ratio*dist;
 		float lodLevel = log2(diameter / gVoxelSize);
@@ -210,7 +212,7 @@ float4 PS(VS_OUT pin) : SV_Target
 	setMatCornellBox(pin.ID,mat);
 
 	PointLightBRDF light[LIGHT_NUM];
-	setPointLight(light[0],light[1]);
+	setPointLight(light[0],light[1],gTime);
 
 	for(uint i=0;i<LIGHT_NUM;i++)
 	{
