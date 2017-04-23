@@ -1,480 +1,261 @@
 //-----------------------------------
-//FILE : d3dApp.cpp
+//FILE : camera.cpp
 //-----------------------------------
 
-#include "d3dApp.h"
+#include "camera.h"
 
-namespace
+using namespace DirectX;
+camera::camera()
+:	mPosition(0.0f, 0.0f, 0.0f),
+	mRight(1.0f, 0.0f, 0.0f),
+	mUp(0.0f, 1.0f, 0.0f),
+	mLook(0.0f, 0.0f, 1.0f)
 {
-	// This is just used to forward Windows messages from a global window
-	// procedure to our member function window procedure because we cannot
-	// assign a member function to WNDCLASS::lpfnWndProc.
-	D3DApp* gd3dApp = 0;
+	SetLens(0.25f*XM_PI, 1.0f, 1.0f, 1000.0f);
 }
 
-LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-		return gd3dApp->MsgProc(hwnd, msg, wParam, lParam);
-}
-
-D3DApp::D3DApp(HINSTANCE hInstance)
-:	mhAppInst(hInstance),
-	mMainWndCaption(L"D3D11 Application"),
-	md3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
-	mClientWidth(800),
-	mClientHeight(600),
-	mEnable4xMsaa(false),
-	mhMainWnd(0),
-	mAppPaused(false),
-	mMinimized(false),
-	mMaximized(false),
-	mResizing(false),
-	m4xMsaaQuality(0),
- 
-	md3dDevice(0),
-	md3dImmediateContext(0),
-	mSwapChain(0),
-	mDepthStencilBuffer(0),
-	mRenderTargetView(0),
-	mDepthStencilView(0)
-{
-	ZeroMemory(&mScreenViewport, sizeof(D3D11_VIEWPORT));
-
-	// Get a pointer to the application object so we can forward 
-	// Windows messages to the object's window procedure through
-	// the global window procedure.
-	gd3dApp = this;
-}
-
-D3DApp::D3DApp()
-:	mClientWidth(800),
-	mClientHeight(600)
+camera::~camera()
 {
 
 }
 
-D3DApp::~D3DApp()
+XMVECTOR camera::GetPositionXM()const
 {
-	ReleaseCOM(mRenderTargetView);
-	ReleaseCOM(mDepthStencilView);
-	ReleaseCOM(mSwapChain);
-	ReleaseCOM(mDepthStencilBuffer);
-
-	// Restore all default settings.
-	if (md3dImmediateContext)
-		md3dImmediateContext->ClearState();
-
-	ReleaseCOM(md3dImmediateContext);
-	ReleaseCOM(md3dDevice);
+	return XMLoadFloat3(&mPosition);
 }
 
-HINSTANCE D3DApp::AppInst()const
+XMFLOAT3 camera::GetPosition()const
 {
-	return mhAppInst;
+	return mPosition;
 }
 
-HWND D3DApp::MainWnd()const
+void camera::SetPosition(float x, float y, float z)
 {
-	return mhMainWnd;
+	mPosition = XMFLOAT3(x, y, z);
 }
 
-float D3DApp::AspectRatio()const
+void camera::SetPosition(const XMFLOAT3& v)
 {
-	return static_cast<float>(mClientWidth) / mClientHeight;
+	mPosition = v;
 }
 
-int D3DApp::Run()
+XMVECTOR camera::GetRightXM()const
 {
-	MSG msg = {0};
- 
-	mTimer.Reset();
-
-	while(msg.message != WM_QUIT)
-	{
-		// If there are Window messages then process them.
-		if(PeekMessage( &msg, 0, 0, 0, PM_REMOVE ))
-		{
-            TranslateMessage( &msg );
-            DispatchMessage( &msg );
-		}
-		// Otherwise, do animation/game stuff.
-		else
-		{
-			FrameEvent();
-        }
-    }
-
-	return (int)msg.wParam;
+	return XMLoadFloat3(&mRight);
 }
 
-bool D3DApp::Init()
+XMFLOAT3 camera::GetRight()const
 {
-	if(!InitMainWindow())
-		return false;
-
-	if(!InitDirect3D())
-		return false;
-
-	return true;
-}
- 
-void D3DApp::OnResize()
-{
-	assert(md3dImmediateContext);
-	assert(md3dDevice);
-	assert(mSwapChain);
-
-	// Release the old views, as they hold references to the buffers we
-	// will be destroying.  Also release the old depth/stencil buffer.
-
-	ReleaseCOM(mRenderTargetView);
-	ReleaseCOM(mDepthStencilView);
-	ReleaseCOM(mDepthStencilBuffer);
-
-
-	// Resize the swap chain and recreate the render target view.
-
-	HR(mSwapChain->ResizeBuffers(1, mClientWidth, mClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
-	ID3D11Texture2D* backBuffer;
-	HR(mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer)));
-	HR(md3dDevice->CreateRenderTargetView(backBuffer, 0, &mRenderTargetView));
-	ReleaseCOM(backBuffer);
-
-	// Create the depth/stencil buffer and view.
-
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	
-	depthStencilDesc.Width     = mClientWidth;
-	depthStencilDesc.Height    = mClientHeight;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format    = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-	// Use 4X MSAA? --must match swap chain MSAA values.
-	if( mEnable4xMsaa )
-	{
-		depthStencilDesc.SampleDesc.Count   = 4;
-		depthStencilDesc.SampleDesc.Quality = m4xMsaaQuality-1;
-	}
-	// No MSAA
-	else
-	{
-		depthStencilDesc.SampleDesc.Count   = 1;
-		depthStencilDesc.SampleDesc.Quality = 0;
-	}
-
-	depthStencilDesc.Usage          = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags      = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0; 
-	depthStencilDesc.MiscFlags      = 0;
-
-	HR(md3dDevice->CreateTexture2D(&depthStencilDesc, 0, &mDepthStencilBuffer));
-	HR(md3dDevice->CreateDepthStencilView(mDepthStencilBuffer, 0, &mDepthStencilView));
-
-
-	// Bind the render target view and depth/stencil view to the pipeline.
-
-	md3dImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
-	
-
-	// Set the viewport transform.
-// 	mScreenViewport.TopLeftX = 0;
-// 	mScreenViewport.TopLeftY = 0;
-// 	mScreenViewport.Width    = static_cast<float>(mClientWidth);
-// 	mScreenViewport.Height   = static_cast<float>(mClientHeight);
-// 	mScreenViewport.MinDepth = 0.0f;
-// 	mScreenViewport.MaxDepth = 1.0f;
-// 
-// 	md3dImmediateContext->RSSetViewports(1, &mScreenViewport);
-}
- 
-LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	switch( msg )
-	{
-
-	// WM_SIZE is sent when the user resizes the window.  
-	case WM_SIZE:
-		// Save the new client area dimensions.
-		mClientWidth  = LOWORD(lParam);
-		mClientHeight = HIWORD(lParam);
-		if( md3dDevice )
-		{
-			if( wParam == SIZE_MINIMIZED )
-			{
-				mAppPaused = true;
-				mMinimized = true;
-				mMaximized = false;
-			}
-			else if( wParam == SIZE_MAXIMIZED )
-			{
-				mAppPaused = false;
-				mMinimized = false;
-				mMaximized = true;
-				OnResize();
-			}
-			else if( wParam == SIZE_RESTORED )
-			{
-				
-				// Restoring from minimized state?
-				if( mMinimized )
-				{
-					mAppPaused = false;
-					mMinimized = false;
-					OnResize();
-				}
-
-				// Restoring from maximized state?
-				else if( mMaximized )
-				{
-					mAppPaused = false;
-					mMaximized = false;
-					OnResize();
-				}
-				else if( mResizing )
-				{
-					// If user is dragging the resize bars, we do not resize 
-					// the buffers here because as the user continuously 
-					// drags the resize bars, a stream of WM_SIZE messages are
-					// sent to the window, and it would be pointless (and slow)
-					// to resize for each WM_SIZE message received from dragging
-					// the resize bars.  So instead, we reset after the user is 
-					// done resizing the window and releases the resize bars, which 
-					// sends a WM_EXITSIZEMOVE message.
-				}
-				else // API call such as SetWindowPos or mSwapChain->SetFullscreenState.
-				{
-					OnResize();
-				}
-			}
-		}
-		return 0;
-
-	// WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
-	case WM_ENTERSIZEMOVE:
-		mAppPaused = true;
-		mResizing  = true;
-		mTimer.Stop();
-		return 0;
-
-	// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
-	// Here we reset everything based on the new window dimensions.
-	case WM_EXITSIZEMOVE:
-		mAppPaused = false;
-		mResizing  = false;
-		mTimer.Start();
-		OnResize();
-		return 0;
- 
-	// WM_DESTROY is sent when the window is being destroyed.
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-
-	// The WM_MENUCHAR message is sent when a menu is active and the user presses 
-	// a key that does not correspond to any mnemonic or accelerator key. 
-	case WM_MENUCHAR:
-        // Don't beep when we alt-enter.
-        return MAKELRESULT(0, MNC_CLOSE);
-
-	// Catch this message so to prevent the window from becoming too small.
-	case WM_GETMINMAXINFO:
-		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
-		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200; 
-		return 0;
-
-	case WM_LBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-	case WM_LBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_RBUTTONUP:
-		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-	case WM_MOUSEMOVE:
-		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-	}
-
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return mRight;
 }
 
-
-bool D3DApp::InitMainWindow()
+XMVECTOR camera::GetUpXM()const
 {
-	WNDCLASS wc;
-	wc.style         = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc   = MainWndProc; 
-	wc.cbClsExtra    = 0;
-	wc.cbWndExtra    = 0;
-	wc.hInstance     = mhAppInst;
-	wc.hIcon         = LoadIcon(0, IDI_APPLICATION);
-	wc.hCursor       = LoadCursor(0, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
-	wc.lpszMenuName  = 0;
-	wc.lpszClassName = L"OvalEngine-qingqHua";
-
-	if( !RegisterClass(&wc) )
-	{
-		MessageBox(0, L"RegisterClass Failed.", 0, 0);
-		return false;
-	}
-
-	// Compute window rectangle dimensions based on requested client area dimensions.
-	RECT R = { 0, 0, mClientWidth, mClientHeight };
-    AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
-	int width  = R.right - R.left;
-	int height = R.bottom - R.top;
-
-	mhMainWnd = CreateWindow(L"OvalEngine-qingqHua", mMainWndCaption.c_str(), 
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, mhAppInst, 0); 
-	if( !mhMainWnd )
-	{
-		MessageBox(0, L"CreateWindow Failed.", 0, 0);
-		return false;
-	}
-
-	ShowWindow(mhMainWnd, SW_SHOW);
-	UpdateWindow(mhMainWnd);
-
-	return true;
+	return XMLoadFloat3(&mUp);
 }
 
-void D3DApp::ShutdownWindow()
+XMFLOAT3 camera::GetUp()const
 {
-
+	return mUp;
 }
 
-bool D3DApp::InitDirect3D()
+XMVECTOR camera::GetLookXM()const
 {
-	// Create the device and device context.
-
-	UINT createDeviceFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)  
-    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D_FEATURE_LEVEL featureLevel;
-	HRESULT hr = D3D11CreateDevice(
-			0,                 // default adapter
-			md3dDriverType,
-			0,                 // no software device
-			createDeviceFlags, 
-			0, 0,              // default feature level array
-			D3D11_SDK_VERSION,
-			&md3dDevice,
-			&featureLevel,
-			&md3dImmediateContext);
-
-	if( FAILED(hr) )
-	{
-		MessageBox(0, L"D3D11CreateDevice Failed.", 0, 0);
-		return false;
-	}
-
-	if( featureLevel != D3D_FEATURE_LEVEL_11_0 )
-	{
-		MessageBox(0, L"Direct3D Feature Level 11 unsupported.", 0, 0);
-		return false;
-	}
-
-	// Check 4X MSAA quality support for our back buffer format.
-	// All Direct3D 11 capable devices support 4X MSAA for all render 
-	// target formats, so we only need to check quality support.
-
-	HR(md3dDevice->CheckMultisampleQualityLevels(
-		DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality));
-	assert( m4xMsaaQuality > 0 );
-
-	// Fill out a DXGI_SWAP_CHAIN_DESC to describe our swap chain.
-
-	DXGI_SWAP_CHAIN_DESC sd;
-	sd.BufferDesc.Width  = mClientWidth;
-	sd.BufferDesc.Height = mClientHeight;
-	sd.BufferDesc.RefreshRate.Numerator = 60;
-	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	// Use 4X MSAA? 
-	if( mEnable4xMsaa )
-	{
-		sd.SampleDesc.Count   = 4;
-		sd.SampleDesc.Quality = m4xMsaaQuality-1;
-	}
-	// No MSAA
-	else
-	{
-		sd.SampleDesc.Count   = 1;
-		sd.SampleDesc.Quality = 0;
-	}
-
-	sd.BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.BufferCount  = 1;
-	sd.OutputWindow = mhMainWnd;
-	sd.Windowed     = true;
-	sd.SwapEffect   = DXGI_SWAP_EFFECT_DISCARD;
-	sd.Flags        = 0;
-
-	// To correctly create the swap chain, we must use the IDXGIFactory that was
-	// used to create the device.  If we tried to use a different IDXGIFactory instance
-	// (by calling CreateDXGIFactory), we get an error: "IDXGIFactory::CreateSwapChain: 
-	// This function is being called with a device from a different IDXGIFactory."
-
-	IDXGIDevice* dxgiDevice = 0;
-	HR(md3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
-	      
-	IDXGIAdapter* dxgiAdapter = 0;
-	HR(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
-
-	IDXGIFactory* dxgiFactory = 0;
-	HR(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory));
-
-	HR(dxgiFactory->CreateSwapChain(md3dDevice, &sd, &mSwapChain));
-	
-	ReleaseCOM(dxgiDevice);
-	ReleaseCOM(dxgiAdapter);
-	ReleaseCOM(dxgiFactory);
-
-	// The remaining steps that need to be carried out for d3d creation
-	// also need to be executed every time the window is resized.  So
-	// just call the OnResize method here to avoid code duplication.
-	
-	OnResize();
-
-	return true;
+	return XMLoadFloat3(&mLook);
 }
 
-void D3DApp::CalculateFrameStats()
+XMFLOAT3 camera::GetLook()const
 {
-	// Code computes the average frames per second, and also the 
-	// average time it takes to render one frame.  These stats 
-	// are appended to the window caption bar.
+	return mLook;
+}
 
-	static int frameCnt = 0;
-	static float timeElapsed = 0.0f;
+float camera::GetNearZ()const
+{
+	return mNearZ;
+}
 
-	frameCnt++;
+float camera::GetFarZ()const
+{
+	return mFarZ;
+}
 
-	// Compute averages over one second period.
-	if( (mTimer.TotalTime() - timeElapsed) >= 1.0f )
-	{
-		float fps = (float)frameCnt; // fps = frameCnt / 1
-		float mspf = 1000.0f / fps;
-		std::wostringstream outs;   
-		outs.precision(6);
-		outs << mMainWndCaption << L"    "
-			 << L"FPS: " << fps << L"    " 
-			 << L"Frame Time: " << mspf << L" (ms)";
-		SetWindowText(mhMainWnd, outs.str().c_str());
-		
-		// Reset for next average.
-		frameCnt = 0;
-		timeElapsed += 1.0f;
-	}
+float camera::GetAspect()const
+{
+	return mAspect;
+}
+
+float camera::GetFovY()const
+{
+	return mFovY;
+}
+
+float camera::GetFovX()const
+{
+	float halfWidth = 0.5f*GetNearWindowWidth();
+	return 2.0f*atan(halfWidth / mNearZ);
+}
+
+float camera::GetNearWindowWidth()const
+{
+	return mAspect * mNearWindowHeight;
+}
+
+float camera::GetNearWindowHeight()const
+{
+	return mNearWindowHeight;
+}
+
+float camera::GetFarWindowWidth()const
+{
+	return mAspect * mFarWindowHeight;
+}
+
+float camera::GetFarWindowHeight()const
+{
+	return mFarWindowHeight;
+}
+
+void camera::SetLens(float fovY, float aspect, float zn, float zf)
+{
+	// cache properties
+	mFovY = fovY;
+	mAspect = aspect;
+	mNearZ = zn;
+	mFarZ = zf;
+
+	mNearWindowHeight = 2.0f * mNearZ * tanf(0.5f*mFovY);
+	mFarWindowHeight = 2.0f * mFarZ * tanf(0.5f*mFovY);
+
+	XMMATRIX P = XMMatrixPerspectiveFovLH(mFovY, mAspect, mNearZ, mFarZ);
+	XMStoreFloat4x4(&mProj, P);
+}
+
+void camera::LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp)
+{
+	XMVECTOR L = XMVector3Normalize(XMVectorSubtract(target, pos));
+	XMVECTOR R = XMVector3Normalize(XMVector3Cross(worldUp, L));
+	XMVECTOR U = XMVector3Cross(L, R);
+
+	XMStoreFloat3(&mPosition, pos);
+	XMStoreFloat3(&mLook, L);
+	XMStoreFloat3(&mRight, R);
+	XMStoreFloat3(&mUp, U);
+}
+
+void camera::LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up)
+{
+	XMVECTOR P = XMLoadFloat3(&pos);
+	XMVECTOR T = XMLoadFloat3(&target);
+	XMVECTOR U = XMLoadFloat3(&up);
+
+	LookAt(P, T, U);
+}
+
+DirectX::XMMATRIX camera::World() const
+{
+	return XMMatrixIdentity();
+}
+
+XMMATRIX camera::View()const
+{
+	return XMLoadFloat4x4(&mView);
+}
+
+XMMATRIX camera::Proj()const
+{
+	return XMLoadFloat4x4(&mProj);
+}
+
+void camera::Strafe(float d)
+{
+	// mPosition += d*mRight
+	XMVECTOR s = XMVectorReplicate(d);
+	XMVECTOR r = XMLoadFloat3(&mRight);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, r, p));
+}
+
+void camera::Walk(float d)
+{
+	// mPosition += d*mLook
+	XMVECTOR s = XMVectorReplicate(d);
+	XMVECTOR l = XMLoadFloat3(&mLook);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, l, p));
+}
+
+void camera::FlyVertical(float d)
+{
+	// mPosition += d*mUp
+	XMVECTOR s = XMVectorReplicate(d);
+	XMVECTOR u = XMLoadFloat3(&mUp);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, u, p));
+}
+
+void camera::Pitch(float angle)
+{
+	// Rotate up and look vector about the right vector.
+
+	XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&mRight), angle);
+
+	XMStoreFloat3(&mUp, XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
+	XMStoreFloat3(&mLook, XMVector3TransformNormal(XMLoadFloat3(&mLook), R));
+}
+
+void camera::RotateY(float angle)
+{
+	// Rotate the basis vectors about the world y-axis.
+
+	XMMATRIX R = XMMatrixRotationY(angle);
+
+	XMStoreFloat3(&mRight, XMVector3TransformNormal(XMLoadFloat3(&mRight), R));
+	XMStoreFloat3(&mUp, XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
+	XMStoreFloat3(&mLook, XMVector3TransformNormal(XMLoadFloat3(&mLook), R));
+}
+
+void camera::UpdateViewMatrix()
+{
+	XMVECTOR R = XMLoadFloat3(&mRight);
+	XMVECTOR U = XMLoadFloat3(&mUp);
+	XMVECTOR L = XMLoadFloat3(&mLook);
+	XMVECTOR P = XMLoadFloat3(&mPosition);
+
+	// Keep camera's axes orthogonal to each other and of unit length.
+	L = XMVector3Normalize(L);
+	U = XMVector3Normalize(XMVector3Cross(L, R));
+
+	// U, L already ortho-normal, so no need to normalize cross product.
+	R = XMVector3Cross(U, L);
+
+	// Fill in the view matrix entries.
+	float x = -XMVectorGetX(XMVector3Dot(P, R));
+	float y = -XMVectorGetX(XMVector3Dot(P, U));
+	float z = -XMVectorGetX(XMVector3Dot(P, L));
+
+	XMStoreFloat3(&mRight, R);
+	XMStoreFloat3(&mUp, U);
+	XMStoreFloat3(&mLook, L);
+
+	mView(0, 0) = mRight.x;
+	mView(1, 0) = mRight.y;
+	mView(2, 0) = mRight.z;
+	mView(3, 0) = x;
+
+	mView(0, 1) = mUp.x;
+	mView(1, 1) = mUp.y;
+	mView(2, 1) = mUp.z;
+	mView(3, 1) = y;
+
+	mView(0, 2) = mLook.x;
+	mView(1, 2) = mLook.y;
+	mView(2, 2) = mLook.z;
+	mView(3, 2) = z;
+
+	mView(0, 3) = 0.0f;
+	mView(1, 3) = 0.0f;
+	mView(2, 3) = 0.0f;
+	mView(3, 3) = 1.0f;
 }
 
 
