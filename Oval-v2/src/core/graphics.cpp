@@ -6,7 +6,8 @@
 
 Graphics::Graphics()
 	: m_D3DApp(0),
-	  m_cam(0)
+	  m_model(0),
+	  m_voxelization(0)
 {
 }
 
@@ -18,19 +19,17 @@ Graphics::~Graphics()
 bool Graphics::Init(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
-	bool VSYNC_ENABLED = true;
 
 	//---
 	//Create the Direct3D object.
 	//---
-	m_D3DApp = new D3DApp;
+	m_D3DApp = new D3DApp();
 	if (!m_D3DApp)
 	{
 		return false;
 	}
 
-	// Init Direct3D object.
-	result = m_D3DApp->Init(screenWidth, screenHeight, VSYNC_ENABLED, hwnd);
+	result = m_D3DApp->Init(screenWidth, screenHeight, hwnd);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D.", L"Error", MB_OK);
@@ -38,31 +37,39 @@ bool Graphics::Init(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	//---
-	//Create the camera object.
+	//Create the model object.
 	//---
-	m_cam = new camera;
+	m_model = new model();
 
-	// set init position of camera
-	m_cam->SetPosition(0.0f, 0.0f, -5.0f);
+	m_model->Init(m_D3DApp->GetDevice(), "data/CornellBox.obj", "data/");
 
-	if (!m_cam)
+	if (!m_model)
 	{
-		MessageBox(hwnd, L"Could not initialize Camera.", L"Error", MB_OK);
+		MessageBox(hwnd, L"Could not load model.", L"Error", MB_OK);
 		return false;
 	}
 
+	//---
+	//Create the voxelization shader object.
+	//---
+	m_voxelization = new VoxelizationShader();
 
+	m_voxelization->Init(m_D3DApp->GetDevice(), hwnd,L"shader/voxelization.vs.hlsl", L"shader/voxelization.ps.hlsl", L"shader/voxelization.gs.hlsl");
+
+	if (!m_voxelization)
+	{
+		MessageBox(hwnd, L"Could not load voxelization shader.", L"Error", MB_OK);
+		return false;
+	}
 
 	return true;
 }
 
-bool Graphics::Update()
+bool Graphics::Update(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj)
 {
 	bool result;
 
-
-	// Render the graphics scene.
-	result = Render();
+	result = Render(world, view, proj);
 	if (!result)
 	{
 		return false;
@@ -71,13 +78,21 @@ bool Graphics::Update()
 	return true;
 }
 
+
 void Graphics::Shutdown()
 {
-	// Release the camera object.
-	if (m_cam)
+	// Release the voxeliaztion shader object.
+	if (m_voxelization)
 	{
-		delete m_cam;
-		m_cam = 0;
+		delete m_voxelization;
+		m_voxelization = 0;
+	}
+
+	// Release the model object.
+	if (m_model)
+	{
+		delete m_model;
+		m_model = 0;
 	}
 
 	// Release the D3D object.
@@ -90,17 +105,21 @@ void Graphics::Shutdown()
 
 }
 
-bool Graphics::Render()
+bool Graphics::Render(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj)
 {
-	DirectX::XMMATRIX worldMatrix, viewMatrix, projectionMatrix, translateMatrix;
 
-	// Clear the buffers to begin the scene.
-	m_D3DApp->ClearBuffer(1.0f, 0.0f, 0.0f, 1.0f);
+	//clear the buffers to begin the scene.
+	m_D3DApp->ClearBuffer(0.0f, 1.0f, 1.0f, 1.0f);
 
-	m_cam->UpdateViewMatrix();
+	//update model
+	m_model->Render(m_D3DApp->GetDeviceContext());
 
-	// Present back buffer to the screen.
+	//update shaderApp
+	m_voxelization->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj,NULL);
+
+	//present back buffer to the screen.
 	m_D3DApp->PresentBuffer();
 
 	return true;
 }
+

@@ -21,18 +21,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
 	// Initialize and run the system object.
 	result = mySystem->Init();
-	if (result)
+	while (result)
 	{
-		mySystem->Run();
+		result = mySystem->Run();
 	}
 
-	// Shutdown and release the system object.
-	if (!mySystem->Run())
-	{
-		mySystem->Shutdown();
-		delete mySystem;
-		mySystem = 0;
-	}
+	//if (!result)
+	//{
+	//	result = mySystem->Shutdown();
+	//	delete mySystem;
+	//	mySystem = 0;
+	//}
 
 	return 0;
 }

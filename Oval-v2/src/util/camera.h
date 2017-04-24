@@ -1,7 +1,7 @@
 //-----------------------------------
 //FILE			: camera.h
 //DESCRIPTION	: CAMERA class
-//PARENT		: graphics class 
+//PARENT		: systemInst class 
 //NODE			: EMPTY
 //REFERENCE		: d3dcoder.net
 //-----------------------------------
@@ -22,9 +22,12 @@ public:
 	DirectX::XMVECTOR GetPositionXM()const;
 	DirectX::XMFLOAT3 GetPosition()const;
 
+	void Init(float width, float height);
 	// Set world position of camera.
 	void SetPosition(float x, float y, float z);
 	void SetPosition(const DirectX::XMFLOAT3& v);
+
+	bool Update();
 
 	// Get camera basis vectors.
 	DirectX::XMVECTOR GetRightXM()const;
@@ -55,11 +58,11 @@ public:
 	void LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
 
 	// Get World matrices.
-	DirectX::XMMATRIX World()const;
+	DirectX::XMMATRIX GetWorld() const;
 	// Get View matrices.
-	DirectX::XMMATRIX View()const;
+	DirectX::XMMATRIX GetView()const;
 	// Get Projection matrices.
-	DirectX::XMMATRIX Proj()const;
+	DirectX::XMMATRIX GetProj()const;
 	
 
 	// Strafe/Walk the camera a distance d.
@@ -72,9 +75,10 @@ public:
 	void RotateY(float angle);
 
 	// After modifying camera position/orientation, call to rebuild the view matrix.
-	void UpdateViewMatrix();
 
 private:
+
+	void UpdateViewMatrix();
 
 	// camera coordinate system with coordinates relative to world space.
 	DirectX::XMFLOAT3 mPosition;

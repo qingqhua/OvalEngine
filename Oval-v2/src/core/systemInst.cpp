@@ -19,8 +19,12 @@ System::System()
 	m_hMainWnd(0),
 	m_MainWndCaption(L"OVAL-ENGINE"),
 	m_ClientWidth(800),
-	m_ClientHeight(600)
+	m_ClientHeight(600),
+	m_input(0),
+	m_cam(0),
+	m_Graphics(0)
 {
+	gSystem = this;
 }
 
 System::~System()
@@ -30,10 +34,36 @@ System::~System()
 bool System::Init()
 {
 	//init window
-	if (!InitMainWindow())
-		return false;
+	InitMainWindow();
+		
 
-	//create graphics object
+	//---
+	//Create the Input object.
+	//---
+	m_input = new Input();
+	if (!m_input)
+	{
+		return false;
+	}
+
+	m_input->Init(m_hAppInst, m_hMainWnd, m_ClientWidth, m_ClientHeight);
+
+	//---
+	//Create the camera object.
+	//---
+	m_cam = new camera();
+
+	// init position of camera
+	m_cam->Init(m_ClientWidth, m_ClientHeight);
+
+	if (!m_cam)
+	{
+		return false;
+	}
+
+	//---
+	//Create graphics object.
+	//---
 	m_Graphics = new Graphics;
 	if (!m_Graphics)
 	{
@@ -86,6 +116,21 @@ bool System::Shutdown()
 		m_Graphics = 0;
 	}
 
+	// Release the camera object.
+	if (m_cam)
+	{
+		delete m_cam;
+		m_cam = 0;
+	}
+
+	// Release the graphics object.
+	if (m_input)
+	{
+		m_input->Shutdown();
+		delete m_input;
+		m_input = 0;
+	}
+
 	// Release windows every time.
 	return ShutdownWindow();
 }
@@ -95,54 +140,47 @@ LRESULT System::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 
-		// WM_SIZE is sent when the user resizes the window.  
-	case WM_SIZE:
-
-		// WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
-	case WM_ENTERSIZEMOVE:
-
-		// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
-		// Here we reset everything based on the new window dimensions.
-	case WM_EXITSIZEMOVE:
-
-		// WM_DESTROY is sent when the window is being destroyed.
+		// Check if the window is being destroyed.
 	case WM_DESTROY:
+	{
 		PostQuitMessage(0);
-		return 0;
-
-	case WM_CLOSE:
-		PostQuitMessage(0);
-		return 0;
-
-	case WM_MOUSEMOVE:
-	case WM_LBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-
-	case WM_LBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_RBUTTONUP:
 		return 0;
 	}
 
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	// Check if the window is being closed.
+	case WM_CLOSE:
+	{
+		PostQuitMessage(0);
+		return 0;
+	}
+
+	// All other messages pass to the message handler in the system class.
+	default:
+	{
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+	}
 }
 
 bool System::InitMainWindow()
 {
-	WNDCLASS wc;
+	m_hAppInst = GetModuleHandle(NULL);
+
+	WNDCLASSEX wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = MainWndProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = m_hAppInst;
 	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hIconSm = wc.hIcon;
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
 	wc.lpszMenuName = 0;
 	wc.lpszClassName = L"OvalEngine-qingqHua";
+	wc.cbSize = sizeof(WNDCLASSEX);
 
-	if (!RegisterClass(&wc))
+	if (!RegisterClassEx(&wc))
 	{
 		MessageBox(0, L"RegisterClass Failed.", 0, 0);
 		return false;
@@ -153,8 +191,10 @@ bool System::InitMainWindow()
 	int width = R.right - R.left;
 	int height = R.bottom - R.top;
 
-	m_hMainWnd = CreateWindow(L"OvalEngine-qingqHua", m_MainWndCaption,
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, m_hAppInst, 0);
+	m_hMainWnd = CreateWindowEx(WS_EX_APPWINDOW, L"OvalEngine-qingqHua", L"OvalEngine-qingqHua",
+		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		width / 2, height / 2, width, height, NULL, NULL, m_hAppInst, NULL);
+
 	if (!m_hMainWnd)
 	{
 		MessageBox(0, L"CreateWindow Failed.", 0, 0);
@@ -162,7 +202,7 @@ bool System::InitMainWindow()
 	}
 
 	ShowWindow(m_hMainWnd, SW_SHOW);
-	UpdateWindow(m_hMainWnd);
+	SetForegroundWindow(m_hMainWnd);
 
 	ShowCursor(true);
 
@@ -186,7 +226,29 @@ bool System::Update()
 {
 	bool result;
 
-	result = m_Graphics->Update();
+	//update input, read keyboard, mouse
+	result = m_input->Update();
+	if (!result)
+	{
+		return false;
+	}
+
+	//handle input event
+	result = InputEvent(0.5, 0.001);
+	if (!result)
+	{
+		return false;
+	}
+
+	//update camera
+	result = m_cam->Update();
+	if (!result)
+	{
+		return false;
+	}
+
+	//update graphics
+	result = m_Graphics->Update(&m_cam->GetWorld(),&m_cam->GetView(),&m_cam->GetProj());
 	if (!result)
 	{
 		return false;
@@ -195,8 +257,26 @@ bool System::Update()
 	return true;
 }
 
-bool System::InputEvent(float dt)
+bool System::InputEvent(float speed,float dt)
 {
+	if(m_input->IsLeftPressed())
+		m_cam->Strafe(speed*dt);
+
+	if(m_input->IsRightPressed())
+		m_cam->Strafe(-speed*dt);
+
+	if(m_input->IsForwardPressed())
+		m_cam->Walk(speed*dt);
+
+	if(m_input->IsBackPressed())
+		m_cam->Walk(-speed*dt);
+
+	if(m_input->IsUpPressed())
+		m_cam->FlyVertical(speed*dt);
+
+	if(m_input->IsDownPressed())
+		m_cam->FlyVertical(-speed*dt);
+
 	return true;
 }
 

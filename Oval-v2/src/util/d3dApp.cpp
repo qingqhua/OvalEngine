@@ -6,6 +6,7 @@
 
 D3DApp::D3DApp()
 :	m_device(0),
+	m_swapChain(0),
 	m_deviceContext(0),
 	m_renderTargetView(0),
 	m_depthStencilBuffer(0),
@@ -19,7 +20,7 @@ D3DApp::~D3DApp()
 {
 }
 
-bool D3DApp::Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd )
+bool D3DApp::Init(int screenWidth, int screenHeight, HWND hwnd )
 {
 	HRESULT result;
 
@@ -45,9 +46,6 @@ bool D3DApp::Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd )
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 
 	D3D11_RASTERIZER_DESC rasterDesc;
-
-	// Store the vsync setting.
-	m_vsync_enabled = vsync;
 
 	// ---
 	// Create a DirectX graphics interface factory.
@@ -156,16 +154,8 @@ bool D3DApp::Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd )
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	// Set the refresh rate of the back buffer.
-	if (m_vsync_enabled)
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = num_erator;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = denom_inator;
-	}
-	else
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	}
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 
 	// Set the usage of the back buffer.
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -297,7 +287,7 @@ bool D3DApp::Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd )
 
 	// Setup the raster description which will determ_ine how and what polygons will be drawn.
 	rasterDesc.AntialiasedLineEnable = false;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.DepthClipEnable = true;
@@ -412,27 +402,17 @@ void D3DApp::ClearBuffer(float r, float g, float b, float a)
 
 void D3DApp::PresentBuffer()
 {
-	// Present the back buffer to the screen since rendering is complete.
-	if (m_vsync_enabled)
-	{
-		// Lock to screen refresh rate.
-		m_swapChain->Present(1, 0);
-	}
-	else
-	{
-		// Present as fast as possible.
-		m_swapChain->Present(0, 0);
-	}
+	m_swapChain->Present(0, 0);
 
 	return;
 }
 
-ID3D11Device * D3DApp::Device()
+ID3D11Device * D3DApp::GetDevice()
 {
 	return m_device;
 }
 
-ID3D11DeviceContext * D3DApp::DeviceContext()
+ID3D11DeviceContext * D3DApp::GetDeviceContext()
 {
 	return m_deviceContext;
 }

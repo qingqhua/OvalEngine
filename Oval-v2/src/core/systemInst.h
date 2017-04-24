@@ -10,6 +10,8 @@
 
 #include <windows.h>
 
+#include "input.h"
+#include "camera.h"
 #include "graphics.h"
 
 class System
@@ -28,7 +30,7 @@ private:
 	bool InitMainWindow();    
 	bool ShutdownWindow();
 	bool Update();
-	bool InputEvent(float dt);
+	bool InputEvent(float speed, float dt);
 
 private:
 	HINSTANCE m_hAppInst;
@@ -37,6 +39,8 @@ private:
 	long	  m_ClientWidth;
 	long      m_ClientHeight;
 
+	Input *m_input;
+	camera *m_cam;
 	Graphics *m_Graphics;
 };
 

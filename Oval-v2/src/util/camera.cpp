@@ -6,12 +6,8 @@
 
 using namespace DirectX;
 camera::camera()
-:	mPosition(0.0f, 0.0f, 0.0f),
-	mRight(1.0f, 0.0f, 0.0f),
-	mUp(0.0f, 1.0f, 0.0f),
-	mLook(0.0f, 0.0f, 1.0f)
 {
-	SetLens(0.25f*XM_PI, 1.0f, 1.0f, 1000.0f);
+	
 }
 
 camera::~camera()
@@ -29,6 +25,16 @@ XMFLOAT3 camera::GetPosition()const
 	return mPosition;
 }
 
+void camera::Init(float width,float height)
+{
+	mPosition = XMFLOAT3(0.0f, 0.0f, -5.0f);
+	mRight = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	mUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	mLook = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+	SetLens(0.25f*XM_PI, width/height , 1.0f, 1000.0f);
+}
+
 void camera::SetPosition(float x, float y, float z)
 {
 	mPosition = XMFLOAT3(x, y, z);
@@ -37,6 +43,13 @@ void camera::SetPosition(float x, float y, float z)
 void camera::SetPosition(const XMFLOAT3& v)
 {
 	mPosition = v;
+}
+
+bool camera::Update()
+{
+	UpdateViewMatrix();
+
+	return true;
 }
 
 XMVECTOR camera::GetRightXM()const
@@ -92,7 +105,7 @@ float camera::GetFovY()const
 float camera::GetFovX()const
 {
 	float halfWidth = 0.5f*GetNearWindowWidth();
-	return 2.0f*atan(halfWidth / mNearZ);
+	return (float)2.0f*atan(halfWidth / mNearZ);
 }
 
 float camera::GetNearWindowWidth()const
@@ -151,19 +164,19 @@ void camera::LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3&
 	LookAt(P, T, U);
 }
 
-DirectX::XMMATRIX camera::World() const
-{
-	return XMMatrixIdentity();
+DirectX::XMMATRIX camera::GetWorld() const
+ {
+	return XMMatrixTranspose(XMMatrixIdentity());
 }
 
-XMMATRIX camera::View()const
+XMMATRIX camera::GetView()const
 {
-	return XMLoadFloat4x4(&mView);
+	return XMMatrixTranspose(XMLoadFloat4x4(&mView));
 }
 
-XMMATRIX camera::Proj()const
+XMMATRIX camera::GetProj()const
 {
-	return XMLoadFloat4x4(&mProj);
+	return XMMatrixTranspose(XMLoadFloat4x4(&mProj));
 }
 
 void camera::Strafe(float d)
@@ -216,6 +229,7 @@ void camera::RotateY(float angle)
 
 void camera::UpdateViewMatrix()
 {
+
 	XMVECTOR R = XMLoadFloat3(&mRight);
 	XMVECTOR U = XMLoadFloat3(&mUp);
 	XMVECTOR L = XMLoadFloat3(&mLook);

@@ -19,15 +19,15 @@ class model
 public:
 	model();
 	~model();
-	bool Init(ID3D11Device* device, ID3D11DeviceContext* context, const char* filename,const char* basepath);
+	bool Init(ID3D11Device* device, const char* filename, const char* basepath);
 	void Shutdown();
 	void Render(ID3D11DeviceContext* context);
 
 	int GetIndexCount();
-	virtual ID3D11ShaderResourceView* GetTexture();
+	//ID3D11ShaderResourceView* GetTexture();
 
 private:
-	bool InitBuffer(ID3D11Device* device);
+	bool InitBuffer(ID3D11Device* device, const char* filename, const char* basepath);
 	void ShutdownBuffer();
 	void RenderBuffer(ID3D11DeviceContext* context);
 
@@ -37,8 +37,6 @@ private:
 private:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	int m_vertexCount, m_indexCount;
-	char m_modelname;
-	char m_basepath;
 
 private:
 	struct Vertex

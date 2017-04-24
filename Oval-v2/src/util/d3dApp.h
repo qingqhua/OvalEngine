@@ -20,7 +20,7 @@ public:
 	D3DApp();
 	~D3DApp();
 
-	bool Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd);
+	bool Init(int screenWidth, int screenHeight, HWND hwnd);
 	void Shutdown();
 
 	// beginning of each frame
@@ -30,8 +30,8 @@ public:
 	void PresentBuffer();
 
 	// get device
-	ID3D11Device *Device();
-	ID3D11DeviceContext *DeviceContext();
+	ID3D11Device *GetDevice();
+	ID3D11DeviceContext *GetDeviceContext();
 
 	// returns name of the video card and the amount of video memory
 	void GetVideoCardInfo(char *cardname, int &memory);
@@ -40,7 +40,6 @@ public:
 	void ResetViewport(float width, float height);
 
 private:
-	bool m_vsync_enabled;
 	int m_videoCardMemory;
 	char m_videoCardDescription[128];
 
