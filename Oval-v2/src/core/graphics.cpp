@@ -20,6 +20,9 @@ bool Graphics::Init(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 
+	m_screenwidth = screenWidth;
+	m_screenheight = screenHeight;
+
 	//---
 	//Create the Direct3D object.
 	//---
@@ -54,7 +57,7 @@ bool Graphics::Init(int screenWidth, int screenHeight, HWND hwnd)
 	//---
 	m_voxelization = new VoxelizationShader();
 
-	m_voxelization->Init(m_D3DApp->GetDevice(), hwnd,L"shader/voxelization.vs.hlsl", L"shader/voxelization.ps.hlsl", L"shader/voxelization.gs.hlsl");
+	m_voxelization->Init(m_D3DApp->GetDevice(), L"shader/voxelization.fx", 256.0f, &m_model->GetAABB());
 
 	if (!m_voxelization)
 	{
@@ -62,14 +65,27 @@ bool Graphics::Init(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	//---
+	//Create the cone tracing shader object.
+	//---
+	m_tracing = new TracingShader();
+
+	m_tracing->Init(m_D3DApp->GetDevice(), L"shader/tracing.fx", 256.0f, &m_model->GetAABB());
+
+	if (!m_tracing)
+	{
+		MessageBox(hwnd, L"Could not load cone tracing shader.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
-bool Graphics::Update(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj)
+bool Graphics::Update(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj,float time,DirectX::XMFLOAT3 eyeposw)
 {
 	bool result;
 
-	result = Render(world, view, proj);
+	result = Render(world, view, proj,time, eyeposw);
 	if (!result)
 	{
 		return false;
@@ -105,7 +121,8 @@ void Graphics::Shutdown()
 
 }
 
-bool Graphics::Render(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj)
+bool Graphics::Render(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj,
+						float time,DirectX::XMFLOAT3 eyeposw)
 {
 
 	//clear the buffers to begin the scene.
@@ -114,8 +131,13 @@ bool Graphics::Render(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *v
 	//update model
 	m_model->Render(m_D3DApp->GetDeviceContext());
 
+
+	//---
 	//update shaderApp
-	m_voxelization->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj,NULL);
+	//---
+	m_voxelization->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj,time,eyeposw);
+
+	m_tracing->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj, time, eyeposw, m_voxelization->GetSRV());
 
 	//present back buffer to the screen.
 	m_D3DApp->PresentBuffer();

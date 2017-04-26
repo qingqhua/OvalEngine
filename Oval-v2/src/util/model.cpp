@@ -8,8 +8,8 @@ using namespace DirectX;
 
 model::model()
 	: m_vertexBuffer(0),
-	  m_indexBuffer(0)
-	  //m_Texture(0)
+	  m_indexBuffer(0),
+	  m_texture(0)
 { 
 }
 
@@ -30,18 +30,12 @@ bool model::Init(ID3D11Device* device, const char* filename, const char* basepat
 
 void model::Shutdown()
 {
-	ReleaseTexture();
 	ShutdownBuffer();
 }
 
 void model::Render(ID3D11DeviceContext* context)
 {
 	RenderBuffer(context);
-}
-
-int model::GetIndexCount()
-{
-	return m_indexCount;
 }
 
 bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* basepath)
@@ -60,7 +54,6 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
  			return false;
  		}
  	
- 		Vertex* vertices;
  		unsigned long* indices;
  	
  		std::vector<int> v_index_temp;
@@ -86,10 +79,10 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
  	
  		}
  	
- 		vertices = new Vertex[v_index_temp.size()];
+ 		m_vertices = new Vertex[v_index_temp.size()];
  		m_vertexCount = v_index_temp.size();
  	
- 		if (!vertices)
+ 		if (!m_vertices)
  		{
  			return false;
  		}
@@ -111,9 +104,9 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
  			int n_id = n_index_temp[i];
  			int t_id = t_index_temp[i];
  	
- 			vertices[i].position = XMFLOAT3(attrib.vertices[3 * v_id], attrib.vertices[3 * v_id + 1], attrib.vertices[3 * v_id + 2]);
- 			vertices[i].normal=	XMFLOAT3(attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2]);
- 			vertices[i].texture=XMFLOAT2(attrib.texcoords[2 * t_id], attrib.texcoords[2 * t_id + 1]);
+ 			m_vertices[i].position = XMFLOAT3(attrib.vertices[3 * v_id], attrib.vertices[3 * v_id + 1], attrib.vertices[3 * v_id + 2]);
+ 			m_vertices[i].normal=	XMFLOAT3(attrib.normals[3 * n_id], attrib.normals[3 * n_id + 1], attrib.normals[3 * n_id + 2]);
+ 			m_vertices[i].texture=XMFLOAT2(attrib.texcoords[2 * t_id], attrib.texcoords[2 * t_id + 1]);
  	
  			indices[i] = i;
  		}
@@ -133,7 +126,7 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = m_vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -165,8 +158,6 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
 	}
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete[] vertices;
-	vertices = 0;
 
 	delete[] indices;
 	indices = 0;
@@ -176,6 +167,19 @@ bool model::InitBuffer(ID3D11Device* device, const char* filename, const char* b
 
 void model::ShutdownBuffer()
 {
+	if (m_vertices)
+	{
+		delete[] m_vertices;
+		m_vertices = 0;
+	}
+
+	// Release the texture resource.
+	if (m_texture)
+	{
+		m_texture->Release();
+		m_texture = 0;
+	}
+
 	// Release the index buffer.
 	if (m_indexBuffer)
 	{
@@ -213,7 +217,35 @@ bool model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* context, char
 	return true;
 }
 
-void model::ReleaseTexture()
-{
 
+int model::GetIndexCount()
+{
+	return m_indexCount;
+}
+
+DirectX::BoundingBox model::GetAABB()
+{
+	//infinity
+	XMVECTOR min = XMVectorReplicate(+FLT_MAX);
+	XMVECTOR max = XMVectorReplicate(-FLT_MAX);
+
+	for (size_t i = 0; i < m_vertexCount; ++i)
+	{
+		XMVECTOR pos = XMLoadFloat3(&m_vertices[i].position);
+		min = XMVectorMin(min, pos);
+		max = XMVectorMax(max, pos);
+	}
+
+	BoundingBox m_bound;
+	XMVECTOR center = 0.5*(min + max);
+	XMVECTOR extent = 0.5*(max - min);
+
+	XMStoreFloat3(&m_bound.Center, center);
+	XMStoreFloat3(&m_bound.Extents, extent);
+	return m_bound;
+}
+
+ID3D11ShaderResourceView* model::GetTexture()
+{
+	return m_texture;
 }

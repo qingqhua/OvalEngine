@@ -5,6 +5,7 @@
 #include "voxelization_shader.h"
 
 VoxelizationShader::VoxelizationShader()
+	:	m_dimension(256.0f)
 {
 
 }
@@ -14,37 +15,46 @@ VoxelizationShader::~VoxelizationShader()
 
 }
 
-bool VoxelizationShader::Init(ID3D11Device* device, HWND hwnd, WCHAR *vs, WCHAR *ps, WCHAR *gs)
+bool VoxelizationShader::Init(ID3D11Device* device, LPCWSTR filename,float dimension, const DirectX::BoundingBox* AABB)
 {
-	bool result;
+	m_dimension = dimension;
 
-	result = m_shader_tools.Compile(device, hwnd, vs, ps, gs);
-	result = m_shader_tools.SetConstantBuffer(device);
-	result = m_shader_tools.SetSampler(device);
+	//compile shader
+	m_effect.Init(device, filename);
+	//create per vertex input layout
+	m_effect.CreateInputLayout(device);
 
-	if (!result)
-	{
-		return false;
-	}
+	//update constant buffer
+	m_effect.SetMatrixParamter();
+	m_effect.SetCommonParamter();
+	m_effect.SetUpdateVoxelParameter(m_dimension, AABB);
+	m_effect.SetTex3dUAV(device, m_dimension);
 
 	return true;
 }
 
 void VoxelizationShader::Shutdown()
 {
-	m_shader_tools.Shutdown();
+	m_effect.Shutdown();
 }
 
-bool VoxelizationShader::Render(ID3D11DeviceContext* context, int indexCount, const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj, const ID3D11ShaderResourceView* srv)
+void VoxelizationShader::Render(ID3D11DeviceContext* context, int indexCount, 
+								const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj,
+								float time,DirectX::XMFLOAT3 eyeposw)
 {
-	bool result;
+	m_effect.ResetViewport(context, m_dimension, m_dimension);
 
-	//set parameter
-	result = m_shader_tools.UpdateShaderParameters(context, indexCount, world, view, proj, NULL);
-	if (!result)
-	{
-		return false;
-	}
+	m_effect.UpdateUAVParameters();
+	m_effect.UpdateCommonParameters(time, eyeposw);
+	m_effect.UpdateMatrixParameters(world, view, proj);
+	m_effect.Render(context);
+	context->DrawIndexed(indexCount, 0, 0);
 
-	return true;
+	m_effect.ResetViewport(context, 800,600);
+	m_effect.ClearRenderTargetDepth(context);
+}
+
+ID3D11ShaderResourceView* VoxelizationShader::GetSRV()
+{
+	return m_effect.GetSRV();
 }

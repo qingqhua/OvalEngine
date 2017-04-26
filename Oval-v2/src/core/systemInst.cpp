@@ -248,7 +248,7 @@ bool System::Update()
 	}
 
 	//update graphics
-	result = m_Graphics->Update(&m_cam->GetWorld(),&m_cam->GetView(),&m_cam->GetProj());
+	result = m_Graphics->Update(&m_cam->GetWorld(),&m_cam->GetView(),&m_cam->GetProj(),0,m_cam->GetPosition());
 	if (!result)
 	{
 		return false;

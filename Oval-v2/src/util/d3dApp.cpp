@@ -317,7 +317,6 @@ bool D3DApp::Init(int screenWidth, int screenHeight, HWND hwnd )
 
 	// Create the viewport.
 	m_deviceContext->RSSetViewports(1, &m_viewport);
-
 	return true;
 }
 
