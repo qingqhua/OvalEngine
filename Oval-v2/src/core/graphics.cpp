@@ -126,16 +126,17 @@ bool Graphics::Render(const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *v
 {
 
 	//clear the buffers to begin the scene.
-	m_D3DApp->ClearBuffer(0.0f, 1.0f, 1.0f, 1.0f);
+	m_D3DApp->ClearBuffer(1.0f, 1.0f, 1.0f, 1.0f);
 
 	//update model
 	m_model->Render(m_D3DApp->GetDeviceContext());
 
-
 	//---
 	//update shaderApp
 	//---
+	m_D3DApp->ResetViewport(m_voxelization->GetDimension(), m_voxelization->GetDimension());
 	m_voxelization->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj,time,eyeposw);
+	m_D3DApp->ResetViewport(m_screenwidth, m_screenheight);
 
 	m_tracing->Render(m_D3DApp->GetDeviceContext(), m_model->GetIndexCount(), world, view, proj, time, eyeposw, m_voxelization->GetSRV());
 

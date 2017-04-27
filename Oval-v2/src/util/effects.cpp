@@ -1,8 +1,6 @@
 #include "effects.h"
 
 Effect::Effect()
-	:	m_renderTargetView(0),
-		m_depthStencilView(0)
 {
 
 }
@@ -168,21 +166,6 @@ void Effect::SetUpdateVoxelParameter(float dim, const DirectX::BoundingBox* AABB
 	m_cbVoxel->SetRawValue(&voxel, 0, sizeof(VoxelBufferType));
 }
 
-void Effect::ResetViewport(ID3D11DeviceContext* context,float width,float height)
-{
-	D3D11_VIEWPORT viewport;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	viewport.Width = width;
-	viewport.Height = height;
-
-	context->RSSetViewports(1, &viewport);
-}
-
-
 //----------
 //Update
 //----------
@@ -203,32 +186,6 @@ void Effect::UpdateCommonParameters(float time, DirectX::XMFLOAT3 eyeposW)
 	common.time = time;
 
 	m_cbCommon->SetRawValue(&common, 0, sizeof(CommonBufferType));
-}
-
-void Effect::ClearRenderTargetDepth( ID3D11DeviceContext* deviceContext)
-{
-	float color[4];
-
-
-	// Setup the color to clear the buffer to.
-	color[0] = 0;
-	color[1] = 0;
-	color[2] = 0;
-	color[3] = 1;
-	// Clear the back buffer.
-	//deviceContext->ClearRenderTargetView(m_renderTargetView, color);
-
-	// Clear the depth buffer.
-	//deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
-	//deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-
-}
-
-void Effect::UpdateRenderTarget(ID3D11DeviceContext* context)
-{
-
 }
 
 void Effect::UpdateUAVParameters()

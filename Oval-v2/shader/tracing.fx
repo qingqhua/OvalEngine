@@ -12,7 +12,7 @@ cbuffer cbPerFrame
 };
 
 //--------------------------
-//read/write 3d texture
+//read 3d texture
 //---------------------------
 Texture3D<float4> uav_color;
 
@@ -42,7 +42,6 @@ VS_OUT vs_main(VS_IN vin)
 
 	vout.posH = mul(vout.posW, cb_Matrix.view);
 	vout.posH = mul(vout.posH, cb_Matrix.proj);
-
 	
 	vout.normW = mul(float4(vin.normL, 1.0f), cb_Matrix.world);
 
@@ -82,9 +81,10 @@ float4 ps_main(PS_IN pin) : SV_TARGET
 
 		directlighting += DirectLighting(N, H, lightVec, V, L, light[i], mat);
 	}
-	
+	uint3 pos = world_to_svo(pin.posW.xyz, cb_Voxel.size, cb_Voxel.offset);
 	//return directlighting / LIGHT_NUM;
-	return uav_color[uint3(0, 0, 0)];
+	//return uav_color[pos];
+	return float4(pin.normW, 1.0f);
 }
 
 technique11 TRACING_TECH
@@ -94,5 +94,7 @@ technique11 TRACING_TECH
 		SetVertexShader(CompileShader(vs_5_0, vs_main()));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, ps_main()));
+
+		SetRasterizerState(SolidRS);
 	}
 }

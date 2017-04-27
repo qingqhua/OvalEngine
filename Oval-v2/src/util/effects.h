@@ -102,11 +102,6 @@ public:
 	//return srv to read uav data
 	ID3D11ShaderResourceView* GetSRV();
 
-	void UpdateRenderTarget(ID3D11DeviceContext* context);
-	void ClearRenderTargetDepth(ID3D11DeviceContext* deviceContext);
-
-
-
 private:
 	//compile fx
 	void Compile(ID3D11Device* device, LPCWSTR filename);
@@ -127,14 +122,10 @@ private:
 	ID3DX11EffectShaderResourceVariable* m_fxSRVList;
 
 	ID3D11InputLayout* m_InputLayout;
-	ID3D11SamplerState* m_sampleState;
 
 	ID3D11Texture3D* m_Tex3D;
 	ID3D11ShaderResourceView* m_SRV;
 	ID3D11UnorderedAccessView* m_UAV;
-
-	ID3D11DepthStencilView* m_depthStencilView;
-	ID3D11RenderTargetView* m_renderTargetView;
 };
 
 #endif //EFFECTS_H_

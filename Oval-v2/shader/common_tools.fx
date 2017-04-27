@@ -30,6 +30,25 @@ DepthStencilState DisableDepth
 	DepthWriteMask = 0;
 };
 
+//-----------------------------------------------
+// RasterizerState
+//-------------------------------------------
+RasterizerState SolidRS
+{
+	FillMode = SOLID;	//WIREFRAME
+	CullMode = NONE;
+	FrontCounterClockwise = false;
+};
+
+//--------------------------------------------
+//BlendState for disabling blending.
+//--------------------------------------------
+BlendState NoBlending
+{
+	AlphaToCoverageEnable = FALSE;
+	BlendEnable[0] = FALSE;
+};
+
 //-----------------------------------------------------------------------------------------
 // Default Sampler.
 //-----------------------------------------------------------------------------------------

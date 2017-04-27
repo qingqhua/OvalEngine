@@ -17,20 +17,16 @@
 
 class VoxelizationShader
 {
-	struct MatrixBufferType
-	{
-		DirectX::XMMATRIX world;
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX projection;
-	};
 public:
 	VoxelizationShader();
 	~VoxelizationShader();
+
 	bool Init(ID3D11Device* device, LPCWSTR filename,float dimension, const DirectX::BoundingBox* AABB);
 	void Render(ID3D11DeviceContext* context, int indexCount, const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj, float time, DirectX::XMFLOAT3 eyeposw);
 	void Shutdown();
 
 	ID3D11ShaderResourceView* GetSRV();
+	float GetDimension();
 
 private:
 	float m_dimension;

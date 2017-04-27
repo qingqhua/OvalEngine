@@ -161,12 +161,13 @@ float4 ps_main(PS_IN pin) : SV_TARGET
 		litColor=ACESToneMapping(litColor.xyz,1.0f);
 
 		uav_color[pin.svopos] = float4(litColor,1.0f);
-		uav_color[uint3(0,0,0)] = float4(0.0, 1.0, 0.0, 1.0);
+
 		//to make it easier to check the result.
-		return float4(1,0,0,1);
+		return float4(litColor, 1.0f);
 	}
 
-	else return float4(1,1,1, 0);
+	else
+		return float4(1, 1, 1, 0);
 }
 
 technique11 VOXELIZATION_TECH
@@ -178,5 +179,6 @@ technique11 VOXELIZATION_TECH
 		SetPixelShader(CompileShader(ps_5_0, ps_main()));
 
 		SetDepthStencilState(DisableDepth, 0);
+		SetBlendState(NoBlending, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 	}
 }

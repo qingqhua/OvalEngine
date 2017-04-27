@@ -28,6 +28,7 @@ bool VoxelizationShader::Init(ID3D11Device* device, LPCWSTR filename,float dimen
 	m_effect.SetMatrixParamter();
 	m_effect.SetCommonParamter();
 	m_effect.SetUpdateVoxelParameter(m_dimension, AABB);
+
 	m_effect.SetTex3dUAV(device, m_dimension);
 
 	return true;
@@ -42,19 +43,21 @@ void VoxelizationShader::Render(ID3D11DeviceContext* context, int indexCount,
 								const DirectX::XMMATRIX *world, const DirectX::XMMATRIX *view, const DirectX::XMMATRIX *proj,
 								float time,DirectX::XMFLOAT3 eyeposw)
 {
-	m_effect.ResetViewport(context, m_dimension, m_dimension);
+		m_effect.UpdateCommonParameters(time, eyeposw);
+		m_effect.UpdateMatrixParameters(world, view, proj);
 
-	m_effect.UpdateUAVParameters();
-	m_effect.UpdateCommonParameters(time, eyeposw);
-	m_effect.UpdateMatrixParameters(world, view, proj);
-	m_effect.Render(context);
-	context->DrawIndexed(indexCount, 0, 0);
+		m_effect.UpdateUAVParameters();
 
-	m_effect.ResetViewport(context, 800,600);
-	m_effect.ClearRenderTargetDepth(context);
+		m_effect.Render(context);
+		context->DrawIndexed(indexCount, 0, 0);
 }
 
 ID3D11ShaderResourceView* VoxelizationShader::GetSRV()
 {
 	return m_effect.GetSRV();
+}
+
+float VoxelizationShader::GetDimension()
+{
+	return m_dimension;
 }

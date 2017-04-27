@@ -48,11 +48,12 @@ void TracingShader::Render(ID3D11DeviceContext* context, int indexCount,
 	//update constant buffer
 	m_effect.UpdateCommonParameters(time, eyeposw);
 	m_effect.UpdateMatrixParameters(world, view, proj);
+
 	m_effect.UpdateSRVParamters(srvList);
 
 	//apply shader
 	m_effect.Render(context);
 
 	//draw model with this shader
-	context->DrawIndexed(indexCount, 0, 0);
+	context->DrawIndexed(indexCount*2, 0, 0);
 }

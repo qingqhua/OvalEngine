@@ -36,7 +36,7 @@ public:
 	// returns name of the video card and the amount of video memory
 	void GetVideoCardInfo(char *cardname, int &memory);
 
-	void SetBackBufferRenderTarget();
+	//reset viewport and render target
 	void ResetViewport(float width, float height);
 
 private:
