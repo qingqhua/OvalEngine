@@ -41,6 +41,7 @@ void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, f
 	BuildFX();
 	BuildVertexLayout();
 	BuildTexture();
+	BuildRenderTarget();
 }
 
 void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos)
@@ -53,14 +54,10 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRI
 	mfxEyePos->SetFloatVector((float *)&camPos);
 }
 
-void Voxelizer::Render(float totalTime)
+void Voxelizer::Render(float totalTime, int indexcount)
 {
 	mDeviceContext->GenerateMips(mSRV);
-	//clear
-	//float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	//mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, clear_color);
-	//ID3D11UnorderedAccessView* uav_view[] = { mUAV };
-	//mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, nullptr, nullptr, 0, 1, uav_view, nullptr);
+
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
 	mfxTime->SetFloat(totalTime);
 
@@ -68,6 +65,16 @@ void Voxelizer::Render(float totalTime)
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetInputLayout(mInputLayout);
 	mTech->GetPassByName("VoxelizerPass")->Apply(0, mDeviceContext);
+
+	mDeviceContext->DrawIndexed(indexcount, 0, 0);
+}
+
+void Voxelizer::resetOMTargetsAndViewport()
+{
+	mDeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+
+	// Set the viewport.
+	mDeviceContext->RSSetViewports(1, &m_viewport);
 }
 
 void Voxelizer::Clear()
@@ -179,19 +186,111 @@ void Voxelizer::BuildTexture()
 }
 
 
-ID3D11ShaderResourceView* Voxelizer::SRV()
+void Voxelizer::BuildRenderTarget()
+{
+	D3D11_TEXTURE2D_DESC textureDesc;
+	HRESULT result;
+	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+	D3D11_TEXTURE2D_DESC depthBufferDesc;
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+
+	// Initialize the render target texture description.
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+
+	// Setup the render target texture description.
+	textureDesc.Width = mWidth;
+	textureDesc.Height = mHeight;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+
+	// Create the render target texture.
+	result = md3dDevice->CreateTexture2D(&textureDesc, NULL, &m_renderTargetTexture);
+
+	// Setup the description of the render target view.
+	renderTargetViewDesc.Format = textureDesc.Format;
+	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	renderTargetViewDesc.Texture2D.MipSlice = 0;
+
+	// Create the render target view.
+	result = md3dDevice->CreateRenderTargetView(m_renderTargetTexture, &renderTargetViewDesc, &m_renderTargetView);
+
+	// Setup the description of the shader resource view.
+	shaderResourceViewDesc.Format = textureDesc.Format;
+	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+	shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+	// Create the shader resource view.
+	result = md3dDevice->CreateShaderResourceView(m_renderTargetTexture, &shaderResourceViewDesc, &m_shaderResourceView);
+
+	// Initialize the description of the depth buffer.
+	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
+
+	// Set up the description of the depth buffer.
+	depthBufferDesc.Width = mWidth;
+	depthBufferDesc.Height = mHeight;
+	depthBufferDesc.MipLevels = 1;
+	depthBufferDesc.ArraySize = 1;
+	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthBufferDesc.SampleDesc.Count = 1;
+	depthBufferDesc.SampleDesc.Quality = 0;
+	depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthBufferDesc.CPUAccessFlags = 0;
+	depthBufferDesc.MiscFlags = 0;
+
+	// Create the texture for the depth buffer using the filled out description.
+	result = md3dDevice->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
+
+	// Initailze the depth stencil view description.
+	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+
+	// Set up the depth stencil view description.
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+	// Create the depth stencil view.
+	result = md3dDevice->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
+
+	// Setup the viewport for rendering.
+	m_viewport.Width = (float)mWidth;
+	m_viewport.Height = (float)mHeight;
+	m_viewport.MinDepth = 0.0f;
+	m_viewport.MaxDepth = 1.0f;
+	m_viewport.TopLeftX = 0.0f;
+	m_viewport.TopLeftY = 0.0f;
+
+	// Setup the projection matrix.
+	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f*DirectX::XM_PI, mWidth / mHeight, 1.0f, 1000.0f);
+}
+
+ID3D11ShaderResourceView* Voxelizer::GetSRV()
 {
 	return mSRV;
 }
 
-float Voxelizer::Res()
+float Voxelizer::GetRes()
 {
 	return mRes;
 }
 
-float Voxelizer::voxelSize()
+float Voxelizer::GetvoxelSize()
 {
 	return mVoxelSize;
 }
+
+DirectX::XMMATRIX Voxelizer::GetProjMatrix()
+{
+	return m_projectionMatrix;
+}
+
 
 

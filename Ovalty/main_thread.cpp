@@ -73,14 +73,6 @@ void myDirectX11::UpdateScene(float dt)
 
 void myDirectX11::DrawScene()
 {
- 	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
- 	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	//reset depth/blend state
- 	md3dImmediateContext->OMSetDepthStencilState(0, 0);
- 	float blendFactors[] = { 0.0f, 0.0f, 0.0f, 0.0f };
- 	md3dImmediateContext->OMSetBlendState(0, blendFactors, 0xffffffff);
-
 	//set vertex buffer
 	UINT stride = sizeof(myShapeLibrary::Vertex);
 	UINT offset = 0;
@@ -89,31 +81,27 @@ void myDirectX11::DrawScene()
 	//set index buffer
 	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
-	//send data to compute shader
-	//compute_shader.Render(mVoxelizer.SRV(), &mCam.View(), &mCam.Proj(), &mWorld, &mWorldInversTrans, mCam.GetPosition(), mTimer.TotalTime());
+	//clear buffer to begin scene
+	Clear();
 
 	//-----------------------
 	//voxelize
 	//---------------------
- 		mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
- 		mVoxelizer.Render(mTimer.TotalTime());
-		md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-		mVoxelizer.Clear();
+ 	mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+	mVoxelizer.Render( mTimer.TotalTime(), indexCount);
+ 	resetOMTargetsAndViewport();
  		
- 		resetOMTargetsAndViewport();
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.Render(mVoxelizer.SRV(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
+	mVisualizer.Render(mVoxelizer.GetSRV(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
  	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
- 	mConeTracer.Render(mVoxelizer.SRV(), mTimer.TotalTime());
+ 	mConeTracer.Render( mVoxelizer.GetSRV(), mTimer.TotalTime(),indexCount);
  
- 	md3dImmediateContext->DrawIndexed(indexCount, 0, 0);
-
  	HR(mSwapChain->Present(0, 0));
 }
 
@@ -223,19 +211,27 @@ void myDirectX11::Initvoxel(float res)
 
 	//2*extent/res
 	XMFLOAT3 voxelRealSize = myMathLibrary::multiply(2.0f*(1.0f / voxelRes), mBoundingBox.Extents);
+
 	// Find the maximum component of a voxel.
 	float maxVoxelSize = max(voxelRealSize.z, max(voxelRealSize.x, voxelRealSize.y));
+
 	//the vector from min corner to center 
 	XMFLOAT3 offset = myMathLibrary::sub(mBoundingBox.Center, mBoundingBox.Extents); 
+
 	//minus -1 to transfom model min corner to zero
 	offset = myMathLibrary::multiply(-1.0f, offset);
 	
 	mVoxelizer.Init(md3dDevice, md3dImmediateContext, voxelRes, maxVoxelSize, offset);
 
-	mVisualizer.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
-	mConeTracer.Init(md3dDevice, md3dImmediateContext,mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
+	mVisualizer.Init(md3dDevice, md3dImmediateContext, mVoxelizer.GetRes(), mVoxelizer.GetvoxelSize(), offset);
+	mConeTracer.Init(md3dDevice, md3dImmediateContext,mVoxelizer.GetRes(), mVoxelizer.GetvoxelSize(), offset);
 
 	//compute_shader.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
 }
 
+void myDirectX11::Clear()
+{
+	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
+	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
 

@@ -32,7 +32,7 @@ void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMAT
 	mfxEyePos->SetFloatVector((float *)&icamPos);
 }
 
-void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
+void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,int indexcount)
 {
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
@@ -49,6 +49,8 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime)
 	mDeviceContext->IASetInputLayout(mInputLayout);
 
 	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
+
+	mDeviceContext->DrawIndexed(indexcount, 0, 0);
 }
 
 void ConeTracer::BuildFX()

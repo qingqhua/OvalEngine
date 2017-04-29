@@ -36,6 +36,7 @@ private:
 	void ControlCamera(float dt, float speed);
 
 	void Initvoxel(float res);
+	void Clear();
 private:
 
 	//buffer

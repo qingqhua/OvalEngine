@@ -34,7 +34,6 @@ void Visualizer::Render(ID3D11ShaderResourceView* voxelList, const DirectX::XMMA
 	mfxWorld->SetMatrix((float*)(world));
 	mfxWorldInverTrans->SetMatrix((float*)(worldInverTrans));
 
-	mDeviceContext->IASetInputLayout(mInputLayout);
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
  	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);

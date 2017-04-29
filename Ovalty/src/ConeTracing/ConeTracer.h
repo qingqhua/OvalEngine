@@ -12,7 +12,7 @@ public:
 
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res, float voxelsize, DirectX::XMFLOAT3 offset);
 	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
-	void Render(ID3D11ShaderResourceView* iVoxelList, float totalTime);
+	void Render(ID3D11ShaderResourceView* iVoxelList, float totalTime, int indexcount);
 private:
 	void BuildFX();
 	void BuildVertexLayout();

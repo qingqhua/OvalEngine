@@ -155,6 +155,15 @@ void GS(triangle VS_OUT gin[3],inout TriangleStream<PS_IN> triStream)
 	triStream.RestartStrip();
 }
 
+float CalculateDepth(float4 posW)
+{
+	float4 posH;
+	posH = mul(posW, gView);
+	posH = mul(posH,gProj);
+
+	return posH.z / posH.w;
+}
+
 //----------------------------
 //PIXEL SHADER
 //-------------------------
@@ -187,9 +196,11 @@ float4 PS(PS_IN pin) : SV_Target
 		}
 
 		//tonemapping
-		litColor=ACESToneMapping(litColor.xyz,1.0f);
+		litColor = ACESToneMapping(litColor.xyz, 1.0f);
 
-		gUAVColor[pin.svoPos] = float4(litColor,1.0f);
+		float depth = CalculateDepth(pin.posW);
+
+		gUAVColor[pin.svoPos] = float4(litColor, depth);
 
 		//to make it easier to check the result.
 		return float4(0,0,0,1);

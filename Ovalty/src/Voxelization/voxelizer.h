@@ -19,24 +19,32 @@ public:
 
 	void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
 	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos);
-	void Render(float totalTime);
+
+	void Render(float totalTime, int indexcount);
+
+	void resetOMTargetsAndViewport();
 
 	void Clear();
-	ID3D11ShaderResourceView* SRV();
-	float Res();
 
-	float voxelSize();
+	ID3D11ShaderResourceView* GetSRV();
+	float GetRes();
+	float GetvoxelSize();
+	
+	DirectX::XMMATRIX GetProjMatrix();
 private:
 	void BuildFX();
 	void BuildVertexLayout();
 	void BuildTexture();
 
+	void BuildRenderTarget();
 private:
 
 	//input var
 	ID3D11Device* md3dDevice;
 	ID3D11DeviceContext* mDeviceContext;
 	D3D11_VIEWPORT mViewport;
+
+
 
 	float mWidth;
 	float mHeight;
@@ -80,6 +88,18 @@ private:
 	float mVoxelSize;
 	DirectX::XMFLOAT3 mVoxelOffset;
 	float mRes;
+
+	// render texture variable
+	ID3D11Texture2D* m_renderTargetTexture;
+	ID3D11RenderTargetView* m_renderTargetView;
+
+	ID3D11ShaderResourceView* m_shaderResourceView;
+	ID3D11Texture2D* m_depthStencilBuffer;
+	ID3D11DepthStencilView* m_depthStencilView;
+
+	D3D11_VIEWPORT m_viewport;
+
+	DirectX::XMMATRIX m_projectionMatrix;
 };
 
 #endif // VOXELIZER_H

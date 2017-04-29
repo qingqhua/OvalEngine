@@ -157,7 +157,8 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 				{
 					PS_IN output;
 
-					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * 0.5f*gVoxelSize;
+					//TODO
+					float3 vertex = gin[0].posL.xyz+ boxOffset[i * 4 + j] * gVoxelSize;
 					
 					 //matrix transform
 					output.pos = mul(float4(vertex, 1.0f), gWorld);
