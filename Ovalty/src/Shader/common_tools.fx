@@ -20,14 +20,12 @@ float3 world_to_svo(float3 posW,float voxel_size,float3 offset)
 {
 	float3 pos=posW;
 	pos=((pos+offset)/voxel_size);
-	pos.z -= 0.001;
 	return pos;
 }
 
 float3 svo_to_world(float3 posW,float voxel_size,float3 offset)
 {
 	float3 pos=posW;
-
 	pos*=voxel_size;
 	pos-=offset;
 	return pos;

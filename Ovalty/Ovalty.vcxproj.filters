@@ -10,6 +10,15 @@
     <FxCompile Include="src\Shader\voxelizer.fx">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="src\Shader\brdf_tools.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\common_tools.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\light.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ConeTracing\ConeTracer.cpp">

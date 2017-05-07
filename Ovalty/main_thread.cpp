@@ -87,7 +87,8 @@ void myDirectX11::DrawScene()
 	//-----------------------
 	//voxelize
 	//---------------------
- 	mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+	//mVoxelizer.resetOMTargetsAndViewport();
+ 	mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
 	mVoxelizer.Render( mTimer.TotalTime(), indexCount);
  	resetOMTargetsAndViewport();
  		
@@ -95,7 +96,7 @@ void myDirectX11::DrawScene()
 	//render visualizer
 	//---------------------
 	mVisualizer.Render(mVoxelizer.GetSRV(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
-
+	
 	//-----------------------
 	//render cone tracing
 	//---------------------

@@ -71,23 +71,17 @@ void Voxelizer::Render(float totalTime, int indexcount)
 
 void Voxelizer::resetOMTargetsAndViewport()
 {
-	mDeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+	mDeviceContext->OMSetRenderTargets(1, &mRenderTargetView, mdepthStencilView);
 
 	// Set the viewport.
-	mDeviceContext->RSSetViewports(1, &m_viewport);
+	mDeviceContext->RSSetViewports(1, &mViewport);
 }
 
 void Voxelizer::Clear()
 {
-	// cleanup
-	ID3D11ShaderResourceView* clear_srvs[] = { nullptr, nullptr, nullptr };
-	//mDeviceContext->PSSetShaderResources(0, 1, clear_srvs);
-	//mDeviceContext->VSSetShaderResources(0, 1, clear_srvs);
 
-	ID3D11UnorderedAccessView* clear_uavs[] = { nullptr, nullptr };
-	//float clear_color[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	//mDeviceContext->ClearUnorderedAccessViewFloat(mUAV, clear_color);
-	//mDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, clear_uavs, nullptr);
+	mDeviceContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
+	mDeviceContext->ClearDepthStencilView(mdepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 void Voxelizer::BuildFX()
@@ -211,7 +205,7 @@ void Voxelizer::BuildRenderTarget()
 	textureDesc.MiscFlags = 0;
 
 	// Create the render target texture.
-	result = md3dDevice->CreateTexture2D(&textureDesc, NULL, &m_renderTargetTexture);
+	result = md3dDevice->CreateTexture2D(&textureDesc, NULL, &mTex2D);
 
 	// Setup the description of the render target view.
 	renderTargetViewDesc.Format = textureDesc.Format;
@@ -219,7 +213,7 @@ void Voxelizer::BuildRenderTarget()
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	result = md3dDevice->CreateRenderTargetView(m_renderTargetTexture, &renderTargetViewDesc, &m_renderTargetView);
+	result = md3dDevice->CreateRenderTargetView(mTex2D, &renderTargetViewDesc, &mRenderTargetView);
 
 	// Setup the description of the shader resource view.
 	shaderResourceViewDesc.Format = textureDesc.Format;
@@ -228,7 +222,7 @@ void Voxelizer::BuildRenderTarget()
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
 	// Create the shader resource view.
-	result = md3dDevice->CreateShaderResourceView(m_renderTargetTexture, &shaderResourceViewDesc, &m_shaderResourceView);
+	result = md3dDevice->CreateShaderResourceView(mTex2D, &shaderResourceViewDesc, &m_Tex2DSRV);
 
 	// Initialize the description of the depth buffer.
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
@@ -247,7 +241,7 @@ void Voxelizer::BuildRenderTarget()
 	depthBufferDesc.MiscFlags = 0;
 
 	// Create the texture for the depth buffer using the filled out description.
-	result = md3dDevice->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
+	result = md3dDevice->CreateTexture2D(&depthBufferDesc, NULL, &mdepthStencilBuffer);
 
 	// Initailze the depth stencil view description.
 	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
@@ -258,18 +252,18 @@ void Voxelizer::BuildRenderTarget()
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the depth stencil view.
-	result = md3dDevice->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
+	result = md3dDevice->CreateDepthStencilView(mdepthStencilBuffer, &depthStencilViewDesc, &mdepthStencilView);
 
 	// Setup the viewport for rendering.
-	m_viewport.Width = (float)mWidth;
-	m_viewport.Height = (float)mHeight;
-	m_viewport.MinDepth = 0.0f;
-	m_viewport.MaxDepth = 1.0f;
-	m_viewport.TopLeftX = 0.0f;
-	m_viewport.TopLeftY = 0.0f;
+	mViewport.Width = (float)mWidth;
+	mViewport.Height = (float)mHeight;
+	mViewport.MinDepth = 0.0f;
+	mViewport.MaxDepth = 1.0f;
+	mViewport.TopLeftX = 0.0f;
+	mViewport.TopLeftY = 0.0f;
 
 	// Setup the projection matrix.
-	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f*DirectX::XM_PI, mWidth / mHeight, 1.0f, 1000.0f);
+	mprojectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f*DirectX::XM_PI, mWidth / mHeight, 1.0f, 1000.0f);
 }
 
 ID3D11ShaderResourceView* Voxelizer::GetSRV()
@@ -289,7 +283,7 @@ float Voxelizer::GetvoxelSize()
 
 DirectX::XMMATRIX Voxelizer::GetProjMatrix()
 {
-	return m_projectionMatrix;
+	return mprojectionMatrix;
 }
 
 

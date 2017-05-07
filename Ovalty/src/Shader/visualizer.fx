@@ -21,7 +21,6 @@ cbuffer cbPerObject : register(b1)
 //textures
 //---------------------------
 Texture3D<float4> gVoxelList;
-Texture2D gEdge;
 
 //----------------------
 //shader structure
@@ -184,9 +183,6 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 float4 PS(PS_IN pin) : SV_Target
 {
 	float4 normal = float4(pin.normW, 1);
-
-	float3 output = gEdge.Sample(SVOFilter, pin.texcoord).xyz;
-	normal.rgb *= output;
 
 	return float4(pin.normW,1.0);
 }

@@ -11,9 +11,9 @@ struct PointLightBRDF
 
 void setPointLight(out PointLightBRDF L1,out PointLightBRDF L2, float t)
 {
-	//L1.position=float3(-0.0f, 1.0f, 0.0f);
+	//L1.position=float3(-0.0f, 1.0f, -1.0f);
 	
-	L1.position = float3(0.5*cos(t), 1.2,  -1.0f+0.5*sin(t));
+	L1.position = float3(0.5*cos(t), 1.2,  -0.5f+0.5*sin(t));
 	L1.color=float3(1.0f, 1.0f, 1.0f);
 	L1.intensity=1.0f;
 
@@ -104,7 +104,7 @@ void setMatCornellBox(int id,out MaterialBRDF mat)
 		setMatCopper(mat);
 	//backwall
 	else if (id >= 3312 && id < 3318)
-		setMatWhite(mat);
+		setMatGreen(mat);
 	//leftwall
 	else if (id >= 3324 && id < 3330)
 		setMatGreen(mat);

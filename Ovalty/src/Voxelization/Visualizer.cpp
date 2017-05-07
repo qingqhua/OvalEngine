@@ -62,16 +62,16 @@ void Visualizer::BuildFX()
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
 	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 
-	mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
+	//mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
 	// Set a texture for voxels.
-	ID3D11ShaderResourceView* edgeTexRV;
-	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
-	mfxEdgeTex->SetResource(edgeTexRV);
+	//ID3D11ShaderResourceView* edgeTexRV;
+	//HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
+	//mfxEdgeTex->SetResource(edgeTexRV);
 
 	//set voxel value
 	mfxVoxelSize->SetFloat((float)(mVoxelSize));

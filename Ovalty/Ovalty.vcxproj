@@ -200,11 +200,14 @@
     <ClInclude Include="src\Voxelization\voxelizer.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="src\Shader\brdf_tools.fx" />
+    <FxCompile Include="src\Shader\common_tools.fx" />
     <FxCompile Include="src\Shader\conetracer.fx">
       <FileType>Document</FileType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="src\Shader\light.fx" />
     <FxCompile Include="src\Shader\visualizer.fx">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>

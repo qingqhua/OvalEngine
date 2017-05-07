@@ -82,28 +82,35 @@ float4 ConeTracing(float3 dir,float3 startPos,float cone_ratio)
 	return accum;
 }
 
-float4 ShadowConeTracing(float3 dir,float3 startPos,float dist_L)
+//ray march to light
+float4 ShadowConeTracing(float3 dir,float3 startPos, float3 endPos, float cone_ratio)
 {
 	float acc = 0;
 
-	float dist = gVoxelSize/8;
-	const float STOP = dist_L - 16 * gVoxelSize;
+	float dist = gVoxelSize;
+	float STOP = length(endPos-startPos);
 
-	while(dist < STOP ){	
+	while(STOP>0 && dist < STOP &&acc<1.0f)
+	{
+
+		float diameter = cone_ratio*dist;
+		float lodLevel = diameter;
+
 		float3 ray = startPos + dist * dir;
 		float3 ray_svo = world_to_svo(ray,gVoxelSize,gVoxelOffset);
 
 		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
 			break;		
 
-		float l = pow(dist, 2); 
-		float s1 = 0.062 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 1 + 0.75 * l).a;
-		float s2 = 0.135 * gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim+0.5f/gDim, 4.5 * l).a;
-		float s = s1 + s2;
-		acc += (1 - acc) * s;
-		dist += 0.9 * gVoxelSize * (1 + 0.05 * l);
+		float color = gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim, dist).a;
+
+		acc += (1 - acc)*color;
+
+		dist += gVoxelSize;
 	}
-	return 1 - pow(smoothstep(0, 1, acc * 1.4), 1.0 / 1.4);
+
+	acc *= 4.0 * PI ;
+	return 1 - acc;
 }
 
 float4 SpecularCone(float3 V,float3 N,float3 posW)
@@ -214,6 +221,19 @@ float4 PS(VS_OUT pin) : SV_Target
 	PointLightBRDF light[LIGHT_NUM];
 	setPointLight(light[0],light[1],gTime);
 
+	//---
+	// shadow
+	//---
+	float4 lightIntensity;
+	float4 lightViewPosition = mul(float4(light[0].position, 1.0f), gView);
+	float lightDepthValue = lightViewPosition.z / lightViewPosition.w;
+
+	float3 posw_svo = world_to_svo(pin.posW.xyz, gVoxelSize, gVoxelOffset);
+	float depthValue = gVoxelList.SampleLevel(SVOFilter, posw_svo / gDim + 0.5f / gDim, 0).a;
+	//---
+	// shadow end
+	//---
+
 	for(uint i=0;i<LIGHT_NUM;i++)
 	{
 		float3 lightVec=light[i].position-pin.posW.xyz;
@@ -221,12 +241,19 @@ float4 PS(VS_OUT pin) : SV_Target
 		float3 H=normalize(V+L);
 
 		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
-		shadow+=ShadowConeTracing(N,pin.posW,length(lightVec));
+	}
+
+	float3 offset = N *gVoxelSize*1.414 * 2;
+	shadow = ShadowConeTracing(normalize(light[0].position - pin.posW.xyz), pin.posW.xyz+offset,light[0].position , 2.0f / 1.732f);
+
+	if (lightDepthValue < depthValue)
+	{
+		lightIntensity = saturate(dot(pin.normW, light[0].position));
 	}
 
 	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
 	
-	return 0.4*(directlighting+ indirectlighting);
+	return directlighting*shadow + indirectlighting;
 }
 
 RasterizerState SolidRS

@@ -42,9 +42,6 @@ private:
 	//input var
 	ID3D11Device* md3dDevice;
 	ID3D11DeviceContext* mDeviceContext;
-	D3D11_VIEWPORT mViewport;
-
-
 
 	float mWidth;
 	float mHeight;
@@ -64,11 +61,6 @@ private:
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
 	ID3DX11EffectScalarVariable* mfxTime;
-
-	//texture var
-	ID3D11Texture3D* mTex3D;
-	ID3D11ShaderResourceView* mSRV;
-	ID3D11UnorderedAccessView* mUAV;
 
 	//LIGHTING
 	ID3DX11EffectVariable* mfxPointLight;
@@ -90,16 +82,20 @@ private:
 	float mRes;
 
 	// render texture variable
-	ID3D11Texture2D* m_renderTargetTexture;
-	ID3D11RenderTargetView* m_renderTargetView;
+	ID3D11Texture3D* mTex3D;
+	ID3D11ShaderResourceView* mSRV;
+	ID3D11UnorderedAccessView* mUAV;
 
-	ID3D11ShaderResourceView* m_shaderResourceView;
-	ID3D11Texture2D* m_depthStencilBuffer;
-	ID3D11DepthStencilView* m_depthStencilView;
+	ID3D11Texture2D* mTex2D;
+	ID3D11RenderTargetView* mRenderTargetView;
 
-	D3D11_VIEWPORT m_viewport;
+	ID3D11ShaderResourceView* m_Tex2DSRV;
+	ID3D11Texture2D* mdepthStencilBuffer;
+	ID3D11DepthStencilView* mdepthStencilView;
 
-	DirectX::XMMATRIX m_projectionMatrix;
+	D3D11_VIEWPORT mViewport;
+
+	DirectX::XMMATRIX mprojectionMatrix;
 };
 
 #endif // VOXELIZER_H
