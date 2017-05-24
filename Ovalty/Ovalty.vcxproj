@@ -167,7 +167,6 @@
     <ClCompile Include="src\Core\d3dApp.cpp" />
     <ClCompile Include="src\Core\d3dUtil.cpp" />
     <ClCompile Include="src\Core\dxerr.cpp" />
-    <ClCompile Include="src\Core\object.cpp" />
     <ClCompile Include="src\Octree\octree.cpp" />
     <ClCompile Include="src\Octree\OctreeNode.cpp" />
     <ClCompile Include="src\Util\Camera.cpp" />
@@ -188,7 +187,6 @@
     <ClInclude Include="src\Core\d3dx11effect.h" />
     <ClInclude Include="src\Core\D3DX11tex.h" />
     <ClInclude Include="src\Core\dxerr.h" />
-    <ClInclude Include="src\Core\object.h" />
     <ClInclude Include="src\Octree\octree.h" />
     <ClInclude Include="src\Octree\OctreeNode.h" />
     <ClInclude Include="src\Util\Camera.h" />
@@ -202,12 +200,9 @@
   <ItemGroup>
     <FxCompile Include="src\Shader\brdf_tools.fx" />
     <FxCompile Include="src\Shader\common_tools.fx" />
-    <FxCompile Include="src\Shader\conetracer.fx">
-      <FileType>Document</FileType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="src\Shader\light.fx" />
+    <FxCompile Include="src\Shader\conetracer_output.fx" />
+    <FxCompile Include="src\Shader\light_brdf.fx" />
+    <FxCompile Include="src\Shader\light_local.fx" />
     <FxCompile Include="src\Shader\visualizer.fx">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>

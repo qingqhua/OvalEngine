@@ -9,14 +9,12 @@ ConeTracer::ConeTracer():mInputLayout(0), md3dDevice(0), mDeviceContext(0),mTech
 ConeTracer::~ConeTracer()
 {}
 
-void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res, float voxelsize, DirectX::XMFLOAT3 offset)
+void ConeTracer::Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res)
 {
 	md3dDevice = idevice;
 	mDeviceContext = ideviceContext;
 
 	mRes = res;
-	mOffset = offset;
-	mVoxelSize = voxelsize;
 
 	BuildFX();
 	BuildVertexLayout();
@@ -32,10 +30,12 @@ void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMAT
 	mfxEyePos->SetFloatVector((float *)&icamPos);
 }
 
-void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,int indexcount)
+void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
 {
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
+	mfxVoxelSize->SetFloat((float)(voxelsize));
+	mfxVoxelOffset->SetFloatVector((float*)&voxeloffset);
 
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
@@ -62,7 +62,7 @@ void ConeTracer::BuildFX()
 	shaderFlags = D3DCOMPILE_DEBUG;
 #endif
 
-	HRESULT hr = D3DX11CompileEffectFromFile(L"src/shader/conetracer.fx", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, shaderFlags,
+	HRESULT hr = D3DX11CompileEffectFromFile(L"src/shader/conetracer_output.fx", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, shaderFlags,
 		0, md3dDevice, &mFX, &errorBlob);
 	if (FAILED(hr)){MessageBox(nullptr, (LPCWSTR)errorBlob->GetBufferPointer(), L"error", MB_OK);}
 
@@ -75,6 +75,9 @@ void ConeTracer::BuildFX()
 
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
 
+	//set texture
+	mfxEdgeTex = mFX->GetVariableByName("gTexture")->AsShaderResource();
+
 	//voxel
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
@@ -83,10 +86,13 @@ void ConeTracer::BuildFX()
 
 	mfxTime = mFX->GetVariableByName("gTime")->AsScalar();
 
-	//set voxel value
-	mfxVoxelSize->SetFloat((float)(mVoxelSize));
+	//set resolution
 	mfxDim->SetFloat((float)(mRes));
-	mfxVoxelOffset->SetFloatVector((float*)&mOffset);
+
+	// Set a texture for voxels.
+	ID3D11ShaderResourceView* edgeTexRV;
+	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
+	mfxEdgeTex->SetResource(edgeTexRV);
 }
 
 void ConeTracer::BuildVertexLayout()
@@ -101,7 +107,7 @@ void ConeTracer::BuildVertexLayout()
 
 	//create the input layout
 	D3DX11_PASS_DESC passDesc;
-	mTech->GetPassByName("ConeTracingPass")->GetDesc(&passDesc);
+	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
 	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
 }

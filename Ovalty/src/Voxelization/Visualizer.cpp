@@ -11,28 +11,33 @@ Visualizer::~Visualizer()
 
 }
 
-void Visualizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext,float res, float voxelsize, DirectX::XMFLOAT3 offset)
+void Visualizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res)
 {
 	md3dDevice = device;
 	mDeviceContext = deviceContext;
 
 	mRes = res;
-	mOffset = offset;
-	mVoxelSize = voxelsize;
 
 	BuildFX();
 }
 
-void Visualizer::Render(ID3D11ShaderResourceView* voxelList, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMMATRIX * world, const DirectX::XMMATRIX * worldInverTrans)
+void Visualizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj)
 {
-	//update data in "voxelizer.fx"
-	mfxVoxelList->SetResource(voxelList);
-
 	//update matrix
 	mfxView->SetMatrix((float*)(view));
 	mfxProj->SetMatrix((float*)(proj));
 	mfxWorld->SetMatrix((float*)(world));
 	mfxWorldInverTrans->SetMatrix((float*)(worldInverTrans));
+}
+
+void Visualizer::Render(ID3D11ShaderResourceView* voxelList, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
+{
+	//update data in "voxelizer.fx"
+	mfxVoxelList->SetResource(voxelList);
+
+	//update voxel value
+	mfxVoxelSize->SetFloat((float)(voxelsize));
+	mfxVoxelOffset->SetFloatVector((float*)&voxeloffset);
 
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
@@ -62,19 +67,10 @@ void Visualizer::BuildFX()
 	mfxWorld = mFX->GetVariableByName("gWorld")->AsMatrix();
 	mfxWorldInverTrans = mFX->GetVariableByName("gWorldInverTrans")->AsMatrix();
 
-	//mfxEdgeTex = mFX->GetVariableByName("gEdge")->AsShaderResource();
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
 	mfxVoxelSize = mFX->GetVariableByName("gVoxelSize")->AsScalar();
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
-	// Set a texture for voxels.
-	//ID3D11ShaderResourceView* edgeTexRV;
-	//HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
-	//mfxEdgeTex->SetResource(edgeTexRV);
-
-	//set voxel value
-	mfxVoxelSize->SetFloat((float)(mVoxelSize));
 	mfxDim->SetFloat((float)(mRes));
-	mfxVoxelOffset->SetFloatVector((float*)&mOffset);
 }

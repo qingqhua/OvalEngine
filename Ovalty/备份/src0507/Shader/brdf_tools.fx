@@ -1,4 +1,4 @@
-#include "light_brdf.fx"
+#include "light.fx"
 
 #define PI 3.1415926
 

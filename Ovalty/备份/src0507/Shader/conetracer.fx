@@ -28,6 +28,11 @@ cbuffer cbPerObject : register(b1)
 //---------------------------
 Texture3D<float4> gVoxelList;
 
+//--------------------------
+//2d texture
+//---------------------------
+Texture2D gTexture;
+
 //----------------------
 //shader structure
 //--------------------
@@ -79,11 +84,11 @@ float4 ConeTracing(float3 dir,float3 startPos,float cone_ratio)
 		dist += gVoxelSize;
 	}
 	
-	return accum;
+	return accum/4;
 }
 
 //ray march to light
-float4 ShadowConeTracing(float3 dir,float3 startPos, float3 endPos, float cone_ratio)
+float4 ShadowConeTracing(float3 dir,float3 startPos, float3 endPos, float cone_ratio,float4 mat)
 {
 	float acc = 0;
 
@@ -102,15 +107,15 @@ float4 ShadowConeTracing(float3 dir,float3 startPos, float3 endPos, float cone_r
 		if(!(all(ray_svo> 0) && all(ray_svo < gDim))) 
 			break;		
 
-		float color = gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim, dist).a;
+		float color = gVoxelList.SampleLevel(SVOFilter,ray_svo/gDim + 0.5f / gDim, dist).a;
 
 		acc += (1 - acc)*color;
 
 		dist += gVoxelSize;
 	}
 
-	acc *= 4.0 * PI ;
-	return 1 - acc;
+	//acc *= 4.0 * PI ;
+	return 1 - acc*mat;
 }
 
 float4 SpecularCone(float3 V,float3 N,float3 posW)
@@ -120,7 +125,7 @@ float4 SpecularCone(float3 V,float3 N,float3 posW)
 	float3 dir = reflect(V, N);
 
 	float cone_ratio =2.0f;
-	float3 offset = N*gVoxelSize*1.414*2;
+	float3 offset = N*gVoxelSize*1.414;
 	color = ConeTracing(dir, posW + offset, cone_ratio);
 
 	return color;
@@ -244,7 +249,7 @@ float4 PS(VS_OUT pin) : SV_Target
 	}
 
 	float3 offset = N *gVoxelSize*1.414 * 2;
-	shadow = ShadowConeTracing(normalize(light[0].position - pin.posW.xyz), pin.posW.xyz+offset,light[0].position , 2.0f / 1.732f);
+	shadow = ShadowConeTracing(normalize(light[0].position - pin.posW.xyz), pin.posW.xyz+offset,light[0].position , 2.0f / 1.732f, float4(mat.albedo, 1.0f));
 
 	if (lightDepthValue < depthValue)
 	{
@@ -253,7 +258,7 @@ float4 PS(VS_OUT pin) : SV_Target
 
 	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
 	
-	return directlighting*shadow + indirectlighting;
+	return (directlighting*shadow+ indirectlighting);
 }
 
 RasterizerState SolidRS

@@ -20,9 +20,6 @@ public:
 	float     AspectRatio()const;
 	
 	int Run();
- 
-	// Framework methods.  Derived client class overrides these methods to 
-	// implement specific application requirements.
 
 	virtual bool Init();
 	virtual void OnResize(); 

@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="src\Shader\conetracer.fx">
-      <Filter>Shader</Filter>
-    </FxCompile>
     <FxCompile Include="src\Shader\visualizer.fx">
       <Filter>Shader</Filter>
     </FxCompile>
@@ -16,7 +13,13 @@
     <FxCompile Include="src\Shader\common_tools.fx">
       <Filter>Shader</Filter>
     </FxCompile>
-    <FxCompile Include="src\Shader\light.fx">
+    <FxCompile Include="src\Shader\light_brdf.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\light_local.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shader\conetracer_output.fx">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>
@@ -65,9 +68,6 @@
     </ClCompile>
     <ClCompile Include="main_thread.cpp">
       <Filter>SourceFile</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\object.cpp">
-      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Core\ComputeShader.cpp">
       <Filter>Core</Filter>
@@ -127,9 +127,6 @@
     </ClInclude>
     <ClInclude Include="main_thread.h">
       <Filter>SourceFile</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\object.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\ComputeShader.h">
       <Filter>Core</Filter>

@@ -13,7 +13,7 @@ Voxelizer::~Voxelizer()
 
 }
 
-void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res,float voxelsize,DirectX::XMFLOAT3 voxeloffset)
+void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res)
 {
 	md3dDevice = device;
 	mDeviceContext = deviceContext;
@@ -23,20 +23,7 @@ void Voxelizer::Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, f
 	mDepth = res;
 	mRes = res;
 
-	//reset viewport = voxel nums
-	//eg. 512x512 for 512^3 voxels
-	mViewport.TopLeftX = 0;
-	mViewport.TopLeftY = 0;
-	mViewport.MinDepth = 0.0f;
-	mViewport.MaxDepth = 1.0f;
-
-	mViewport.Width = res;
-	mViewport.Height = res;
-
- 	mDeviceContext->RSSetViewports(1, &mViewport);
-
-	mVoxelSize = voxelsize;
-	mVoxelOffset = voxeloffset;
+	ResetViewPort();
 
 	BuildFX();
 	BuildVertexLayout();
@@ -54,12 +41,15 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRI
 	mfxEyePos->SetFloatVector((float *)&camPos);
 }
 
-void Voxelizer::Render(float totalTime, int indexcount)
+void Voxelizer::Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
 {
 	mDeviceContext->GenerateMips(mSRV);
 
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
 	mfxTime->SetFloat(totalTime);
+
+	mfxVoxelOffset->SetFloatVector((float *)&voxeloffset);
+	mfxVoxelSize->SetFloat(voxelsize);
 
 	//set primitive topology
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -74,6 +64,21 @@ void Voxelizer::resetOMTargetsAndViewport()
 	mDeviceContext->OMSetRenderTargets(1, &mRenderTargetView, mdepthStencilView);
 
 	// Set the viewport.
+	mDeviceContext->RSSetViewports(1, &mViewport);
+}
+
+void Voxelizer::ResetViewPort()
+{
+	//reset viewport = voxel nums
+	//eg. 512x512 for 512^3 voxels
+	mViewport.TopLeftX = 0;
+	mViewport.TopLeftY = 0;
+	mViewport.MinDepth = 0.0f;
+	mViewport.MaxDepth = 1.0f;
+
+	mViewport.Width = mRes;
+	mViewport.Height = mRes;
+
 	mDeviceContext->RSSetViewports(1, &mViewport);
 }
 
@@ -113,15 +118,10 @@ void Voxelizer::BuildFX()
 
  	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
  	
-	//light
-	mfxPointLight = mFX->GetVariableByName("gPointLight");
-	mfxMat = mFX->GetVariableByName("gMat");
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
 
 	//set value
 	mfxDim->SetInt(mRes);
-	mfxVoxelOffset->SetFloatVector((float *)&mVoxelOffset);
-	mfxVoxelSize->SetFloat(mVoxelSize);
 }
 
 void Voxelizer::BuildVertexLayout()
@@ -274,11 +274,6 @@ ID3D11ShaderResourceView* Voxelizer::GetSRV()
 float Voxelizer::GetRes()
 {
 	return mRes;
-}
-
-float Voxelizer::GetvoxelSize()
-{
-	return mVoxelSize;
 }
 
 DirectX::XMMATRIX Voxelizer::GetProjMatrix()

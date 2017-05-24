@@ -11,8 +11,6 @@
 #include "Voxelization/Voxelizer.h"
 #include "Voxelization/Visualizer.h"
 #include "ConeTracing/ConeTracer.h"
-#include "Util/myShapeLibrary.h"
-#include "Core//ComputeShader.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -23,10 +21,9 @@ public:
 	bool Init();
 	void OnResize();
 	void UpdateScene(float dt);
-	void DrawScene();
 	void resetOMTargetsAndViewport();
+	void DrawScene();
 
-	//control
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);
@@ -36,10 +33,6 @@ private:
 	void ControlCamera(float dt, float speed);
 
 	void Initvoxel(float res);
-
-	DirectX::XMFLOAT3 GetVoxelOffset(DirectX::BoundingBox AABB);
-	float GetVoxelSize(DirectX::BoundingBox AABB, float res);
-
 	void Clear();
 private:
 
@@ -61,15 +54,19 @@ private:
 	POINT mLastMousePos;
 
 	//voxel attribute
-	float mRes;
+	float mVoxelSize;
+	bool mVoxelFlag;
 
-	//util object
+	//main object to load shader
 	Voxelizer mVoxelizer;
 	Visualizer mVisualizer;
 	ConeTracer mConeTracer;
 
+	//camera
 	Camera mCam;
 
-	myShapeLibrary mshape_box;
-	myShapeLibrary mshape_bunny;
+	//model
+	myShapeLibrary m_model_box;
+	myShapeLibrary m_model_bunny;
+
 };

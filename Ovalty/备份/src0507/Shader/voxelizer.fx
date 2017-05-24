@@ -1,5 +1,6 @@
 #include "common_tools.fx"
 #include "brdf_tools.fx"
+#include "compute.fx"
 
 //-----------------------
 //constant buffer
@@ -169,7 +170,7 @@ float4 PS(PS_IN pin) : SV_Target
 		setMatCornellBox(pin.ID,mat);
 
 		PointLightBRDF light[LIGHT_NUM];
-		setPointLightBRDF(light[0],light[1],gTime);
+		setPointLight(light[0],light[1],gTime);
 
 		float3 V=normalize(gEyePosW - pin.posW.xyz);
 		float3 N=normalize(pin.normW);
@@ -182,7 +183,7 @@ float4 PS(PS_IN pin) : SV_Target
 			litColor += DirectLighting(N, H, lightVec, V, L, light[i], mat);
 			
 			float3 light_visualize=world_to_svo(light[i].position,gVoxelSize,gVoxelOffset);
-			gUAVColor[light_visualize] = float4(0.0,0.0,0.0,0.0);
+			gUAVColor[light_visualize] = float4(0.0,1.0,0.0,0.0);
 		}
 
 		//tonemapping
@@ -191,10 +192,10 @@ float4 PS(PS_IN pin) : SV_Target
 		gUAVColor[pin.svoPos] = float4(litColor, 1.0f);
 
 		//to make it easier to check the result.
-		return float4(0,0,0,0);
+		return float4(0,0,0,1);
 	}
 
-	else return float4(0,1,0, 0);
+	else return float4(1,1,1, 0);
 }
 
 technique11 VoxelizerTech

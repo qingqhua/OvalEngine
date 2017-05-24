@@ -28,7 +28,7 @@ myDirectX11::myDirectX11(HINSTANCE hInstance)
 	mfxLight(0), mfxMat(0),
 	mfxTextureSRV(0), mDiffuseMapSRV(0)
 {
-	mMainWndCaption = L"Oval-Engine";
+	mMainWndCaption = L"box demo";
 
 	mLastMousePos.x = 0;
 	mLastMousePos.y = 0;
@@ -47,21 +47,21 @@ bool myDirectX11::Init()
 
 	//init world matrix
 	mWorld = XMMatrixIdentity();
-	//mWorld = XMMatrixMultiply(XMMatrixScaling(0.1, 0.1,0.1),XMMatrixIdentity());
 	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
-	//model init
-	mshape_box.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
+	//load model
+	m_model_box.Init(md3dDevice, "data/Model/CornellBox.obj", "data/Model/");
 
-	mRes = 128.0f;
-	Initvoxel(mRes);
+	//m_model_bunny.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
+
+	Initvoxel(128.0f);
 
 	return true;
 }
 
 void myDirectX11::OnResize()
 {
-	D3DApp::OnResize(); 
+	D3DApp::OnResize();
 
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
 	mCam.SetLens(0.25f*myMathLibrary::Pi, AspectRatio(), 1.0f, 1000.0f);
@@ -69,38 +69,55 @@ void myDirectX11::OnResize()
 
 void myDirectX11::UpdateScene(float dt)
 {
-	ControlCamera(dt,2.0f);
+	ControlCamera(dt,5.0f);
 	mCam.UpdateViewMatrix();
 }
 
 
 void myDirectX11::DrawScene()
 {
+
 	//clear buffer to begin scene
 	Clear();
 
 	//render model
-	mshape_box.Render(md3dImmediateContext);
+	m_model_box.Render(md3dImmediateContext);
+
 	//-----------------------
 	//voxelize
 	//---------------------
-	//mVoxelizer.ResetViewPort();
-	mVoxelizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
-	mVoxelizer.Render(mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
-	resetOMTargetsAndViewport();
+	mVoxelizer.resetOMTargetsAndViewport();
+ 	mVoxelizer.SetMatrix(&mWorld,&mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
+	mVoxelizer.Render( mTimer.TotalTime(), m_model_box.GetIndexCount());
+ 	resetOMTargetsAndViewport();
+ 		
+	//-----------------------
+	//render visualizer
+	//---------------------
+	mVisualizer.Render(mVoxelizer.GetSRV(), &mCam.View(), &mCam.Proj(),&mWorld, &mWorldInversTrans);
+	
+	//-----------------------
+	//render cone tracing
+	//---------------------
+ 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+ 	mConeTracer.Render( mVoxelizer.GetSRV(), mTimer.TotalTime(),m_model_box.GetIndexCount());
 
+	//m_model_bunny.Render(md3dImmediateContext);
+
+	//-----------------------
+	//voxelize
+	//---------------------
+	//mVoxelizer.Render(mTimer.TotalTime(), m_model_bunny.GetIndexCount());
 
 	//-----------------------
 	//render visualizer
 	//---------------------
-	mVisualizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj());
-	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
+	//mVisualizer.Render(mVoxelizer.GetSRV(), &mCam.View(), &mCam.Proj(), &mWorld, &mWorldInversTrans);
 
 	//-----------------------
 	//render cone tracing
 	//---------------------
-	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
-	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
+	//mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), m_model_bunny.GetIndexCount());
 
  	HR(mSwapChain->Present(0, 0));
 }
@@ -170,38 +187,26 @@ void myDirectX11::ControlCamera(float dt,float speed)
 
 void myDirectX11::Initvoxel(float res)
 {
+	//build voxelizer
+	float voxelRes = res;
 
-	mVoxelizer.Init(md3dDevice, md3dImmediateContext,res);
-
-	mVisualizer.Init(md3dDevice, md3dImmediateContext,res);
-
-	mConeTracer.Init(md3dDevice, md3dImmediateContext,res);
-}
-
-
-
-DirectX::XMFLOAT3 myDirectX11::GetVoxelOffset(DirectX::BoundingBox AABB)
-{
-	//the vector from min corner to center 
-	XMFLOAT3 offset = myMathLibrary::sub(AABB.Center, AABB.Extents);
-
-	//minus -1 to transfom model min corner to zero
-	offset = myMathLibrary::multiply(-1.0f, offset);
-
-	return offset;
-}
-
-
-
-float myDirectX11::GetVoxelSize(DirectX::BoundingBox AABB,float res)
-{
 	//2*extent/res
-	XMFLOAT3 voxelRealSize = myMathLibrary::multiply(2.0f*(1.0f / res), AABB.Extents);
-
+	XMFLOAT3 voxelRealSize = myMathLibrary::multiply(2.0f*(1.0f / voxelRes), m_model_box.GetAABB().Extents);
 	// Find the maximum component of a voxel.
 	float maxVoxelSize = max(voxelRealSize.z, max(voxelRealSize.x, voxelRealSize.y));
 
-	return maxVoxelSize;
+	//the vector from min corner to center 
+	XMFLOAT3 offset = myMathLibrary::sub(m_model_box.GetAABB().Center, m_model_box.GetAABB().Extents);
+
+	//minus -1 to transfom model min corner to zero
+	offset = myMathLibrary::multiply(-1.0f, offset);
+	
+	mVoxelizer.Init(md3dDevice, md3dImmediateContext, voxelRes, maxVoxelSize, offset);
+
+	mVisualizer.Init(md3dDevice, md3dImmediateContext, mVoxelizer.GetRes(), mVoxelizer.GetvoxelSize(), offset);
+	mConeTracer.Init(md3dDevice, md3dImmediateContext,mVoxelizer.GetRes(), mVoxelizer.GetvoxelSize(), offset);
+
+	//compute_shader.Init(md3dDevice, md3dImmediateContext, mVoxelizer.Res(), mVoxelizer.voxelSize(), offset);
 }
 
 void myDirectX11::Clear()
