@@ -8,6 +8,7 @@
 #include "d3dUtil.h"
 #include <Util/GameTimer.h>
 #include <string>
+#include "3rdParty/AntTweakBar.h"
 
 class D3DApp
 {

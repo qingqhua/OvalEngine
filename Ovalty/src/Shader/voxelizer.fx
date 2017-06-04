@@ -13,6 +13,7 @@ cbuffer cbPerFrame : register(b0)
 	float3 gVoxelOffset;
 	float3 gEyePosW;
 	float gTime;
+	int gMODE;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -163,7 +164,7 @@ float4 PS(PS_IN pin) : SV_Target
 	float4 diffuse, spec;
 
 	// Store voxels which are inside voxel-space boundary.
-	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim) )
+	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim))
 	{	
 		MaterialBRDF mat;
 		setMatCornellBox(pin.ID,mat);
@@ -191,7 +192,7 @@ float4 PS(PS_IN pin) : SV_Target
 		gUAVColor[pin.svoPos] = float4(litColor, 1.0f);
 
 		//to make it easier to check the result.
-		return float4(0,0,0,0);
+		return float4(0, 1, 1, 0);
 	}
 
 	else return float4(0,1,0, 0);

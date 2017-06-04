@@ -69,8 +69,8 @@
     <ClCompile Include="main_thread.cpp">
       <Filter>SourceFile</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\ComputeShader.cpp">
-      <Filter>Core</Filter>
+    <ClCompile Include="src\Util\myGUILibrary.cpp">
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,8 +128,8 @@
     <ClInclude Include="main_thread.h">
       <Filter>SourceFile</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\ComputeShader.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="src\Util\myGUILibrary.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -59,6 +59,13 @@ void Voxelizer::Render(float totalTime, int indexcount, float voxelsize, DirectX
 	mDeviceContext->DrawIndexed(indexcount, 0, 0);
 }
 
+void Voxelizer::updateGUICB(int MODE,float res)
+{
+	mfxMODE->SetInt(MODE);
+
+	mfxDim->SetInt(mRes);
+}
+
 void Voxelizer::resetOMTargetsAndViewport()
 {
 	mDeviceContext->OMSetRenderTargets(1, &mRenderTargetView, mdepthStencilView);
@@ -120,8 +127,7 @@ void Voxelizer::BuildFX()
  	
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
 
-	//set value
-	mfxDim->SetInt(mRes);
+	mfxMODE = mFX->GetVariableByName("gMODE")->AsScalar();
 }
 
 void Voxelizer::BuildVertexLayout()
@@ -228,8 +234,8 @@ void Voxelizer::BuildRenderTarget()
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
 	// Set up the description of the depth buffer.
-	depthBufferDesc.Width = mWidth;
-	depthBufferDesc.Height = mHeight;
+	depthBufferDesc.Width = (UINT)mWidth;
+	depthBufferDesc.Height = (UINT)mHeight;
 	depthBufferDesc.MipLevels = 1;
 	depthBufferDesc.ArraySize = 1;
 	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;

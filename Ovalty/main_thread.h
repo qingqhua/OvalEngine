@@ -12,7 +12,7 @@
 #include "Voxelization/Visualizer.h"
 #include "ConeTracing/ConeTracer.h"
 #include "Util/myShapeLibrary.h"
-#include "Core//ComputeShader.h"
+#include "Util/myGUILibrary.h"
 
 class myDirectX11 : public D3DApp
 {
@@ -36,6 +36,8 @@ private:
 	void ControlCamera(float dt, float speed);
 
 	void Initvoxel(float res);
+
+	void InitGUI();
 
 	DirectX::XMFLOAT3 GetVoxelOffset(DirectX::BoundingBox AABB);
 	float GetVoxelSize(DirectX::BoundingBox AABB, float res);
@@ -62,6 +64,11 @@ private:
 
 	//voxel attribute
 	float mRes;
+	int MODE;
+	bool OVER;
+
+	//tool bar attribute
+	DirectX::XMFLOAT4 mbackColor;
 
 	//util object
 	Voxelizer mVoxelizer;
@@ -72,4 +79,5 @@ private:
 
 	myShapeLibrary mshape_box;
 	myShapeLibrary mshape_bunny;
+	myGUILibrary mGUI;
 };

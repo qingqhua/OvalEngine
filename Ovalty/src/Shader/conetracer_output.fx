@@ -14,6 +14,7 @@ cbuffer cbPerFrame : register(b0)
 	float3 gVoxelOffset;
 	float gVoxelSize;
 	float gTime;
+	int gMODE;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -199,36 +200,97 @@ VS_OUT VS(VS_IN vin)
 }
 
 //----------------------------
-//PIXEL SHADER
+//MODE 1 : VOXELIZATION VISUALIZE
 //-------------------------
-float4 PS(VS_OUT pin) : SV_Target
+float4 PS_Direct(VS_OUT pin) : SV_Target
 {
-	float3 N=normalize(pin.normW);
-	float3 V=normalize(gEyePosW-pin.posW.xyz);
-	float4 directlighting=0.0f;
-	float4 shadow=0.0f;
+	float3 N = normalize(pin.normW);
+	float3 V = normalize(gEyePosW - pin.posW.xyz);
+	float4 directlighting = 0.0f;
+	float4 shadow = 0.0f;
+	float4 indirectlighting = 0.0f;
 
 	MaterialBRDF mat;
-	setMatCornellBox(pin.ID,mat);
+	setMatCornellBox(pin.ID, mat);
 
 	PointLightBRDF light[LIGHT_NUM];
-	setPointLightBRDF(light[0],light[1],gTime);
+	setPointLightBRDF(light[0], light[1], gTime);
 
 	for(uint i=0;i<LIGHT_NUM;i++)
 	{
-		float3 lightVec=light[i].position-pin.posW.xyz;
-		float3 L= normalize(lightVec);
-		float3 H=normalize(V+L);
+		float3 lightVec = light[i].position - pin.posW.xyz;
+		float3 L = normalize(lightVec);
+		float3 H = normalize(V + L);
 
-		directlighting += DirectLighting(N, H, lightVec, V, L,light[i],mat);
+		directlighting += DirectLighting(N, H, lightVec, V, L, light[i], mat);
+	}
+
+	return directlighting;
+}
+
+
+//----------------------------
+//MODE 2 : GLOBAL ILLUMINATION
+//-------------------------
+float4 PS_GI(VS_OUT pin) : SV_Target
+{
+	float3 N = normalize(pin.normW);
+	float3 V = normalize(gEyePosW - pin.posW.xyz);
+	float4 directlighting = 0.0f;
+	float4 shadow = 0.0f;
+	float4 indirectlighting = 0.0f;
+
+	MaterialBRDF mat;
+	setMatCornellBox(pin.ID, mat);
+
+	PointLightBRDF light[LIGHT_NUM];
+	setPointLightBRDF(light[0], light[1], gTime);
+
+	for (uint i = 0; i<LIGHT_NUM; i++)
+	{
+		float3 lightVec = light[i].position - pin.posW.xyz;
+		float3 L = normalize(lightVec);
+		float3 H = normalize(V + L);
+
+		directlighting += DirectLighting(N, H, lightVec, V, L, light[i], mat);
 	}
 
 	float3 offset = N *gVoxelSize*1.414 * 2;
 
-	float4 indirectlighting=IndirectLighting(N,V,pin.posW,mat);
-	shadow = ShadowConeTracing(normalize(light[0].position - pin.posW.xyz), pin.posW.xyz+offset,light[0].position , 2.0f / 1.732f, indirectlighting);
-	
-	return (directlighting*shadow+ indirectlighting);
+	indirectlighting = IndirectLighting(N, V, pin.posW, mat);
+	shadow = ShadowConeTracing(normalize(light[0].position - pin.posW.xyz), pin.posW.xyz + offset, light[0].position, 2.0f / 1.732f, indirectlighting);
+	return (directlighting*shadow + indirectlighting);
+}
+
+//----------------------------
+//CARTOON SHADING
+//-------------------------
+float4 PS_Car(VS_OUT pin) : SV_Target
+{
+	float3 N = normalize(pin.normW);
+
+	PointLightBRDF light[LIGHT_NUM];
+	setPointLightBRDF(light[0], light[1], gTime);
+
+	float3 L = normalize(light[1].position - pin.posW.xyz);
+
+	float diffuse = dot(L, N);
+
+	if (diffuse > 0.8) {
+		diffuse = 1.0;
+	}
+	else if (diffuse > 0.5) {
+		diffuse = 0.6;
+	}
+	else if (diffuse > 0.2) {
+		diffuse = 0.4;
+	}
+	else {
+		diffuse = 0.2;
+	}
+
+	float3 col = gTexture.Sample(SVOFilter, pin.tex).xyz;
+	return float4( col * diffuse, 1.0);
 }
 
 RasterizerState SolidRS
@@ -240,11 +302,26 @@ RasterizerState SolidRS
 
 technique11 ConeTracingTech
 {
+	pass DirectLightingPass
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_Direct()));
+		SetRasterizerState(SolidRS);
+	}
 	pass ConeTracingPass
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PS()));
+		SetPixelShader(CompileShader(ps_5_0, PS_GI()));
+		SetRasterizerState(SolidRS);
+	}
+
+	pass CartoonShadingPass
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_Car()));
 		SetRasterizerState(SolidRS);
 	}
 }

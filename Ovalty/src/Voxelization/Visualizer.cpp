@@ -46,6 +46,13 @@ void Visualizer::Render(ID3D11ShaderResourceView* voxelList, float voxelsize, Di
 	mDeviceContext->Draw(voxelNum,0);
 }
 
+void Visualizer::updateGUICB(int MODE, float res)
+{
+	mfxMODE->SetInt(MODE);
+
+	mfxDim->SetInt(mRes);
+}
+
 void Visualizer::BuildFX()
 {
 	//compile shader
@@ -72,5 +79,5 @@ void Visualizer::BuildFX()
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
-	mfxDim->SetFloat((float)(mRes));
+	mfxMODE = mFX->GetVariableByName("gMODE")->AsScalar();
 }

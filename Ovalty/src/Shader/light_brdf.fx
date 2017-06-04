@@ -18,7 +18,7 @@ void setPointLightBRDF(out PointLightBRDF L1,out PointLightBRDF L2, float t)
 	L1.color=float3(1.0f, 1.0f, 1.0f);
 	L1.intensity=1.0f;
 
-	L2.position=float3(-0.0f, 100.8f, 0.0f);
+	L2.position=float3(2.0f, 2.8f, -3.0f);
 	L2.color=float3(1.0f, 1.0f, 1.0f);
 	L2.intensity=1.0f;
 }

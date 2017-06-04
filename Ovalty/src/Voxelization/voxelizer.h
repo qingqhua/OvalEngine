@@ -21,6 +21,7 @@ public:
 	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos);
 
 	void Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
+	void updateGUICB(int MODE, float res);
 	void resetOMTargetsAndViewport();
 	void ResetViewPort();
 
@@ -38,6 +39,7 @@ private:
 	void BuildTexture();
 
 	void BuildRenderTarget();
+
 private:
 
 	//input var
@@ -61,9 +63,13 @@ private:
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
+
 	ID3DX11EffectScalarVariable* mfxTime;
 
 	ID3DX11EffectVectorVariable* mfxEyePos;
+
+	//gui attribute 
+	ID3DX11EffectScalarVariable* mfxMODE;
 
 	DirectX::XMFLOAT3 mEyePos;
 

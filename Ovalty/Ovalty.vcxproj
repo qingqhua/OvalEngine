@@ -163,7 +163,6 @@
     <ClCompile Include="src\3rdParty\DDSTextureLoader.cpp" />
     <ClCompile Include="src\3rdParty\tiny_obj_loader.cc" />
     <ClCompile Include="src\ConeTracing\ConeTracer.cpp" />
-    <ClCompile Include="src\Core\ComputeShader.cpp" />
     <ClCompile Include="src\Core\d3dApp.cpp" />
     <ClCompile Include="src\Core\d3dUtil.cpp" />
     <ClCompile Include="src\Core\dxerr.cpp" />
@@ -171,6 +170,7 @@
     <ClCompile Include="src\Octree\OctreeNode.cpp" />
     <ClCompile Include="src\Util\Camera.cpp" />
     <ClCompile Include="src\Util\GameTimer.cpp" />
+    <ClCompile Include="src\Util\myGUILibrary.cpp" />
     <ClCompile Include="src\Util\myMathLibrary.cpp" />
     <ClCompile Include="src\Util\myShapeLibrary.cpp" />
     <ClCompile Include="src\Voxelization\Visualizer.cpp" />
@@ -181,7 +181,6 @@
     <ClInclude Include="src\3rdParty\DDSTextureLoader.h" />
     <ClInclude Include="src\3rdParty\tiny_obj_loader.h" />
     <ClInclude Include="src\ConeTracing\ConeTracer.h" />
-    <ClInclude Include="src\Core\ComputeShader.h" />
     <ClInclude Include="src\Core\d3dApp.h" />
     <ClInclude Include="src\Core\d3dUtil.h" />
     <ClInclude Include="src\Core\d3dx11effect.h" />
@@ -191,6 +190,7 @@
     <ClInclude Include="src\Octree\OctreeNode.h" />
     <ClInclude Include="src\Util\Camera.h" />
     <ClInclude Include="src\Util\GameTimer.h" />
+    <ClInclude Include="src\Util\myGUILibrary.h" />
     <ClInclude Include="src\Util\myLightLibrary.h" />
     <ClInclude Include="src\Util\myMathLibrary.h" />
     <ClInclude Include="src\Util\myShapeLibrary.h" />

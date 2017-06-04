@@ -13,6 +13,7 @@ public:
 	void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res);
 	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj);
 	void Render(ID3D11ShaderResourceView* voxelList, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
+	void updateGUICB(int MODE, float res);
 private:
 	void BuildFX();
 
@@ -32,6 +33,7 @@ private:
 	ID3DX11EffectMatrixVariable* mfxWorld;
 	ID3DX11EffectMatrixVariable* mfxWorldInverTrans;
 
+	ID3DX11EffectScalarVariable* mfxMODE;
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectScalarVariable* mfxDim;

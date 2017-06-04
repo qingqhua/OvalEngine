@@ -9,6 +9,7 @@ cbuffer cbPerFrame : register(b0)
 	float gVoxelSize;
 	float3 gVoxelOffset;
 	float gDim;
+	int gMODE;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -132,7 +133,6 @@ VS_OUT VS(VS_IN vin)
 		output.isvoxel = 0;
 
 	output.posL =svo_to_world(pos,gVoxelSize,gVoxelOffset);
-	output.posL.x +=3.1f;
 
 	output.normW=gVoxelList[pos].xyz;
 
@@ -147,7 +147,9 @@ VS_OUT VS(VS_IN vin)
 [maxvertexcount(24)]
 void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 {
-		if(gin[0].isvoxel){
+	//MODE 0 : VOXELIZATION VISUALIZE
+	if(gMODE==0)
+	if (gin[0].isvoxel) {
 			// Generate vertexes for six faces.
 			for (int i = 0; i < 6; i++)
 			{

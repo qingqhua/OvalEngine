@@ -47,14 +47,20 @@ bool myDirectX11::Init()
 
 	//init world matrix
 	mWorld = XMMatrixIdentity();
-	//mWorld = XMMatrixMultiply(XMMatrixScaling(0.1, 0.1,0.1),XMMatrixIdentity());
+	//mWorld = XMMatrixMultiply(XMMatrixScaling(0.01, 0.01,0.01),XMMatrixIdentity());
 	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
+	OVER = false;
 	//model init
 	mshape_box.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
 
 	mRes = 128.0f;
+	mbackColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	MODE = 1;
+
 	Initvoxel(mRes);
+
+	InitGUI();
 
 	return true;
 }
@@ -78,7 +84,7 @@ void myDirectX11::DrawScene()
 {
 	//clear buffer to begin scene
 	Clear();
-
+		
 	//render model
 	mshape_box.Render(md3dImmediateContext);
 	//-----------------------
@@ -86,21 +92,25 @@ void myDirectX11::DrawScene()
 	//---------------------
 	//mVoxelizer.ResetViewPort();
 	mVoxelizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
+	mVoxelizer.updateGUICB(MODE,mRes);
 	mVoxelizer.Render(mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
 	resetOMTargetsAndViewport();
-
+	Clear();
 
 	//-----------------------
 	//render visualizer
 	//---------------------
 	mVisualizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj());
+	mVisualizer.updateGUICB(MODE, mRes);	
 	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
-
-	//-----------------------
+	//---------------------
 	//render cone tracing
 	//---------------------
 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
+	mConeTracer.updateGUICB(MODE, mRes);
 	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
+	// Draw tweak bars
+	TwDraw();
 
  	HR(mSwapChain->Present(0, 0));
 }
@@ -178,7 +188,10 @@ void myDirectX11::Initvoxel(float res)
 	mConeTracer.Init(md3dDevice, md3dImmediateContext,res);
 }
 
-
+void myDirectX11::InitGUI()
+{
+	mGUI.Init(mhMainWnd, md3dDevice, mClientWidth, mClientHeight, &mbackColor,&MODE);
+}
 
 DirectX::XMFLOAT3 myDirectX11::GetVoxelOffset(DirectX::BoundingBox AABB)
 {
@@ -190,8 +203,6 @@ DirectX::XMFLOAT3 myDirectX11::GetVoxelOffset(DirectX::BoundingBox AABB)
 
 	return offset;
 }
-
-
 
 float myDirectX11::GetVoxelSize(DirectX::BoundingBox AABB,float res)
 {
@@ -206,7 +217,7 @@ float myDirectX11::GetVoxelSize(DirectX::BoundingBox AABB,float res)
 
 void myDirectX11::Clear()
 {
-	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
+	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&mbackColor));
 	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 

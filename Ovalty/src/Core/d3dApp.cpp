@@ -199,8 +199,14 @@ void D3DApp::OnResize()
  
 LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if (TwEventWin(hwnd, msg, wParam, lParam))
+		return 0; // Event has been handled by AntTweakBar
+
 	switch( msg )
 	{
+	case WM_DROPFILES:
+		PostQuitMessage(0);
+		return 0;
 	// WM_ACTIVATE is sent when the window is activated or deactivated.  
 	// We pause the game when the window is deactivated and unpause it 
 	// when it becomes active.  
@@ -320,6 +326,8 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
+
+
 	}
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);

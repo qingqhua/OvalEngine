@@ -48,9 +48,23 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,in
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 
-	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
+	if(mMODE == 1)
+		mTech->GetPassByName("DirectLightingPass")->Apply(0, mDeviceContext);
+	else if (mMODE == 2)
+		mTech->GetPassByName("ConeTracingPass")->Apply(0, mDeviceContext);
+	else if (mMODE == 3)
+		mTech->GetPassByName("CartoonShadingPass")->Apply(0, mDeviceContext);
 
 	mDeviceContext->DrawIndexed(indexcount, 0, 0);
+}
+
+void ConeTracer::updateGUICB(int MODE, float res)
+{
+	mfxMODE->SetInt(MODE);
+
+	mfxDim->SetInt(mRes);
+
+	mMODE = MODE;
 }
 
 void ConeTracer::BuildFX()
@@ -86,12 +100,11 @@ void ConeTracer::BuildFX()
 
 	mfxTime = mFX->GetVariableByName("gTime")->AsScalar();
 
-	//set resolution
-	mfxDim->SetFloat((float)(mRes));
+	mfxMODE = mFX->GetVariableByName("gMODE")->AsScalar();
 
 	// Set a texture for voxels.
 	ID3D11ShaderResourceView* edgeTexRV;
-	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/WoodCrate.dds", nullptr, &edgeTexRV));
+	HR(CreateDDSTextureFromFile(md3dDevice, L"data/Texture/skin.dds", nullptr, &edgeTexRV));
 	mfxEdgeTex->SetResource(edgeTexRV);
 }
 

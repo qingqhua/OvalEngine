@@ -13,6 +13,7 @@ public:
 	void Init(ID3D11Device* idevice, ID3D11DeviceContext* ideviceContext, float res);
 	void SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMATRIX * iWorldInverTrans, const DirectX::XMMATRIX* iView, const DirectX::XMMATRIX * iProj, const DirectX::XMFLOAT3 icamPos);
 	void Render(ID3D11ShaderResourceView* iVoxelList, float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
+	void updateGUICB(int MODE, float res);
 private:
 	void BuildFX();
 	void BuildVertexLayout();
@@ -44,6 +45,7 @@ private:
 	ID3DX11EffectScalarVariable* mfxDim;
 
 	ID3DX11EffectScalarVariable* mfxTime;
+	ID3DX11EffectScalarVariable* mfxMODE;
 
 	//buffer
 	ID3D11InputLayout* mInputLayout;
@@ -54,6 +56,7 @@ private:
 
 	DirectX::XMFLOAT3 mEyePos;
 	float mRes;
+	int mMODE;
 };
 
 #endif // Cone_Tracer_H
