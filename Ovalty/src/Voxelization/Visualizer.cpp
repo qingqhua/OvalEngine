@@ -42,7 +42,7 @@ void Visualizer::Render(ID3D11ShaderResourceView* voxelList, float voxelsize, Di
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	
  	mTech->GetPassByIndex(0)->Apply(0, mDeviceContext);
- 	int voxelNum = mRes*mRes*mRes;
+ 	int voxelNum = (int)mRes*mRes*mRes;
 	mDeviceContext->Draw(voxelNum,0);
 }
 
@@ -50,7 +50,7 @@ void Visualizer::updateGUICB(int MODE, float res)
 {
 	mfxMODE->SetInt(MODE);
 
-	mfxDim->SetInt(mRes);
+	mfxDim->SetInt((INT)mRes);
 }
 
 void Visualizer::BuildFX()

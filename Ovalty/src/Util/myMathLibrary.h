@@ -39,6 +39,7 @@ public:
 	{
 		return DirectX::XMFLOAT3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 	}
+
 	static DirectX::XMFLOAT3 myMathLibrary::multiply(float f, DirectX::XMFLOAT3 v)
 	{
 		return DirectX::XMFLOAT3(f*v.x,f*v.y,f*v.z);

@@ -73,6 +73,7 @@ void setMatGold(out MaterialLocal M)
 void setMatCornellBox(int id,out MaterialLocal mat)
 {
 	int bunny_index = 14934;
+
 	if (id < bunny_index - 32)
 	{
 		setMatGold(mat);

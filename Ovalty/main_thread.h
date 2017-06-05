@@ -39,24 +39,14 @@ private:
 
 	void InitGUI();
 
+	void updateLightMat();
+
 	DirectX::XMFLOAT3 GetVoxelOffset(DirectX::BoundingBox AABB);
 	float GetVoxelSize(DirectX::BoundingBox AABB, float res);
 
 	void Clear();
+
 private:
-
-	//buffer
-	ID3D11Buffer* mBoxVB;
-	ID3D11Buffer* mBoxIB;
-
-	//light
-	ID3DX11EffectVariable* mfxLight;
-	ID3DX11EffectVariable* mfxMat;
-
-	//texture
-	ID3DX11EffectShaderResourceVariable* mfxTextureSRV;
-	ID3D11ShaderResourceView* mDiffuseMapSRV;
-
 	DirectX::XMMATRIX mWorld;
 	DirectX::XMMATRIX mWorldInversTrans;
 
@@ -65,19 +55,30 @@ private:
 	//voxel attribute
 	float mRes;
 	int MODE;
-	bool OVER;
 
-	//tool bar attribute
 	DirectX::XMFLOAT4 mbackColor;
 
-	//util object
+	//util object 
 	Voxelizer mVoxelizer;
 	Visualizer mVisualizer;
 	ConeTracer mConeTracer;
 
 	Camera mCam;
 
+	//light
+	MyLightLibrary::PointLightBRDF mLight;
+	DirectX::XMFLOAT4 lightGUIPos;
+	DirectX::XMFLOAT3 lightGUIAldebo;
+
+	//material
+	MyLightLibrary::MaterialBRDF mMat;
+	DirectX::XMFLOAT3 matGUIAldebo;
+	float matGUIRough;
+	float matGUIMetal;
+
 	myShapeLibrary mshape_box;
 	myShapeLibrary mshape_bunny;
 	myGUILibrary mGUI;
+
+	int kick;
 };

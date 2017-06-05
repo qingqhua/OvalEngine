@@ -30,7 +30,8 @@ void ConeTracer::SetMatrix(const DirectX::XMMATRIX* iWorld, const DirectX::XMMAT
 	mfxEyePos->SetFloatVector((float *)&icamPos);
 }
 
-void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
+void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset,
+						MyLightLibrary::PointLightBRDF L, MyLightLibrary::MaterialBRDF M)
 {
 	//update voxel
 	mfxVoxelList->SetResource(iVoxelList);
@@ -40,6 +41,10 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,in
 	//Update eyePos
 	mfxEyePos->SetRawValue(&mEyePos, 0, sizeof(mEyePos));
 
+	//update light&material
+	mfxPointLight->SetRawValue(&L, 0, sizeof(L));
+	mfxMat->SetRawValue(&M, 0, sizeof(M));
+
 	//update time
 	mfxTime->SetFloat((float)(totalTime));
 
@@ -48,6 +53,7 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,in
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 
+	//change mode
 	if(mMODE == 1)
 		mTech->GetPassByName("DirectLightingPass")->Apply(0, mDeviceContext);
 	else if (mMODE == 2)
@@ -62,7 +68,7 @@ void ConeTracer::updateGUICB(int MODE, float res)
 {
 	mfxMODE->SetInt(MODE);
 
-	mfxDim->SetInt(mRes);
+	mfxDim->SetInt((INT)mRes);
 
 	mMODE = MODE;
 }
@@ -91,6 +97,10 @@ void ConeTracer::BuildFX()
 
 	//set texture
 	mfxEdgeTex = mFX->GetVariableByName("gTexture")->AsShaderResource();
+
+	//set light&material
+	mfxPointLight=mFX->GetVariableByName("gPointLight");
+	mfxMat = mFX->GetVariableByName("gInterMat");
 
 	//voxel
 	mfxVoxelList = mFX->GetVariableByName("gVoxelList")->AsShaderResource();
@@ -124,4 +134,6 @@ void ConeTracer::BuildVertexLayout()
 	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &mInputLayout));
 }
+
+
 

@@ -8,12 +8,18 @@ cbuffer cbPerFrame : register(b0)
 {
 	float4x4 gView;
 	float4x4 gProj;
+
 	float gDim;
 	float gVoxelSize;
 	float3 gVoxelOffset;
+
 	float3 gEyePosW;
+
 	float gTime;
 	int gMODE;
+
+	PointLightBRDF gPointLight;
+	MaterialBRDF   gInterMat;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -167,24 +173,18 @@ float4 PS(PS_IN pin) : SV_Target
 	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim))
 	{	
 		MaterialBRDF mat;
-		setMatCornellBox(pin.ID,mat);
-
-		PointLightBRDF light[LIGHT_NUM];
-		setPointLightBRDF(light[0],light[1],gTime);
+		setMatBunnyGold(pin.ID, gInterMat, mat);
 
 		float3 V=normalize(gEyePosW - pin.posW.xyz);
 		float3 N=normalize(pin.normW);
 
-		for(uint i=0;i<LIGHT_NUM;i++)
-		{
-			float3 lightVec=light[i].position-pin.posW;
-			float3 L=normalize(light[i].position-pin.posW.xyz);
-			float3 H=normalize(V+L);
-			litColor += DirectLighting(N, H, lightVec, V, L, light[i], mat);
+		float3 lightVec= gPointLight.position.xyz-pin.posW.xyz;
+		float3 L=normalize(gPointLight.position.xyz-pin.posW.xyz);
+		float3 H=normalize(V+L);
+		litColor = DirectLighting(N, H, lightVec, V, L, gPointLight, mat);
 			
-			float3 light_visualize=world_to_svo(light[i].position,gVoxelSize,gVoxelOffset);
-			gUAVColor[light_visualize] = float4(0.0,0.0,0.0,0.0);
-		}
+		float3 light_visualize=world_to_svo(gPointLight.position.xyz,gVoxelSize,gVoxelOffset);
+		gUAVColor[light_visualize] = float4(0.0,0.0,0.0,0.0);
 
 		//tonemapping
 		litColor = ACESToneMapping(litColor.xyz, 1.0f);

@@ -85,7 +85,7 @@ float4 DirectLighting(float3 N, float3 H, float3 lightVec, float3 V, float3 L, P
 	float3 f0 = lerp(0.04, _mat.albedo, _mat.metallic);
 
 	float dist = length(lightVec);
-	float attenuation = _light.intensity / (dist * dist);
+	float attenuation = 1.0f / (dist * dist);
 	float3 radiance = _light.color * attenuation;
 
 	float3 kS = Schlick_Fresnel(f0, max(dot(H, V), 0.0));

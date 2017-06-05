@@ -20,7 +20,7 @@ public:
 	void Init(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float res);
 	void SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRIX * worldInverTrans, const DirectX::XMMATRIX* view, const DirectX::XMMATRIX * proj, const DirectX::XMFLOAT3 camPos);
 
-	void Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset);
+	void Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset, MyLightLibrary::PointLightBRDF L, MyLightLibrary::MaterialBRDF M);
 	void updateGUICB(int MODE, float res);
 	void resetOMTargetsAndViewport();
 	void ResetViewPort();
@@ -63,6 +63,9 @@ private:
 	ID3DX11EffectScalarVariable* mfxVoxelSize;
 	ID3DX11EffectVectorVariable* mfxVoxelOffset;
 	ID3DX11EffectUnorderedAccessViewVariable* mfxUAVColor;
+
+	ID3DX11EffectVariable* mfxPointLight;
+	ID3DX11EffectVariable* mfxMat;
 
 	ID3DX11EffectScalarVariable* mfxTime;
 

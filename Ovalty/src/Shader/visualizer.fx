@@ -134,9 +134,7 @@ VS_OUT VS(VS_IN vin)
 
 	output.posL =svo_to_world(pos,gVoxelSize,gVoxelOffset);
 
-	output.normW=gVoxelList[pos].xyz;
-
-	output.normW=gVoxelList.SampleLevel(SVOFilter, pos/gDim+0.5f/gDim ,0);
+	output.normW=gVoxelList.SampleLevel(SVOFilter, pos/gDim+0.5f/gDim ,0).xyz;
 
 	return output;
 }

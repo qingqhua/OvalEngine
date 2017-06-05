@@ -41,12 +41,17 @@ void Voxelizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATRI
 	mfxEyePos->SetFloatVector((float *)&camPos);
 }
 
-void Voxelizer::Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
+void Voxelizer::Render(float totalTime, int indexcount, float voxelsize, DirectX::XMFLOAT3 voxeloffset,
+						MyLightLibrary::PointLightBRDF L,MyLightLibrary::MaterialBRDF M)
 {
 	mDeviceContext->GenerateMips(mSRV);
 
 	mfxUAVColor->SetUnorderedAccessView(mUAV);
 	mfxTime->SetFloat(totalTime);
+
+	//update light&material
+	mfxPointLight->SetRawValue(&L, 0, sizeof(L));
+	mfxMat->SetRawValue(&M, 0, sizeof(M));
 
 	mfxVoxelOffset->SetFloatVector((float *)&voxeloffset);
 	mfxVoxelSize->SetFloat(voxelsize);
@@ -63,7 +68,7 @@ void Voxelizer::updateGUICB(int MODE,float res)
 {
 	mfxMODE->SetInt(MODE);
 
-	mfxDim->SetInt(mRes);
+	mfxDim->SetInt((INT)mRes);
 }
 
 void Voxelizer::resetOMTargetsAndViewport()
@@ -123,6 +128,10 @@ void Voxelizer::BuildFX()
 	mfxDim = mFX->GetVariableByName("gDim")->AsScalar();
 	mfxVoxelOffset = mFX->GetVariableByName("gVoxelOffset")->AsVector();
 
+	//set light
+	mfxPointLight = mFX->GetVariableByName("gPointLight");
+	mfxMat = mFX->GetVariableByName("gInterMat");
+
  	mfxUAVColor = mFX->GetVariableByName("gUAVColor")->AsUnorderedAccessView();
  	
 	mfxEyePos = mFX->GetVariableByName("gEyePosW")->AsVector();
@@ -150,10 +159,10 @@ void Voxelizer::BuildTexture()
 {
 	//SET TEXTURE DESC
 	D3D11_TEXTURE3D_DESC txDesc;
-	txDesc.Width = mWidth;
-	txDesc.Height = mHeight;
-	txDesc.Depth = mDepth;
-	txDesc.MipLevels = log2(mDepth);
+	txDesc.Width = (UINT)mWidth;
+	txDesc.Height = (UINT)mHeight;
+	txDesc.Depth = (UINT)mDepth;
+	txDesc.MipLevels = (UINT)log2(mDepth);
 	txDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	txDesc.Usage = D3D11_USAGE_DEFAULT;
 	txDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
@@ -169,7 +178,7 @@ void Voxelizer::BuildTexture()
 	UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
 	UAVDesc.Texture3D.FirstWSlice = 0;
 	UAVDesc.Texture3D.MipSlice = 0;
-	UAVDesc.Texture3D.WSize = mDepth;
+	UAVDesc.Texture3D.WSize = (UINT)mDepth;
 
 	//CREATE UAV
 	HR(md3dDevice->CreateUnorderedAccessView(mTex3D, &UAVDesc, &mUAV));
@@ -199,8 +208,8 @@ void Voxelizer::BuildRenderTarget()
 	ZeroMemory(&textureDesc, sizeof(textureDesc));
 
 	// Setup the render target texture description.
-	textureDesc.Width = mWidth;
-	textureDesc.Height = mHeight;
+	textureDesc.Width = (UINT)mWidth;
+	textureDesc.Height = (UINT)mHeight;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
