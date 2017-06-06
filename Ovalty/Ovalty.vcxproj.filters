@@ -131,6 +131,9 @@
     <ClInclude Include="src\Util\myGUILibrary.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="src\3rdParty\AntTweakBar.h">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Octree">

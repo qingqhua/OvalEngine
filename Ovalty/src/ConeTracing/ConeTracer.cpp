@@ -53,13 +53,15 @@ void ConeTracer::Render(ID3D11ShaderResourceView* iVoxelList, float totalTime,in
 
 	mDeviceContext->IASetInputLayout(mInputLayout);
 
-	//change mode
+	//mode 1:locallighting 2:global illumination 3:cartoon shading
 	if(mMODE == 1)
 		mTech->GetPassByName("DirectLightingPass")->Apply(0, mDeviceContext);
 	else if (mMODE == 2)
 		mTech->GetPassByName("ConeTracingPass")->Apply(0, mDeviceContext);
 	else if (mMODE == 3)
 		mTech->GetPassByName("CartoonShadingPass")->Apply(0, mDeviceContext);
+	else if (mMODE == 4)
+		mTech->GetPassByName("WireFramePass")->Apply(0, mDeviceContext);
 
 	mDeviceContext->DrawIndexed(indexcount, 0, 0);
 }

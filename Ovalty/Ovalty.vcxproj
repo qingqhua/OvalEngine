@@ -178,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main_thread.h" />
+    <ClInclude Include="src\3rdParty\AntTweakBar.h" />
     <ClInclude Include="src\3rdParty\DDSTextureLoader.h" />
     <ClInclude Include="src\3rdParty\tiny_obj_loader.h" />
     <ClInclude Include="src\ConeTracing\ConeTracer.h" />

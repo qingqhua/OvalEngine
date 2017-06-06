@@ -44,13 +44,10 @@ bool myDirectX11::Init()
 	mWorld = XMMatrixIdentity();
 	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
-	kick = 0;
 	//model init
-	mshape_box.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
+	mshape.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
 
 	mRes = 128.0f;
-	mbackColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	MODE = 0;
 
 	Initvoxel(mRes);
 
@@ -62,6 +59,8 @@ bool myDirectX11::Init()
 void myDirectX11::OnResize()
 {
 	D3DApp::OnResize(); 
+
+	mGUI.Resize(mClientWidth,mClientHeight);
 
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
 	mCam.SetLens(0.25f*myMathLibrary::Pi, AspectRatio(), 1.0f, 1000.0f);
@@ -75,21 +74,20 @@ void myDirectX11::UpdateScene(float dt)
 	updateLightMat();
 }
 
-
 void myDirectX11::DrawScene()
 {
 	//clear buffer to begin scene
 	Clear();
 		
 	//render model
-	mshape_box.Render(md3dImmediateContext);
+	mshape.Render(md3dImmediateContext);
 	//-----------------------
 	//voxelize
 	//---------------------
 	//mVoxelizer.ResetViewPort();
 	mVoxelizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
-	mVoxelizer.updateGUICB(MODE,mRes);
-	mVoxelizer.Render(mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()),mLight,mMat);
+	mVoxelizer.updateGUICB(mGUI.renderMode,mRes);
+	mVoxelizer.Render(mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()),mLight,mMat);
 	resetOMTargetsAndViewport();
 	Clear();
 
@@ -97,14 +95,15 @@ void myDirectX11::DrawScene()
 	//render visualizer
 	//---------------------
 	mVisualizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj());
-	mVisualizer.updateGUICB(MODE, mRes);	
-	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()));
+	mVisualizer.updateGUICB(mGUI.renderMode, mRes);
+	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()));
+
 	//---------------------
-	//render cone tracing
+	// render cone tracing
 	//---------------------
 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
-	mConeTracer.updateGUICB(MODE, mRes);
-	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape_box.GetIndexCount(), GetVoxelSize(mshape_box.GetAABB(), mRes), GetVoxelOffset(mshape_box.GetAABB()), mLight,mMat);
+	mConeTracer.updateGUICB(mGUI.renderMode, mRes);
+	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()), mLight,mMat);
 	// Draw tweak bars
 	TwDraw();
 
@@ -171,7 +170,8 @@ void myDirectX11::ControlCamera(float dt,float speed)
 		mCam.FlyVertical(speed*dt);
 	if (GetAsyncKeyState('E') & 0x8000)
 		mCam.FlyVertical(-speed*dt);
-		
+	if (GetAsyncKeyState('R') & 0x8000)
+		mGUI.Reset();
 }
 
 void myDirectX11::Initvoxel(float res)
@@ -186,26 +186,17 @@ void myDirectX11::Initvoxel(float res)
 
 void myDirectX11::InitGUI()
 {
-	//init light
-	lightGUIPos = XMFLOAT4(0.4f, 1.2f, -0.5f,1.0f);
-	lightGUIAldebo = XMFLOAT3(1.0f, 1.0f, 1.0f);
-
-	//init mat
-	matGUIAldebo = XMFLOAT3(1.0f, 241.0f / 256.0f, 0.0);
-	matGUIRough = 0.3f;
-	matGUIMetal = 0.3f;
-
-	mGUI.Init(mhMainWnd, md3dDevice, mClientWidth, mClientHeight, &mbackColor, &MODE, &lightGUIPos, &lightGUIAldebo,&matGUIAldebo,&matGUIRough,&matGUIMetal);
+	mGUI.Init(mhMainWnd, md3dDevice, mClientWidth, mClientHeight,&mshape);
 }
 
 void myDirectX11::updateLightMat()
 {
-	mLight.Position = XMFLOAT4(lightGUIPos.x + 0.5f*cosf(mTimer.TotalTime()), lightGUIPos.y, lightGUIPos.z + 0.5f*sinf(mTimer.TotalTime()),1.0f);
-	mLight.Color = lightGUIAldebo;
+	mLight.Position = XMFLOAT4(mGUI.lightPos.x + mGUI.lightRadius*cosf(mTimer.TotalTime()), mGUI.lightPos.y, mGUI.lightPos.z + mGUI.lightRadius*sinf(mTimer.TotalTime()),1.0f);
+	mLight.Color = mGUI.lightAlbedo;
 
-	mMat.albedo = matGUIAldebo;
-	mMat.roughness = matGUIRough;
-	mMat.metallic = matGUIMetal;
+	mMat.albedo = mGUI.matAlbedo;
+	mMat.roughness = mGUI.matRough;
+	mMat.metallic = mGUI.matMetal;
 }
 
 DirectX::XMFLOAT3 myDirectX11::GetVoxelOffset(DirectX::BoundingBox AABB)
@@ -232,7 +223,7 @@ float myDirectX11::GetVoxelSize(DirectX::BoundingBox AABB,float res)
 
 void myDirectX11::Clear()
 {
-	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&mbackColor));
+	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&mGUI.backColor));
 	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 

@@ -7,10 +7,28 @@
 class myGUILibrary
 {
 public:
+	enum    RenderMode { VOXELIZE = 0, LOCAL, GI, CARTOON,WIREFRAME };
+
+	RenderMode renderMode;
+
+	//light
+	DirectX::XMFLOAT3 lightAlbedo;
+	DirectX::XMFLOAT4 lightPos;
+	float lightRadius;
+
+	//material
+	DirectX::XMFLOAT3 matAlbedo;
+	float matRough;
+	float matMetal;
+
+	DirectX::XMFLOAT3 backColor;
+
 	myGUILibrary();
 	~myGUILibrary();
 
-	void Init(HWND _hwnd, ID3D11Device* _d3dDevice, float _screenwidth, float _screenheight, DirectX::XMFLOAT4 *backcolor, int *MODE, DirectX::XMFLOAT4 *lightpos, DirectX::XMFLOAT3 *lightAldebo, DirectX::XMFLOAT3 *matAldebo, float *matRough, float *matMetal);
+	void Init(HWND _hwnd, ID3D11Device* _d3dDevice, float _screenwidth, float _screenheight, myShapeLibrary* _shape);
+	void Resize(float _screenwidth, float _screenheight);
+	void Reset();
 private:
 
 };

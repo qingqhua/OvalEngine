@@ -7,7 +7,7 @@
 using namespace DirectX;
 
 Camera::Camera()
-	: mPosition(0.0f, 1.0f, -3.0f), 
+	: mPosition(-0.3f, 0.726f, -3.567f), 
 	  mRight(1.0f, 0.0f, 0.0f),
 	  mUp(0.0f, 1.0f, 0.0f),
 	  mLook(0.0f, 0.0f, 1.0f)

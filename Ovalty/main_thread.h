@@ -54,9 +54,6 @@ private:
 
 	//voxel attribute
 	float mRes;
-	int MODE;
-
-	DirectX::XMFLOAT4 mbackColor;
 
 	//util object 
 	Voxelizer mVoxelizer;
@@ -67,17 +64,11 @@ private:
 
 	//light
 	MyLightLibrary::PointLightBRDF mLight;
-	DirectX::XMFLOAT4 lightGUIPos;
-	DirectX::XMFLOAT3 lightGUIAldebo;
 
 	//material
 	MyLightLibrary::MaterialBRDF mMat;
-	DirectX::XMFLOAT3 matGUIAldebo;
-	float matGUIRough;
-	float matGUIMetal;
 
-	myShapeLibrary mshape_box;
-	myShapeLibrary mshape_bunny;
+	myShapeLibrary mshape;
 	myGUILibrary mGUI;
 
 	int kick;

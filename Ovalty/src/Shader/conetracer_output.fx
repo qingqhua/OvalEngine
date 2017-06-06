@@ -301,13 +301,21 @@ float4 PS_Car(VS_OUT pin) : SV_Target
 	MaterialBRDF mat;
 	setMatBunnyGold(pin.ID, gInterMat, mat);
 
-	float3 col = mat.albedo;
+	float3 col = mat.albedo*gPointLight.color;
+
 	return float4( col * diffuse, 1.0);
 }
 
 RasterizerState SolidRS
 {
 	FillMode = SOLID;
+	CullMode = NONE;
+	FrontCounterClockwise = false;
+};
+
+RasterizerState WireFrameRS
+{
+	FillMode = WIREFRAME;
 	CullMode = NONE;
 	FrontCounterClockwise = false;
 };
@@ -335,5 +343,13 @@ technique11 ConeTracingTech
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PS_Car()));
 		SetRasterizerState(SolidRS);
+	}
+
+	pass WireFramePass
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PS_Direct()));
+		SetRasterizerState(WireFrameRS);
 	}
 }
