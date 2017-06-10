@@ -84,7 +84,7 @@ void myGUILibrary::Reset()
 	lightAlbedo = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 	//init mat
-	matAlbedo = XMFLOAT3(1.0f, 241.0f / 256.0f, 0.0);
+	matAlbedo = XMFLOAT3(181.0/255.0f, 1.0f,164.0f/255.0f);
 	matRough = 0.3f;
 	matMetal = 0.3f;
 

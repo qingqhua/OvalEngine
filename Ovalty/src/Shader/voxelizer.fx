@@ -93,13 +93,9 @@ VS_OUT VS(VS_IN vin)
 	VS_OUT vout;
 
 	float3 posL=vin.posL;
-	if(vin.index>=3264&&vin.index<3300)
-	{
-		posL.y+=0.00001f;
-	}
-		
 
 	vout.posW=mul(float4(posL,1.0f),gWorld);
+
 	vout.normW=mul(float4(vin.normL,1.0f),gWorldInverTrans).xyz;
 	vout.ID=vin.index;
 	return vout;
@@ -172,17 +168,19 @@ float4 PS(PS_IN pin) : SV_Target
 	// Store voxels which are inside voxel-space boundary.
 	if (all(pin.svoPos>= 0) && all(pin.svoPos <= gDim))
 	{	
+
 		MaterialBRDF mat;
 		setMatBunnyGold(pin.ID, gInterMat, mat);
 
 		float3 V=normalize(gEyePosW - pin.posW.xyz);
 		float3 N=normalize(pin.normW);
 
-		float3 lightVec= gPointLight.position.xyz-pin.posW.xyz;
-		float3 L=normalize(gPointLight.position.xyz-pin.posW.xyz);
-		float3 H=normalize(V+L);
+		float3 lightVec = gPointLight.position.xyz - pin.posW.xyz;
+		//float3 lightVec = float3(0,1,1);
+		float3 L = normalize(lightVec);
+		float3 H = normalize(V + L);
 		litColor = DirectLighting(N, H, lightVec, V, L, gPointLight, mat);
-			
+
 		float3 light_visualize=world_to_svo(gPointLight.position.xyz,gVoxelSize,gVoxelOffset);
 		gUAVColor[light_visualize] = float4(0.0,0.0,0.0,0.0);
 

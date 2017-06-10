@@ -45,7 +45,7 @@ bool myDirectX11::Init()
 	mWorldInversTrans = myMathLibrary::InverseTranspose(mWorld);
 
 	//model init
-	mshape.Init(md3dDevice, "data/Model/bunny.obj", "data/Model/");
+	mshape.Init(md3dDevice, "data/Model/logobox.obj", "data/Model/");
 
 	mRes = 128.0f;
 
@@ -84,26 +84,27 @@ void myDirectX11::DrawScene()
 	//-----------------------
 	//voxelize
 	//---------------------
-	//mVoxelizer.ResetViewPort();
-	mVoxelizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
-	mVoxelizer.updateGUICB(mGUI.renderMode,mRes);
-	mVoxelizer.Render(mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()),mLight,mMat);
-	resetOMTargetsAndViewport();
-	Clear();
-
+		//mVoxelizer.ResetViewPort();
+		mVoxelizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mVoxelizer.GetProjMatrix(), mCam.GetPosition());
+		mVoxelizer.updateGUICB(mGUI.renderMode, mRes);
+		mVoxelizer.Render(mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()), mLight, mMat);
+		resetOMTargetsAndViewport();
+		Clear();
 	//-----------------------
 	//render visualizer
 	//---------------------
+		XMMATRIX w = XMMatrixRotationY(-mTimer.TotalTime());
 	mVisualizer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj());
 	mVisualizer.updateGUICB(mGUI.renderMode, mRes);
-	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()));
+	mVisualizer.Render(mVoxelizer.GetSRV(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()),mTimer.TotalTime());
 
 	//---------------------
 	// render cone tracing
 	//---------------------
 	mConeTracer.SetMatrix(&mWorld, &mWorldInversTrans, &mCam.View(), &mCam.Proj(), mCam.GetPosition());
 	mConeTracer.updateGUICB(mGUI.renderMode, mRes);
-	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()), mLight,mMat);
+	mConeTracer.Render(mVoxelizer.GetSRV(), mTimer.TotalTime(), mshape.GetIndexCount(), GetVoxelSize(mshape.GetAABB(), mRes), GetVoxelOffset(mshape.GetAABB()), mLight, mMat);
+
 	// Draw tweak bars
 	TwDraw();
 
@@ -191,7 +192,7 @@ void myDirectX11::InitGUI()
 
 void myDirectX11::updateLightMat()
 {
-	mLight.Position = XMFLOAT4(mGUI.lightPos.x + mGUI.lightRadius*cosf(mTimer.TotalTime()), mGUI.lightPos.y, mGUI.lightPos.z + mGUI.lightRadius*sinf(mTimer.TotalTime()),1.0f);
+	mLight.Position = XMFLOAT4(mGUI.lightPos.x + mGUI.lightRadius*cosf(mTimer.TotalTime()), mGUI.lightPos.y , mGUI.lightPos.z + mGUI.lightRadius*sinf(mTimer.TotalTime()),1.0f);
 	mLight.Color = mGUI.lightAlbedo;
 
 	mMat.albedo = mGUI.matAlbedo;

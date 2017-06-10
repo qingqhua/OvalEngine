@@ -30,8 +30,9 @@ void Visualizer::SetMatrix(const DirectX::XMMATRIX* world, const DirectX::XMMATR
 	mfxWorldInverTrans->SetMatrix((float*)(worldInverTrans));
 }
 
-void Visualizer::Render(ID3D11ShaderResourceView* voxelList, float voxelsize, DirectX::XMFLOAT3 voxeloffset)
+void Visualizer::Render(ID3D11ShaderResourceView* voxelList, float voxelsize, DirectX::XMFLOAT3 voxeloffset,float t)
 {
+	mfxTime->SetFloat(t);
 	//update data in "voxelizer.fx"
 	mfxVoxelList->SetResource(voxelList);
 
@@ -68,6 +69,8 @@ void Visualizer::BuildFX()
 
 	//get series of variable
 	mTech = mFX->GetTechniqueByName("VisualTech");
+
+	mfxTime=mFX->GetVariableByName("gTime")->AsScalar();
 
 	mfxView = mFX->GetVariableByName("gView")->AsMatrix();
 	mfxProj = mFX->GetVariableByName("gProj")->AsMatrix();

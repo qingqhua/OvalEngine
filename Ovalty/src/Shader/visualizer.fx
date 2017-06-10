@@ -10,6 +10,7 @@ cbuffer cbPerFrame : register(b0)
 	float3 gVoxelOffset;
 	float gDim;
 	int gMODE;
+	float gTime;
 };
 
 cbuffer cbPerObject : register(b1)
@@ -161,6 +162,7 @@ void GS(point VS_OUT gin[1],inout TriangleStream<PS_IN> triStream)
 					
 					 //matrix transform
 					output.pos = mul(float4(vertex, 1.0f), gWorld);
+
 					output.pos=mul(output.pos, gView);
 					output.pos = mul(output.pos, gProj);
 
